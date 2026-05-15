@@ -12,6 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      borderWidth: {
+        hairline: "0.5px",
+      },
     },
   },
   plugins: [],
