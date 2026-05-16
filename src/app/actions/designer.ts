@@ -47,3 +47,15 @@ export async function saveDesigner(
   revalidatePath("/designers");
   return {};
 }
+
+export async function deleteDesigner(
+  id: string
+): Promise<{ error?: string }> {
+  const supabase = createClient();
+  const { error } = await supabase.from("designers").delete().eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/designers");
+  return {};
+}
