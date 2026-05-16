@@ -35,6 +35,8 @@ export type Database = {
           block: CompetencyBlock;
           title: string;
           description: string;
+          expected_junior: number;
+          expected_middle: number;
           expected_senior: number;
           expected_lead: number;
         };
@@ -43,6 +45,8 @@ export type Database = {
           block: CompetencyBlock;
           title: string;
           description?: string;
+          expected_junior: number;
+          expected_middle: number;
           expected_senior: number;
           expected_lead: number;
         };
@@ -51,6 +55,8 @@ export type Database = {
           block?: CompetencyBlock;
           title?: string;
           description?: string;
+          expected_junior?: number;
+          expected_middle?: number;
           expected_senior?: number;
           expected_lead?: number;
         };

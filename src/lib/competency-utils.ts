@@ -64,25 +64,27 @@ export function filterCompetenciesForRole(
 
 export type GapBadge = "ok" | "gap-0.5" | "gap-1.0";
 
+const EXPECTED_BY_ROLE: Record<
+  DesignerRole,
+  keyof Pick<
+    Competency,
+    | "expected_junior"
+    | "expected_middle"
+    | "expected_senior"
+    | "expected_lead"
+  >
+> = {
+  junior: "expected_junior",
+  middle: "expected_middle",
+  senior: "expected_senior",
+  lead: "expected_lead",
+};
+
 export function getExpectedScore(
   competency: Competency,
   role: DesignerRole
 ): number {
-  if (role === "lead") return competency.expected_lead;
-  if (role === "senior") return competency.expected_senior;
-  // junior / middle: ожидания между уровнями, пока в БД только senior/lead
-  if (role === "middle") {
-    return (
-      Math.round(
-        ((competency.expected_senior + competency.expected_lead) / 2) * 10
-      ) / 10
-    );
-  }
-  // junior
-  return Math.max(
-    1,
-    Math.round((competency.expected_senior - 0.5) * 10) / 10
-  );
+  return Number(competency[EXPECTED_BY_ROLE[role]]);
 }
 
 export function getGapBadge(
