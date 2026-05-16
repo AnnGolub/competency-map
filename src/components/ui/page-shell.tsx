@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 type PageShellProps = {
   title?: string;
@@ -30,7 +31,10 @@ export function PageShell({
           ) : (
             <span />
           )}
-          {actions}
+          <div className="flex items-center gap-4">
+            {actions}
+            <SignOutButton />
+          </div>
         </div>
         {title ? (
           <h1 className="mx-auto mt-4 max-w-3xl text-2xl font-medium tracking-tight">
