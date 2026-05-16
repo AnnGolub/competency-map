@@ -29,10 +29,38 @@ export const BLOCK_LABELS: Record<CompetencyBlock, string> = {
   soft: "Soft skills",
 };
 
+export const DESIGNER_ROLES: DesignerRole[] = [
+  "junior",
+  "middle",
+  "senior",
+  "lead",
+];
+
 export const ROLE_LABELS: Record<DesignerRole, string> = {
+  junior: "Junior",
+  middle: "Middle",
   senior: "Senior",
   lead: "Lead",
 };
+
+export function showsLeadershipBlock(role: DesignerRole): boolean {
+  return role === "senior" || role === "lead";
+}
+
+export function blocksForDesignerRole(role: DesignerRole): CompetencyBlock[] {
+  if (showsLeadershipBlock(role)) {
+    return BLOCK_ORDER;
+  }
+  return ["hard", "soft"];
+}
+
+export function filterCompetenciesForRole(
+  competencies: Competency[],
+  role: DesignerRole
+): Competency[] {
+  const allowed = new Set(blocksForDesignerRole(role));
+  return competencies.filter((c) => allowed.has(c.block));
+}
 
 export type GapBadge = "ok" | "gap-0.5" | "gap-1.0";
 
@@ -40,7 +68,21 @@ export function getExpectedScore(
   competency: Competency,
   role: DesignerRole
 ): number {
-  return role === "lead" ? competency.expected_lead : competency.expected_senior;
+  if (role === "lead") return competency.expected_lead;
+  if (role === "senior") return competency.expected_senior;
+  // junior / middle: ожидания между уровнями, пока в БД только senior/lead
+  if (role === "middle") {
+    return (
+      Math.round(
+        ((competency.expected_senior + competency.expected_lead) / 2) * 10
+      ) / 10
+    );
+  }
+  // junior
+  return Math.max(
+    1,
+    Math.round((competency.expected_senior - 0.5) * 10) / 10
+  );
 }
 
 export function getGapBadge(

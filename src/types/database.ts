@@ -1,4 +1,4 @@
-export type DesignerRole = "senior" | "lead";
+export type DesignerRole = "junior" | "middle" | "senior" | "lead";
 export type CompetencyBlock = "leadership" | "hard" | "soft";
 export type UserRole = "lead" | "admin";
 

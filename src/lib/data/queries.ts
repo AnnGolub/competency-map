@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { filterCompetenciesForRole } from "@/lib/competency-utils";
 import type {
   Competency,
   CompetencyItem,
@@ -103,15 +104,20 @@ export async function fetchReviewPageData(
   const designer = await fetchDesigner(designerId);
   if (!designer) return null;
 
-  const [competencies, items, scores] = await Promise.all([
+  const [allCompetencies, items, scores] = await Promise.all([
     fetchCompetencies(),
     fetchCompetencyItems(),
     fetchScoresForDesigner(designerId),
   ]);
 
+  const competencies = filterCompetenciesForRole(
+    allCompetencies,
+    designer.role
+  );
+
   const itemsByCompetency = new Map<string, CompetencyItem[]>();
   for (const item of items) {
-    if (designer.role === "senior" && item.only_lead) continue;
+    if (designer.role !== "lead" && item.only_lead) continue;
     const list = itemsByCompetency.get(item.competency_id) ?? [];
     list.push(item);
     itemsByCompetency.set(item.competency_id, list);

@@ -4,12 +4,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompetencyBlockSection } from "@/components/designers/competency-block";
 import { PageShell } from "@/components/ui/page-shell";
+import { EditDesignerPanel } from "@/components/designers/edit-designer-panel";
 import {
   averageScore,
   BLOCK_LABELS,
-  BLOCK_ORDER,
+  blocksForDesignerRole,
   computeHalfYearGrowth,
   countBelowExpected,
+  filterCompetenciesForRole,
   formatScore,
   groupByBlock,
   ROLE_LABELS,
@@ -42,13 +44,21 @@ export default async function DesignerProfilePage({
 
   if (!designer) notFound();
 
+  const visibleCompetencies = filterCompetenciesForRole(
+    competencies,
+    designer.role
+  );
+  const visibleIds = new Set(visibleCompetencies.map((c) => c.id));
+
   const scoresByCompetency = new Map(
-    scores.map((s) => [s.competency_id, Number(s.score)])
+    scores
+      .filter((s) => visibleIds.has(s.competency_id))
+      .map((s) => [s.competency_id, Number(s.score)])
   );
   const scoreValues = Array.from(scoresByCompetency.values());
   const avg = averageScore(scoreValues);
   const belowCount = countBelowExpected(
-    competencies,
+    visibleCompetencies,
     scoresByCompetency,
     designer.role
   );
@@ -61,19 +71,22 @@ export default async function DesignerProfilePage({
         , scores[0].reviewed_at)
       : null;
 
-  const grouped = groupByBlock(competencies);
+  const grouped = groupByBlock(visibleCompetencies);
+  const visibleBlocks = blocksForDesignerRole(designer.role);
 
   return (
     <PageShell
       backHref="/designers"
       backLabel="Дизайнеры"
       actions={
-        <Link
-          href={`/designers/${designer.id}/review`}
-          className="rounded-full border border-neutral-900 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-900 hover:text-white"
-        >
-          Ревью
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/designers/${designer.id}/review`}
+            className="rounded-full border border-neutral-900 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-900 hover:text-white"
+          >
+            Ревью
+          </Link>
+        </div>
       }
     >
       <header>
@@ -85,6 +98,8 @@ export default async function DesignerProfilePage({
           Последнее ревью: {formatReviewDate(lastReviewAt)}
         </p>
       </header>
+
+      <EditDesignerPanel designer={designer} />
 
       <dl className="mt-8 grid grid-cols-3 gap-4 rounded-lg border-[0.5px] border-neutral-200 p-4">
         <div>
@@ -107,7 +122,7 @@ export default async function DesignerProfilePage({
         </div>
       </dl>
 
-      {BLOCK_ORDER.map((block) => (
+      {visibleBlocks.map((block) => (
         <CompetencyBlockSection
           key={block}
           title={BLOCK_LABELS[block]}

@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { saveReview, type ReviewEntry } from "@/app/actions/review";
 import {
   BLOCK_LABELS,
-  BLOCK_ORDER,
+  blocksForDesignerRole,
   groupByBlock,
   SCORE_OPTIONS,
   type Competency,
@@ -53,6 +53,7 @@ export function ReviewForm({
   );
 
   const grouped = groupByBlock(competencies);
+  const visibleBlocks = blocksForDesignerRole(designer.role);
 
   function updateCompetency(
     id: string,
@@ -92,7 +93,7 @@ export function ReviewForm({
         </p>
       ) : null}
 
-      {BLOCK_ORDER.map((block) => {
+      {visibleBlocks.map((block) => {
         const list = grouped[block];
         if (list.length === 0) return null;
 
