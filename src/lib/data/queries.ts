@@ -11,6 +11,9 @@ export type DesignerWithAverage = Designer & {
   averageScore: number | null;
 };
 
+const COMPETENCY_COLUMNS =
+  "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead" as const;
+
 export async function fetchDesignersWithAverages(): Promise<
   DesignerWithAverage[]
 > {
@@ -59,7 +62,7 @@ export async function fetchCompetencies(): Promise<Competency[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("competencies")
-    .select("*")
+    .select(COMPETENCY_COLUMNS)
     .order("block")
     .order("title");
 
