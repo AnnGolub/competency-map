@@ -21,8 +21,7 @@ export default async function DesignerReviewPage({
   const data = await fetchReviewPageData(params.id);
   if (!data) notFound();
 
-  const { designer, competencies, itemsByCompetency, scoresByCompetency } =
-    data;
+  const { designer, competencies, itemsByCompetency, scoresByItem } = data;
 
   return (
     <PageShell
@@ -37,7 +36,7 @@ export default async function DesignerReviewPage({
         designer={designer}
         competencies={competencies}
         itemsByCompetency={itemsByCompetency}
-        scoresByCompetency={scoresByCompetency}
+        scoresByItem={scoresByItem}
       />
     </PageShell>
   );

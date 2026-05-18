@@ -2,14 +2,41 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   filterCompetenciesForRole,
+  getExpectedScoreForItem,
+  groupItemsByCompetency,
   ROLE_LABELS,
   type Competency,
+  type CompetencyItem,
 } from "@/lib/competency-utils";
 import type { Database } from "@/types/database";
-import type { DesignerRole } from "@/types/database";
+import type { CompetencyBlock, DesignerRole } from "@/types/database";
 
 export type SelfReviewToken =
   Database["public"]["Tables"]["self_review_tokens"]["Row"];
+
+export type PublicSelfReviewItem = {
+  id: string;
+  text: string;
+  expected: number | null;
+};
+
+export type PublicSelfReviewCompetency = {
+  id: string;
+  block: CompetencyBlock;
+  title: string;
+  description: string;
+  items: PublicSelfReviewItem[];
+};
+
+export type PublicSelfReviewData = {
+  designerName: string;
+  designerRole: string;
+  role: DesignerRole;
+  completed: boolean;
+  expired: boolean;
+  competencies: PublicSelfReviewCompetency[];
+  initialScores: Record<string, number>;
+};
 
 export async function hasCompletedSelfReview(
   designerId: string
@@ -25,15 +52,6 @@ export async function hasCompletedSelfReview(
   if (error) throw error;
   return (data?.length ?? 0) > 0;
 }
-
-export type PublicSelfReviewData = {
-  designerName: string;
-  designerRole: string;
-  completed: boolean;
-  expired: boolean;
-  competencies: { id: string; title: string; description: string }[];
-  initialScores: Record<string, number>;
-};
 
 export async function fetchPublicSelfReviewByToken(
   token: string
@@ -61,41 +79,69 @@ export async function fetchPublicSelfReviewByToken(
   if (designerError) throw designerError;
   if (!designer) return null;
 
-  const { data: competencies, error: compError } = await admin
-    .from("competencies")
-    .select("id, block, title, description")
-    .order("block")
-    .order("title");
+  const role = designer.role as DesignerRole;
+
+  const [{ data: competencies, error: compError }, { data: items, error: itemsError }] =
+    await Promise.all([
+      admin
+        .from("competencies")
+        .select("id, block, title, description")
+        .order("block")
+        .order("title"),
+      admin
+        .from("competency_items")
+        .select(
+          "id, competency_id, text, only_lead, expected_junior, expected_middle, expected_senior, expected_lead"
+        )
+        .order("text"),
+    ]);
 
   if (compError) throw compError;
+  if (itemsError) throw itemsError;
 
   const visible = filterCompetenciesForRole(
     (competencies ?? []) as Competency[],
-    designer.role as DesignerRole
+    role
+  );
+  const itemsByCompetency = groupItemsByCompetency(
+    (items ?? []) as CompetencyItem[],
+    role
   );
 
-  const { data: scores } = await admin
-    .from("scores")
-    .select("competency_id, self_score")
+  const { data: itemScores } = await admin
+    .from("item_scores")
+    .select("competency_item_id, self_score")
     .eq("designer_id", tokenRow.designer_id);
 
   const initialScores: Record<string, number> = {};
-  for (const s of scores ?? []) {
+  for (const s of itemScores ?? []) {
     if (s.self_score !== null) {
-      initialScores[s.competency_id] = Number(s.self_score);
+      initialScores[s.competency_item_id] = Number(s.self_score);
     }
   }
 
-  return {
-    designerName: designer.name,
-    designerRole: ROLE_LABELS[designer.role as DesignerRole],
-    completed,
-    expired,
-    competencies: visible.map((c) => ({
+  const publicCompetencies: PublicSelfReviewCompetency[] = visible.map((c) => {
+    const competencyItems = itemsByCompetency.get(c.id) ?? [];
+    return {
       id: c.id,
+      block: c.block,
       title: c.title,
       description: c.description,
-    })),
+      items: competencyItems.map((item) => ({
+        id: item.id,
+        text: item.text,
+        expected: getExpectedScoreForItem(item, role),
+      })),
+    };
+  }).filter((c) => c.items.length > 0);
+
+  return {
+    designerName: designer.name,
+    designerRole: ROLE_LABELS[role],
+    role,
+    completed,
+    expired,
+    competencies: publicCompetencies,
     initialScores,
   };
 }

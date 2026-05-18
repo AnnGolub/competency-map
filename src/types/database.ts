@@ -86,24 +86,85 @@ export type Database = {
           competency_id: string;
           text: string;
           only_lead: boolean;
+          expected_junior: number | null;
+          expected_middle: number | null;
+          expected_senior: number | null;
+          expected_lead: number | null;
         };
         Insert: {
           id?: string;
           competency_id: string;
           text: string;
           only_lead?: boolean;
+          expected_junior?: number | null;
+          expected_middle?: number | null;
+          expected_senior?: number | null;
+          expected_lead?: number | null;
         };
         Update: {
           id?: string;
           competency_id?: string;
           text?: string;
           only_lead?: boolean;
+          expected_junior?: number | null;
+          expected_middle?: number | null;
+          expected_senior?: number | null;
+          expected_lead?: number | null;
         };
         Relationships: [
           {
             foreignKeyName: "competency_items_competency_id_fkey";
             columns: ["competency_id"];
             referencedRelation: "competencies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      item_scores: {
+        Row: {
+          id: string;
+          designer_id: string;
+          competency_item_id: string;
+          score: number | null;
+          self_score: number | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          competency_item_id: string;
+          score?: number | null;
+          self_score?: number | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          competency_item_id?: string;
+          score?: number | null;
+          self_score?: number | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "item_scores_designer_id_fkey";
+            columns: ["designer_id"];
+            referencedRelation: "designers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "item_scores_competency_item_id_fkey";
+            columns: ["competency_item_id"];
+            referencedRelation: "competency_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "item_scores_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

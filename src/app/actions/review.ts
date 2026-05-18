@@ -6,9 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionContext } from "@/lib/session";
 
 export type ReviewEntry = {
-  competencyId: string;
+  competencyItemId: string;
   score: number;
-  comment: string;
 };
 
 export async function saveReview(
@@ -24,33 +23,33 @@ export async function saveReview(
   }
 
   const supabase = createClient();
+  const reviewedAt = new Date().toISOString();
 
   for (const entry of entries) {
     const { data: existing } = await supabase
-      .from("scores")
+      .from("item_scores")
       .select("id, self_score")
       .eq("designer_id", designerId)
-      .eq("competency_id", entry.competencyId)
+      .eq("competency_item_id", entry.competencyItemId)
       .maybeSingle();
 
     const payload = {
       designer_id: designerId,
-      competency_id: entry.competencyId,
+      competency_item_id: entry.competencyItemId,
       score: entry.score,
-      comment: entry.comment.trim(),
       reviewed_by: session.userId,
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: reviewedAt,
       self_score: existing?.self_score ?? null,
     };
 
     if (existing) {
       const { error } = await supabase
-        .from("scores")
+        .from("item_scores")
         .update(payload)
         .eq("id", existing.id);
       if (error) return { error: error.message };
     } else {
-      const { error } = await supabase.from("scores").insert(payload);
+      const { error } = await supabase.from("item_scores").insert(payload);
       if (error) return { error: error.message };
     }
   }

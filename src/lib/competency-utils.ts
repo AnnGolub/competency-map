@@ -7,6 +7,7 @@ import type {
 export type Competency = Database["public"]["Tables"]["competencies"]["Row"];
 export type Designer = Database["public"]["Tables"]["designers"]["Row"];
 export type Score = Database["public"]["Tables"]["scores"]["Row"];
+export type ItemScore = Database["public"]["Tables"]["item_scores"]["Row"];
 export type CompetencyItem =
   Database["public"]["Tables"]["competency_items"]["Row"];
 
@@ -92,6 +93,96 @@ export function getExpectedScore(
   return Number(competency[EXPECTED_BY_ROLE[role]]);
 }
 
+const EXPECTED_BY_ROLE_ITEM: Record<
+  DesignerRole,
+  keyof Pick<
+    CompetencyItem,
+    | "expected_junior"
+    | "expected_middle"
+    | "expected_senior"
+    | "expected_lead"
+  >
+> = {
+  junior: "expected_junior",
+  middle: "expected_middle",
+  senior: "expected_senior",
+  lead: "expected_lead",
+};
+
+export function getExpectedScoreForItem(
+  item: CompetencyItem,
+  role: DesignerRole
+): number | null {
+  const raw = item[EXPECTED_BY_ROLE_ITEM[role]];
+  if (raw === null || raw === undefined) return null;
+  return Number(raw);
+}
+
+export function groupItemsByCompetency<T extends Pick<CompetencyItem, "id" | "competency_id" | "only_lead">>(
+  items: T[],
+  role: DesignerRole
+): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const item of items) {
+    if (role !== "lead" && item.only_lead) continue;
+    const list = map.get(item.competency_id) ?? [];
+    list.push(item);
+    map.set(item.competency_id, list);
+  }
+  return map;
+}
+
+export function collectVisibleItems(
+  competencies: Competency[],
+  itemsByCompetency: Map<string, CompetencyItem[]>
+): CompetencyItem[] {
+  const result: CompetencyItem[] = [];
+  for (const c of competencies) {
+    const items = itemsByCompetency.get(c.id) ?? [];
+    result.push(...items);
+  }
+  return result;
+}
+
+export type BlindScoreView = {
+  leadScore: number | null;
+  selfScore: number | null;
+  showDual: boolean;
+};
+
+export function resolveBlindScoresFromItems(
+  items: CompetencyItem[],
+  scoresByItem: Map<string, ItemScore>,
+  selfReviewCompleted: boolean
+): BlindScoreView {
+  const leadValues: number[] = [];
+  const selfValues: number[] = [];
+
+  for (const item of items) {
+    const row = scoresByItem.get(item.id);
+    if (!row) continue;
+    if (row.score !== null && row.score !== undefined) {
+      leadValues.push(Number(row.score));
+    }
+    if (
+      selfReviewCompleted &&
+      row.self_score !== null &&
+      row.self_score !== undefined
+    ) {
+      selfValues.push(Number(row.self_score));
+    }
+  }
+
+  const leadScore = averageScore(leadValues);
+  const selfScore = selfReviewCompleted ? averageScore(selfValues) : null;
+
+  return {
+    leadScore,
+    selfScore,
+    showDual: leadScore !== null && selfScore !== null,
+  };
+}
+
 export function getGapBadge(
   current: number | null,
   expected: number
@@ -124,7 +215,7 @@ export function progressPercent(score: number | null): number {
 const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
 
 export function computeHalfYearGrowth(
-  scores: Pick<Score, "score" | "reviewed_at">[]
+  scores: Pick<ItemScore, "score" | "reviewed_at">[]
 ): number | null {
   if (scores.length === 0) return null;
 
@@ -159,32 +250,6 @@ export function countBelowExpected(
     if (current === undefined) return false;
     return current < getExpectedScore(c, role);
   }).length;
-}
-
-export type BlindScoreView = {
-  leadScore: number | null;
-  selfScore: number | null;
-  showDual: boolean;
-};
-
-export function resolveBlindScores(
-  row: Pick<Score, "score" | "self_score">,
-  selfReviewCompleted: boolean
-): BlindScoreView {
-  const leadScore =
-    row.score !== null && row.score !== undefined ? Number(row.score) : null;
-  const selfScore =
-    selfReviewCompleted &&
-    row.self_score !== null &&
-    row.self_score !== undefined
-      ? Number(row.self_score)
-      : null;
-
-  return {
-    leadScore,
-    selfScore,
-    showDual: leadScore !== null && selfScore !== null,
-  };
 }
 
 /** Балл для статистики и гэпа — по оценке лида. */

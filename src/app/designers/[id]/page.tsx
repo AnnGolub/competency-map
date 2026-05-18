@@ -10,19 +10,22 @@ import {
   averageScore,
   BLOCK_LABELS,
   blocksForDesignerRole,
+  collectVisibleItems,
   computeHalfYearGrowth,
   countBelowExpected,
   filterCompetenciesForRole,
   formatScore,
   groupByBlock,
+  groupItemsByCompetency,
   primaryVisibleScore,
-  resolveBlindScores,
+  resolveBlindScoresFromItems,
   ROLE_LABELS,
 } from "@/lib/competency-utils";
 import {
   fetchCompetencies,
+  fetchCompetencyItems,
   fetchDesigner,
-  fetchScoresForDesigner,
+  fetchItemScoresForDesigner,
 } from "@/lib/data/queries";
 import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
 import { canAccessDesignerProfile, getSessionContext } from "@/lib/session";
@@ -48,11 +51,12 @@ export default async function DesignerProfilePage({
     notFound();
   }
 
-  const [designer, competencies, scores, selfReviewCompleted] =
+  const [designer, competencies, items, itemScores, selfReviewCompleted] =
     await Promise.all([
       fetchDesigner(params.id),
       fetchCompetencies(),
-      fetchScoresForDesigner(params.id),
+      fetchCompetencyItems(),
+      fetchItemScoresForDesigner(params.id),
       hasCompletedSelfReview(params.id),
     ]);
 
@@ -62,44 +66,46 @@ export default async function DesignerProfilePage({
     competencies,
     designer.role
   );
-  const visibleIds = new Set(visibleCompetencies.map((c) => c.id));
+  const itemsByCompetency = groupItemsByCompetency(items, designer.role);
+  const visibleItems = collectVisibleItems(
+    visibleCompetencies,
+    itemsByCompetency
+  );
 
-  const scoresByCompetency = new Map(
-    scores
-      .filter((s) => visibleIds.has(s.competency_id))
-      .map((s) => [s.competency_id, s])
+  const scoresByItem = new Map(
+    itemScores.map((s) => [s.competency_item_id, s])
   );
 
   const primaryScores = new Map<string, number>();
   for (const c of visibleCompetencies) {
-    const row = scoresByCompetency.get(c.id);
-    if (!row) continue;
-    const blind = resolveBlindScores(row, selfReviewCompleted);
+    const competencyItems = itemsByCompetency.get(c.id) ?? [];
+    const blind = resolveBlindScoresFromItems(
+      competencyItems,
+      scoresByItem,
+      selfReviewCompleted
+    );
     const primary = primaryVisibleScore(blind);
     if (primary !== null) primaryScores.set(c.id, primary);
   }
 
-  const scoreValues = Array.from(primaryScores.values());
-  const avg = averageScore(scoreValues);
+  const leadItemScores = visibleItems
+    .map((item) => scoresByItem.get(item.id)?.score)
+    .filter((s): s is number => s !== null && s !== undefined)
+    .map(Number);
+
+  const avg = averageScore(leadItemScores);
   const belowCount = countBelowExpected(
     visibleCompetencies,
     primaryScores,
     designer.role
   );
-  const growth = computeHalfYearGrowth(
-    scores.filter((s) => s.score !== null && s.reviewed_at)
-  );
+  const growth = computeHalfYearGrowth(itemScores);
 
-  const lastReviewAt =
-    scores.length > 0
-      ? scores.reduce<string | null>((latest, s) => {
-          if (!s.reviewed_at) return latest;
-          if (!latest) return s.reviewed_at;
-          return new Date(s.reviewed_at) > new Date(latest)
-            ? s.reviewed_at
-            : latest;
-        }, null)
-      : null;
+  const lastReviewAt = itemScores.reduce<string | null>((latest, s) => {
+    if (!s.reviewed_at) return latest;
+    if (!latest) return s.reviewed_at;
+    return new Date(s.reviewed_at) > new Date(latest) ? s.reviewed_at : latest;
+  }, null);
 
   const grouped = groupByBlock(visibleCompetencies);
   const visibleBlocks = blocksForDesignerRole(designer.role);
@@ -157,7 +163,8 @@ export default async function DesignerProfilePage({
           title={BLOCK_LABELS[block]}
           competencies={grouped[block]}
           role={designer.role}
-          scoresByCompetency={scoresByCompetency}
+          itemsByCompetency={itemsByCompetency}
+          scoresByItem={scoresByItem}
           selfReviewCompleted={selfReviewCompleted}
           isAdmin
         />
