@@ -133,9 +133,11 @@ export function computeHalfYearGrowth(
   const older: number[] = [];
 
   for (const s of scores) {
+    if (s.score === null || s.score === undefined || !s.reviewed_at) continue;
     const t = new Date(s.reviewed_at).getTime();
-    if (t >= cutoff) recent.push(Number(s.score));
-    else older.push(Number(s.score));
+    const val = Number(s.score);
+    if (t >= cutoff) recent.push(val);
+    else older.push(val);
   }
 
   if (recent.length === 0 || older.length === 0) return null;
@@ -157,6 +159,37 @@ export function countBelowExpected(
     if (current === undefined) return false;
     return current < getExpectedScore(c, role);
   }).length;
+}
+
+export type BlindScoreView = {
+  leadScore: number | null;
+  selfScore: number | null;
+  showDual: boolean;
+};
+
+export function resolveBlindScores(
+  row: Pick<Score, "score" | "self_score">,
+  selfReviewCompleted: boolean
+): BlindScoreView {
+  const leadScore =
+    row.score !== null && row.score !== undefined ? Number(row.score) : null;
+  const selfScore =
+    selfReviewCompleted &&
+    row.self_score !== null &&
+    row.self_score !== undefined
+      ? Number(row.self_score)
+      : null;
+
+  return {
+    leadScore,
+    selfScore,
+    showDual: leadScore !== null && selfScore !== null,
+  };
+}
+
+/** Балл для статистики и гэпа — по оценке лида. */
+export function primaryVisibleScore(view: BlindScoreView): number | null {
+  return view.leadScore;
 }
 
 export function groupByBlock(

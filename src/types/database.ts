@@ -11,6 +11,7 @@ export type Database = {
           name: string;
           role: DesignerRole;
           direction: string;
+          email: string | null;
           created_at: string;
         };
         Insert: {
@@ -18,6 +19,7 @@ export type Database = {
           name: string;
           role: DesignerRole;
           direction: string;
+          email?: string | null;
           created_at?: string;
         };
         Update: {
@@ -25,6 +27,7 @@ export type Database = {
           name?: string;
           role?: DesignerRole;
           direction?: string;
+          email?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -110,28 +113,31 @@ export type Database = {
           id: string;
           designer_id: string;
           competency_id: string;
-          score: number;
-          comment: string;
-          reviewed_at: string;
-          reviewed_by: string;
+          score: number | null;
+          self_score: number | null;
+          comment: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
         };
         Insert: {
           id?: string;
           designer_id: string;
           competency_id: string;
-          score: number;
-          comment?: string;
-          reviewed_at?: string;
-          reviewed_by: string;
+          score?: number | null;
+          self_score?: number | null;
+          comment?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
         };
         Update: {
           id?: string;
           designer_id?: string;
           competency_id?: string;
-          score?: number;
-          comment?: string;
-          reviewed_at?: string;
-          reviewed_by?: string;
+          score?: number | null;
+          self_score?: number | null;
+          comment?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
         };
         Relationships: [
           {
@@ -150,6 +156,37 @@ export type Database = {
             foreignKeyName: "scores_reviewed_by_fkey";
             columns: ["reviewed_by"];
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      self_review_tokens: {
+        Row: {
+          id: string;
+          designer_id: string;
+          token: string;
+          expires_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          token: string;
+          expires_at: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          token?: string;
+          expires_at?: string;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "self_review_tokens_designer_id_fkey";
+            columns: ["designer_id"];
+            referencedRelation: "designers";
             referencedColumns: ["id"];
           },
         ];
@@ -184,6 +221,14 @@ export type Database = {
     Functions: {
       is_lead_or_admin: {
         Args: Record<string, never>;
+        Returns: boolean;
+      };
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      is_own_designer: {
+        Args: { designer_id: string };
         Returns: boolean;
       };
     };

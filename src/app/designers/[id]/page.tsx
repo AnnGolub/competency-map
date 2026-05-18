@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CompetencyBlockSection } from "@/components/designers/competency-block";
-import { PageShell } from "@/components/ui/page-shell";
 import { EditDesignerPanel } from "@/components/designers/edit-designer-panel";
+import { GenerateSelfReviewLink } from "@/components/designers/generate-self-review-link";
+import { PageShell } from "@/components/ui/page-shell";
 import {
   averageScore,
   BLOCK_LABELS,
@@ -14,6 +15,8 @@ import {
   filterCompetenciesForRole,
   formatScore,
   groupByBlock,
+  primaryVisibleScore,
+  resolveBlindScores,
   ROLE_LABELS,
 } from "@/lib/competency-utils";
 import {
@@ -21,6 +24,8 @@ import {
   fetchDesigner,
   fetchScoresForDesigner,
 } from "@/lib/data/queries";
+import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
+import { canAccessDesignerProfile, getSessionContext } from "@/lib/session";
 
 function formatReviewDate(iso: string | null): string {
   if (!iso) return "Ревью ещё не проводилось";
@@ -36,11 +41,20 @@ export default async function DesignerProfilePage({
 }: {
   params: { id: string };
 }) {
-  const [designer, competencies, scores] = await Promise.all([
-    fetchDesigner(params.id),
-    fetchCompetencies(),
-    fetchScoresForDesigner(params.id),
-  ]);
+  const session = await getSessionContext();
+  if (!session) redirect("/login");
+
+  if (!canAccessDesignerProfile(session)) {
+    notFound();
+  }
+
+  const [designer, competencies, scores, selfReviewCompleted] =
+    await Promise.all([
+      fetchDesigner(params.id),
+      fetchCompetencies(),
+      fetchScoresForDesigner(params.id),
+      hasCompletedSelfReview(params.id),
+    ]);
 
   if (!designer) notFound();
 
@@ -53,22 +67,38 @@ export default async function DesignerProfilePage({
   const scoresByCompetency = new Map(
     scores
       .filter((s) => visibleIds.has(s.competency_id))
-      .map((s) => [s.competency_id, Number(s.score)])
+      .map((s) => [s.competency_id, s])
   );
-  const scoreValues = Array.from(scoresByCompetency.values());
+
+  const primaryScores = new Map<string, number>();
+  for (const c of visibleCompetencies) {
+    const row = scoresByCompetency.get(c.id);
+    if (!row) continue;
+    const blind = resolveBlindScores(row, selfReviewCompleted);
+    const primary = primaryVisibleScore(blind);
+    if (primary !== null) primaryScores.set(c.id, primary);
+  }
+
+  const scoreValues = Array.from(primaryScores.values());
   const avg = averageScore(scoreValues);
   const belowCount = countBelowExpected(
     visibleCompetencies,
-    scoresByCompetency,
+    primaryScores,
     designer.role
   );
-  const growth = computeHalfYearGrowth(scores);
+  const growth = computeHalfYearGrowth(
+    scores.filter((s) => s.score !== null && s.reviewed_at)
+  );
 
   const lastReviewAt =
     scores.length > 0
-      ? scores.reduce((latest, s) =>
-          new Date(s.reviewed_at) > new Date(latest) ? s.reviewed_at : latest
-        , scores[0].reviewed_at)
+      ? scores.reduce<string | null>((latest, s) => {
+          if (!s.reviewed_at) return latest;
+          if (!latest) return s.reviewed_at;
+          return new Date(s.reviewed_at) > new Date(latest)
+            ? s.reviewed_at
+            : latest;
+        }, null)
       : null;
 
   const grouped = groupByBlock(visibleCompetencies);
@@ -79,14 +109,12 @@ export default async function DesignerProfilePage({
       backHref="/designers"
       backLabel="Дизайнеры"
       actions={
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/designers/${designer.id}/review`}
-            className="rounded-full border border-neutral-900 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-900 hover:text-white"
-          >
-            Ревью
-          </Link>
-        </div>
+        <Link
+          href={`/designers/${designer.id}/review`}
+          className="rounded-full border border-neutral-900 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-900 hover:text-white"
+        >
+          Ревью
+        </Link>
       }
     >
       <header>
@@ -100,6 +128,7 @@ export default async function DesignerProfilePage({
       </header>
 
       <EditDesignerPanel designer={designer} />
+      <GenerateSelfReviewLink designerId={designer.id} />
 
       <dl className="mt-8 grid grid-cols-3 gap-4 rounded-lg border-[0.5px] border-neutral-200 p-4">
         <div>
@@ -129,6 +158,8 @@ export default async function DesignerProfilePage({
           competencies={grouped[block]}
           role={designer.role}
           scoresByCompetency={scoresByCompetency}
+          selfReviewCompleted={selfReviewCompleted}
+          isAdmin
         />
       ))}
     </PageShell>

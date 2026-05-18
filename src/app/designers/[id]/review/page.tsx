@@ -1,16 +1,23 @@
 export const dynamic = "force-dynamic";
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ReviewForm } from "@/components/designers/review-form";
 import { PageShell } from "@/components/ui/page-shell";
 import { ROLE_LABELS } from "@/lib/competency-utils";
 import { fetchReviewPageData } from "@/lib/data/queries";
+import { getSessionContext } from "@/lib/session";
 
 export default async function DesignerReviewPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const session = await getSessionContext();
+  if (!session) redirect("/login");
+  if (!session.isAdmin) {
+    redirect("/no-access");
+  }
+
   const data = await fetchReviewPageData(params.id);
   if (!data) notFound();
 

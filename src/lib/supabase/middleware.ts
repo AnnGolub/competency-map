@@ -4,7 +4,7 @@ import { hasAppAccess } from "@/lib/auth-utils";
 import type { Database } from "@/types/database";
 import type { UserRole } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/self-review"];
 const NO_ACCESS_PATH = "/no-access";
 
 function isPublicPath(pathname: string): boolean {
@@ -60,22 +60,19 @@ export async function updateSession(request: NextRequest) {
     .maybeSingle();
 
   const role = profile?.role as UserRole | undefined;
-  const allowed = hasAppAccess(role);
 
-  if (!allowed) {
-    if (pathname === NO_ACCESS_PATH) {
-      return supabaseResponse;
+  if (hasAppAccess(role)) {
+    if (pathname === NO_ACCESS_PATH || pathname === "/login") {
+      return NextResponse.redirect(designersUrl);
     }
-    return NextResponse.redirect(noAccessUrl);
+    if (pathname === "/") {
+      return NextResponse.redirect(designersUrl);
+    }
+    return supabaseResponse;
   }
 
-  if (pathname === NO_ACCESS_PATH || pathname === "/login") {
-    return NextResponse.redirect(designersUrl);
+  if (pathname === NO_ACCESS_PATH) {
+    return supabaseResponse;
   }
-
-  if (pathname === "/") {
-    return NextResponse.redirect(designersUrl);
-  }
-
-  return supabaseResponse;
+  return NextResponse.redirect(noAccessUrl);
 }
