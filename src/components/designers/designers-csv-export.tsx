@@ -1,0 +1,71 @@
+"use client";
+
+import type { DesignerWithAverage } from "@/lib/data/queries";
+import { ROLE_LABELS } from "@/lib/competency-utils";
+
+function csvCell(v: string | number | null | undefined): string {
+  const s = v === null || v === undefined ? "" : String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function formatAvg(v: number | null): string {
+  if (v === null) return "";
+  return v.toFixed(1);
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+export function DesignersCsvExport({
+  designers,
+}: {
+  designers: DesignerWithAverage[];
+}) {
+  function download() {
+    const headers = [
+      "Имя",
+      "Роль",
+      "Направление",
+      "Leadership",
+      "Hard skills",
+      "Soft skills",
+      "Дата последнего ревью",
+    ];
+    const rows = designers.map((d) =>
+      [
+        csvCell(d.name),
+        csvCell(ROLE_LABELS[d.role]),
+        csvCell(d.direction),
+        csvCell(formatAvg(d.avgLeadership)),
+        csvCell(formatAvg(d.avgHard)),
+        csvCell(formatAvg(d.avgSoft)),
+        csvCell(formatDate(d.lastReviewedAt)),
+      ].join(",")
+    );
+    const csv = `\uFEFF${[headers.join(","), ...rows].join("\n")}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `designers-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={download}
+      className="rounded-full border-[0.5px] border-neutral-200 px-4 py-1.5 text-sm text-neutral-600 transition-colors hover:border-neutral-400"
+    >
+      Экспорт в CSV
+    </button>
+  );
+}
