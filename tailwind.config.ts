@@ -12,8 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         app: {
-          canvas: "#12121A",
-          sidebar: "#1A1A24",
+          canvas: "#16181F",
+          sidebar: "#16181F",
+          "nav-tab": "#2A2D3A",
           surface: "#1E1E28",
           border: "#2A2A36",
           muted: "#8B8FA3",
