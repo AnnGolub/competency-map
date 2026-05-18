@@ -12,7 +12,7 @@ export function EditDesignerPanel({ designer }: { designer: Designer }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="rounded-full border-[0.5px] border-neutral-200 px-4 py-1.5 text-sm text-neutral-600 transition-colors hover:border-neutral-400"
+        className="rounded-lg border border-app-border bg-app-surface px-4 py-2 text-sm text-app-muted transition-colors hover:border-app-muted hover:text-white"
       >
         Изменить
       </button>
@@ -20,8 +20,9 @@ export function EditDesignerPanel({ designer }: { designer: Designer }) {
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 max-w-lg">
       <DesignerForm
+        theme="dark"
         designer={designer}
         onCancel={() => setIsOpen(false)}
         onSaved={() => setIsOpen(false)}

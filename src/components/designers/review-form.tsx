@@ -57,12 +57,15 @@ export function ReviewForm({
   competencies,
   itemsByCompetency,
   scoresByItem,
+  theme = "dark",
 }: {
   designer: Designer;
   competencies: Competency[];
   itemsByCompetency: ItemsByCompetencyRecord;
   scoresByItem: ScoresByItemRecord;
+  theme?: "light" | "dark";
 }) {
+  const isDark = theme === "dark";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +100,13 @@ export function ReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p
+          className={
+            isDark
+              ? "rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300"
+              : "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          }
+        >
           {error}
         </p>
       ) : null}
@@ -108,7 +117,13 @@ export function ReviewForm({
 
         return (
           <section key={block}>
-            <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">
+            <h2
+              className={
+                isDark
+                  ? "text-sm font-medium uppercase tracking-wide text-app-muted"
+                  : "text-sm font-medium uppercase tracking-wide text-neutral-400"
+              }
+            >
               {BLOCK_LABELS[block]}
             </h2>
             <ul className="mt-4 space-y-8">
@@ -118,19 +133,39 @@ export function ReviewForm({
                 return (
                   <li
                     key={competency.id}
-                    className="rounded-lg border-[0.5px] border-neutral-200 p-4"
+                    className={
+                      isDark
+                        ? "rounded-xl border border-app-border bg-app-surface p-5"
+                        : "rounded-lg border-[0.5px] border-neutral-200 p-4"
+                    }
                   >
-                    <h3 className="font-medium">{competency.title}</h3>
+                    <h3 className={isDark ? "font-medium text-white" : "font-medium"}>
+                      {competency.title}
+                    </h3>
                     {competency.description ? (
-                      <p className="mt-1 text-sm text-neutral-500">
+                      <p
+                        className={
+                          isDark
+                            ? "mt-1 text-sm text-app-muted"
+                            : "mt-1 text-sm text-neutral-500"
+                        }
+                      >
                         {competency.description}
                       </p>
                     ) : null}
 
                     <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
                       <div>
-                        <span className="text-neutral-400">Ожидается </span>
-                        <span className="tabular-nums font-medium">
+                        <span className={isDark ? "text-app-muted" : "text-neutral-400"}>
+                          Ожидается{" "}
+                        </span>
+                        <span
+                          className={
+                            isDark
+                              ? "tabular-nums font-medium text-white"
+                              : "tabular-nums font-medium"
+                          }
+                        >
                           {formatScore(
                             getExpectedScore(competency, designer.role)
                           )}
@@ -138,17 +173,23 @@ export function ReviewForm({
                       </div>
                       {preLead ? (
                         <div>
-                          <span className="text-neutral-400">
+                          <span className={isDark ? "text-app-muted" : "text-neutral-400"}>
                             Готовится к лиду{" "}
                           </span>
-                          <span className="tabular-nums font-medium">
+                          <span
+                            className={
+                              isDark
+                                ? "tabular-nums font-medium text-white"
+                                : "tabular-nums font-medium"
+                            }
+                          >
                             {formatScore(competency.expected_pre_lead)}
                           </span>
                         </div>
                       ) : null}
                     </div>
 
-                    <CompetencyLevelIndicators competency={competency} />
+                    <CompetencyLevelIndicators competency={competency} theme={theme} />
 
                     {items.length > 0 ? (
                       <ul className="mt-4 space-y-1">
@@ -162,6 +203,7 @@ export function ReviewForm({
                                 item,
                                 designer.role
                               )}
+                              theme={theme}
                               onChange={(score) =>
                                 setForm((prev) => ({
                                   ...prev,
@@ -170,7 +212,13 @@ export function ReviewForm({
                               }
                             />
                             {item.only_lead ? (
-                              <span className="mt-1 block text-xs text-neutral-400">
+                              <span
+                                className={
+                                  isDark
+                                    ? "mt-1 block text-xs text-app-muted"
+                                    : "mt-1 block text-xs text-neutral-400"
+                                }
+                              >
                                 (lead)
                               </span>
                             ) : null}
@@ -178,7 +226,13 @@ export function ReviewForm({
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-4 text-sm text-neutral-400">
+                      <p
+                        className={
+                          isDark
+                            ? "mt-4 text-sm text-app-muted"
+                            : "mt-4 text-sm text-neutral-400"
+                        }
+                      >
                         Нет подпунктов для оценки
                       </p>
                     )}
@@ -193,7 +247,11 @@ export function ReviewForm({
       <button
         type="submit"
         disabled={isPending || allItems.length === 0}
-        className="w-full rounded-lg border border-neutral-900 bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+        className={
+          isDark
+            ? "w-full rounded-lg bg-app-accent px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+            : "w-full rounded-lg border border-neutral-900 bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+        }
       >
         {isPending ? "Сохранение…" : "Сохранить ревью"}
       </button>
