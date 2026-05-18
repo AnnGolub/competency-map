@@ -12,7 +12,7 @@ export type DesignerWithAverage = Designer & {
 };
 
 const COMPETENCY_COLUMNS =
-  "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead" as const;
+  "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, expected_pre_lead, indicators_1, indicators_2, indicators_3, indicators_4" as const;
 
 export async function fetchDesignersWithAverages(): Promise<
   DesignerWithAverage[]
