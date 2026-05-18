@@ -5,20 +5,48 @@ import {
   submitSelfReviewByToken,
   type SelfReviewEntry,
 } from "@/app/actions/self-review-token";
-import { SCORE_OPTIONS } from "@/lib/competency-utils";
-import type { PublicSelfReviewData } from "@/lib/data/self-review-tokens";
+import { ItemScoreSlider } from "@/components/ui/item-score-slider";
+import {
+  BLOCK_LABELS,
+  blocksForDesignerRole,
+  groupByBlock,
+  type Competency,
+} from "@/lib/competency-utils";
+import type {
+  PublicSelfReviewCompetency,
+  PublicSelfReviewData,
+} from "@/lib/data/self-review-tokens";
 
 type FormState = Record<string, number>;
 
-function buildInitialState(
-  competencies: PublicSelfReviewData["competencies"],
-  initialScores: Record<string, number>
-): FormState {
+function buildInitialState(data: PublicSelfReviewData): FormState {
   const state: FormState = {};
-  for (const c of competencies) {
-    state[c.id] = initialScores[c.id] ?? 2;
+  for (const c of data.competencies) {
+    for (const item of c.items) {
+      state[item.id] = data.initialScores[item.id] ?? 2;
+    }
   }
   return state;
+}
+
+function toCompetencyRows(
+  competencies: PublicSelfReviewCompetency[]
+): Competency[] {
+  return competencies.map((c) => ({
+    id: c.id,
+    block: c.block,
+    title: c.title,
+    description: c.description,
+    expected_junior: 0,
+    expected_middle: 0,
+    expected_senior: 0,
+    expected_lead: 0,
+    expected_pre_lead: 0,
+    indicators_1: null,
+    indicators_2: null,
+    indicators_3: null,
+    indicators_4: null,
+  }));
 }
 
 export function PublicSelfReviewForm({
@@ -31,17 +59,20 @@ export function PublicSelfReviewForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState<FormState>(() =>
-    buildInitialState(data.competencies, data.initialScores)
-  );
+  const [form, setForm] = useState<FormState>(() => buildInitialState(data));
+
+  const grouped = groupByBlock(toCompetencyRows(data.competencies));
+  const visibleBlocks = blocksForDesignerRole(data.role);
+  const allItems = data.competencies.flatMap((c) => c.items);
+  const competenciesById = new Map(data.competencies.map((c) => [c.id, c]));
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    const entries: SelfReviewEntry[] = data.competencies.map((c) => ({
-      competencyId: c.id,
-      selfScore: form[c.id],
+    const entries: SelfReviewEntry[] = allItems.map((item) => ({
+      competencyItemId: item.id,
+      selfScore: form[item.id],
     }));
 
     startTransition(async () => {
@@ -66,7 +97,7 @@ export function PublicSelfReviewForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-10">
       {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           {error}
@@ -74,66 +105,64 @@ export function PublicSelfReviewForm({
       ) : null}
 
       <p className="text-sm text-neutral-500">
-        Оцените себя по каждой компетенции от 1.0 до 4.0.
+        Оцените себя по каждому подпункту от 1.0 до 4.0.
       </p>
 
-      <ul className="space-y-6">
-        {data.competencies.map((competency) => {
-          const value = form[competency.id];
+      {visibleBlocks.map((block) => {
+        const list = grouped[block];
+        if (list.length === 0) return null;
 
-          return (
-            <li
-              key={competency.id}
-              className="rounded-lg border-[0.5px] border-neutral-200 p-4"
-            >
-              <h3 className="font-medium">{competency.title}</h3>
-              {competency.description ? (
-                <p className="mt-1 text-sm text-neutral-500">
-                  {competency.description}
-                </p>
-              ) : null}
+        return (
+          <section key={block}>
+            <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">
+              {BLOCK_LABELS[block]}
+            </h2>
+            <ul className="mt-4 space-y-6">
+              {list.map((competency) => {
+                const c = competenciesById.get(competency.id);
+                if (!c) return null;
 
-              <div className="mt-4">
-                <div className="flex items-center justify-between gap-4">
-                  <label
-                    htmlFor={`self-${competency.id}`}
-                    className="text-sm text-neutral-600"
+                return (
+                  <li
+                    key={c.id}
+                    className="rounded-lg border-[0.5px] border-neutral-200 p-4"
                   >
-                    Самооценка
-                  </label>
-                  <span className="text-lg font-medium tabular-nums">
-                    {value.toFixed(1)}
-                  </span>
-                </div>
-                <input
-                  id={`self-${competency.id}`}
-                  type="range"
-                  min={1}
-                  max={4}
-                  step={0.5}
-                  value={value}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      [competency.id]: parseFloat(e.target.value),
-                    }))
-                  }
-                  className="mt-2 w-full accent-neutral-900"
-                />
-                <div className="mt-1 flex justify-between text-xs text-neutral-400">
-                  {SCORE_OPTIONS.map((v) => (
-                    <span key={v}>{v.toFixed(1)}</span>
-                  ))}
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                    <h3 className="font-medium">{c.title}</h3>
+                    {c.description ? (
+                      <p className="mt-1 text-sm text-neutral-500">
+                        {c.description}
+                      </p>
+                    ) : null}
+
+                    <ul className="mt-4 space-y-1">
+                      {c.items.map((item) => (
+                        <li key={item.id}>
+                          <ItemScoreSlider
+                            id={`self-${item.id}`}
+                            label={item.text}
+                            value={form[item.id]}
+                            expected={item.expected}
+                            onChange={(selfScore) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                [item.id]: selfScore,
+                              }))
+                            }
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || allItems.length === 0}
         className="w-full rounded-lg border border-neutral-900 bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-50"
       >
         {isPending ? "Отправка…" : "Отправить самооценку"}

@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { BLOCK_ORDER, filterCompetenciesForRole } from "@/lib/competency-utils";
+import {
+  averageScore,
+  BLOCK_ORDER,
+  filterCompetenciesForRole,
+  groupItemsByCompetency,
+} from "@/lib/competency-utils";
 import type { CompetencyBlock } from "@/types/database";
 import type {
   Competency,
   CompetencyItem,
   Designer,
-  Score,
+  ItemScore,
 } from "@/lib/competency-utils";
 
 export type CompetencyExportColumn = {
@@ -27,9 +32,28 @@ export type DesignersWithAveragesResult = {
 const COMPETENCY_COLUMNS =
   "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, expected_pre_lead, indicators_1, indicators_2, indicators_3, indicators_4" as const;
 
+const ITEM_COLUMNS =
+  "id, competency_id, text, only_lead, expected_junior, expected_middle, expected_senior, expected_lead" as const;
+
 function blockSortIndex(block: CompetencyBlock): number {
   const i = BLOCK_ORDER.indexOf(block);
   return i === -1 ? 999 : i;
+}
+
+function aggregateScoresByCompetency(
+  itemScores: { competency_item_id: string; score: number | null }[],
+  itemToCompetency: Map<string, string>
+): Map<string, number[]> {
+  const byCompetency = new Map<string, number[]>();
+  for (const row of itemScores) {
+    if (row.score === null) continue;
+    const competencyId = itemToCompetency.get(row.competency_item_id);
+    if (!competencyId) continue;
+    const list = byCompetency.get(competencyId) ?? [];
+    list.push(Number(row.score));
+    byCompetency.set(competencyId, list);
+  }
+  return byCompetency;
 }
 
 export async function fetchDesignersWithAverages(): Promise<
@@ -39,19 +63,26 @@ export async function fetchDesignersWithAverages(): Promise<
 
   const [
     { data: designers, error: designersError },
-    { data: scores, error: scoresError },
+    { data: itemScores, error: itemScoresError },
     { data: competencyRows, error: competenciesError },
+    { data: items, error: itemsError },
   ] = await Promise.all([
     supabase.from("designers").select("*").order("name"),
     supabase
-      .from("scores")
-      .select("designer_id, competency_id, score, reviewed_at"),
+      .from("item_scores")
+      .select("designer_id, competency_item_id, score, reviewed_at"),
     supabase.from("competencies").select("id, block, title"),
+    supabase.from("competency_items").select("id, competency_id"),
   ]);
 
   if (designersError) throw designersError;
-  if (scoresError) throw scoresError;
+  if (itemScoresError) throw itemScoresError;
   if (competenciesError) throw competenciesError;
+  if (itemsError) throw itemsError;
+
+  const itemToCompetency = new Map(
+    (items ?? []).map((i) => [i.id, i.competency_id])
+  );
 
   const competencyExportColumns: CompetencyExportColumn[] = (
     competencyRows ?? []
@@ -67,30 +98,34 @@ export async function fetchDesignersWithAverages(): Promise<
     .map((r) => ({ id: r.id, title: r.title ?? "" }));
 
   const scoresByDesigner = new Map<string, Map<string, number>>();
-  const totals = new Map<string, { sum: number; count: number }>();
+  const itemTotals = new Map<string, { sum: number; count: number }>();
   const lastReviewedAt = new Map<string, string | null>();
 
   for (const d of designers ?? []) {
-    totals.set(d.id, { sum: 0, count: 0 });
+    itemTotals.set(d.id, { sum: 0, count: 0 });
     lastReviewedAt.set(d.id, null);
     scoresByDesigner.set(d.id, new Map());
   }
 
-  for (const row of scores ?? []) {
+  const scoresByDesignerItems = new Map<
+    string,
+    { competency_item_id: string; score: number | null; reviewed_at: string | null }[]
+  >();
+
+  for (const row of itemScores ?? []) {
     const designerId = row.designer_id;
-
-    let map = scoresByDesigner.get(designerId);
-    if (!map) {
-      map = new Map();
-      scoresByDesigner.set(designerId, map);
+    let list = scoresByDesignerItems.get(designerId);
+    if (!list) {
+      list = [];
+      scoresByDesignerItems.set(designerId, list);
     }
-    if (row.score !== null) {
-      map.set(row.competency_id, Number(row.score));
+    list.push(row);
 
-      let tot = totals.get(designerId);
+    if (row.score !== null) {
+      let tot = itemTotals.get(designerId);
       if (!tot) {
         tot = { sum: 0, count: 0 };
-        totals.set(designerId, tot);
+        itemTotals.set(designerId, tot);
       }
       tot.sum += Number(row.score);
       tot.count += 1;
@@ -109,6 +144,16 @@ export async function fetchDesignersWithAverages(): Promise<
     }
   }
 
+  for (const [designerId, rows] of Array.from(scoresByDesignerItems)) {
+    const byCompetency = aggregateScoresByCompetency(rows, itemToCompetency);
+    const competencyMap = new Map<string, number>();
+    for (const [competencyId, values] of Array.from(byCompetency)) {
+      const avg = averageScore(values);
+      if (avg !== null) competencyMap.set(competencyId, avg);
+    }
+    scoresByDesigner.set(designerId, competencyMap);
+  }
+
   const designersWithAverages: DesignerWithAverage[] = (designers ?? []).map(
     (d) => {
       const map = scoresByDesigner.get(d.id) ?? new Map();
@@ -119,15 +164,15 @@ export async function fetchDesignersWithAverages(): Promise<
           : null;
       }
 
-      const tot = totals.get(d.id) ?? { sum: 0, count: 0 };
-      const averageScore =
+      const tot = itemTotals.get(d.id) ?? { sum: 0, count: 0 };
+      const averageScoreValue =
         tot.count > 0
           ? Math.round((tot.sum / tot.count) * 10) / 10
           : null;
 
       return {
         ...d,
-        averageScore,
+        averageScore: averageScoreValue,
         competencyScoresById,
         lastReviewedAt: lastReviewedAt.get(d.id) ?? null,
       };
@@ -161,25 +206,25 @@ export async function fetchCompetencies(): Promise<Competency[]> {
   return data ?? [];
 }
 
-export async function fetchScoresForDesigner(
-  designerId: string
-): Promise<Score[]> {
+export async function fetchCompetencyItems(): Promise<CompetencyItem[]> {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from("scores")
-    .select("*")
-    .eq("designer_id", designerId);
+    .from("competency_items")
+    .select(ITEM_COLUMNS)
+    .order("text");
 
   if (error) throw error;
   return data ?? [];
 }
 
-export async function fetchCompetencyItems(): Promise<CompetencyItem[]> {
+export async function fetchItemScoresForDesigner(
+  designerId: string
+): Promise<ItemScore[]> {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from("competency_items")
+    .from("item_scores")
     .select("*")
-    .order("text");
+    .eq("designer_id", designerId);
 
   if (error) throw error;
   return data ?? [];
@@ -189,7 +234,7 @@ export type ReviewPageData = {
   designer: Designer;
   competencies: Competency[];
   itemsByCompetency: Map<string, CompetencyItem[]>;
-  scoresByCompetency: Map<string, Score>;
+  scoresByItem: Map<string, ItemScore>;
 };
 
 export async function fetchReviewPageData(
@@ -198,10 +243,10 @@ export async function fetchReviewPageData(
   const designer = await fetchDesigner(designerId);
   if (!designer) return null;
 
-  const [allCompetencies, items, scores] = await Promise.all([
+  const [allCompetencies, items, itemScores] = await Promise.all([
     fetchCompetencies(),
     fetchCompetencyItems(),
-    fetchScoresForDesigner(designerId),
+    fetchItemScoresForDesigner(designerId),
   ]);
 
   const competencies = filterCompetenciesForRole(
@@ -209,23 +254,17 @@ export async function fetchReviewPageData(
     designer.role
   );
 
-  const itemsByCompetency = new Map<string, CompetencyItem[]>();
-  for (const item of items) {
-    if (designer.role !== "lead" && item.only_lead) continue;
-    const list = itemsByCompetency.get(item.competency_id) ?? [];
-    list.push(item);
-    itemsByCompetency.set(item.competency_id, list);
-  }
+  const itemsByCompetency = groupItemsByCompetency(items, designer.role);
 
-  const scoresByCompetency = new Map<string, Score>();
-  for (const score of scores) {
-    scoresByCompetency.set(score.competency_id, score);
+  const scoresByItem = new Map<string, ItemScore>();
+  for (const score of itemScores) {
+    scoresByItem.set(score.competency_item_id, score);
   }
 
   return {
     designer,
     competencies,
     itemsByCompetency,
-    scoresByCompetency,
+    scoresByItem,
   };
 }

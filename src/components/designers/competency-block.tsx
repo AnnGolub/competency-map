@@ -6,10 +6,11 @@ import {
   getExpectedScore,
   getGapBadge,
   primaryVisibleScore,
-  resolveBlindScores,
+  resolveBlindScoresFromItems,
   showPreLeadColumn,
   type Competency,
-  type Score,
+  type CompetencyItem,
+  type ItemScore,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
 
@@ -17,14 +18,16 @@ export function CompetencyBlockSection({
   title,
   competencies,
   role,
-  scoresByCompetency,
+  itemsByCompetency,
+  scoresByItem,
   selfReviewCompleted,
   isAdmin = false,
 }: {
   title: string;
   competencies: Competency[];
   role: DesignerRole;
-  scoresByCompetency: Map<string, Score>;
+  itemsByCompetency: Map<string, CompetencyItem[]>;
+  scoresByItem: Map<string, ItemScore>;
   selfReviewCompleted: boolean;
   isAdmin?: boolean;
 }) {
@@ -39,14 +42,12 @@ export function CompetencyBlockSection({
       </h2>
       <ul className="mt-4 divide-y divide-neutral-200 border-y-[0.5px] border-neutral-200">
         {competencies.map((competency) => {
-          const row = scoresByCompetency.get(competency.id);
-          const blind = row
-            ? resolveBlindScores(row, selfReviewCompleted)
-            : {
-                leadScore: null,
-                selfScore: null,
-                showDual: false,
-              };
+          const items = itemsByCompetency.get(competency.id) ?? [];
+          const blind = resolveBlindScoresFromItems(
+            items,
+            scoresByItem,
+            selfReviewCompleted
+          );
           const expected = getExpectedScore(competency, role);
           const primary = primaryVisibleScore(blind);
           const badge = getGapBadge(primary, expected);

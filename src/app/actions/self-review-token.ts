@@ -4,14 +4,14 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { blocksForDesignerRole } from "@/lib/competency-utils";
+import { groupItemsByCompetency } from "@/lib/competency-utils";
 import { getSessionContext } from "@/lib/session";
 import type { DesignerRole } from "@/types/database";
 
 const TOKEN_TTL_DAYS = 14;
 
 export type SelfReviewEntry = {
-  competencyId: string;
+  competencyItemId: string;
   selfScore: number;
 };
 
@@ -82,50 +82,51 @@ export async function submitSelfReviewByToken(
   if (designerError) return { error: designerError.message };
   if (!designer) return { error: "Дизайнер не найден" };
 
-  const { data: allCompetencies, error: compError } = await admin
-    .from("competencies")
-    .select("id, block");
+  const { data: items, error: itemsError } = await admin
+    .from("competency_items")
+    .select("id, competency_id, only_lead");
 
-  if (compError) return { error: compError.message };
+  if (itemsError) return { error: itemsError.message };
 
-  const allowedBlocks = new Set(
-    blocksForDesignerRole(designer.role as DesignerRole)
+  const itemsByCompetency = groupItemsByCompetency(
+    items ?? [],
+    designer.role as DesignerRole
   );
-  const allowedIds = new Set(
-    (allCompetencies ?? [])
-      .filter((c) => allowedBlocks.has(c.block))
-      .map((c) => c.id)
-  );
+  const allowedItemIds = new Set<string>();
+  for (const list of Array.from(itemsByCompetency.values())) {
+    for (const item of list) {
+      allowedItemIds.add(item.id);
+    }
+  }
 
-  if (entries.length !== allowedIds.size) {
-    return { error: "Заполните все компетенции" };
+  if (entries.length !== allowedItemIds.size) {
+    return { error: "Заполните все подпункты" };
   }
 
   for (const entry of entries) {
-    if (!allowedIds.has(entry.competencyId)) {
-      return { error: "Недопустимая компетенция" };
+    if (!allowedItemIds.has(entry.competencyItemId)) {
+      return { error: "Недопустимый подпункт" };
     }
 
     const { data: existing } = await admin
-      .from("scores")
-      .select("id, score, comment, reviewed_by, reviewed_at")
+      .from("item_scores")
+      .select("id, score, reviewed_by, reviewed_at")
       .eq("designer_id", tokenRow.designer_id)
-      .eq("competency_id", entry.competencyId)
+      .eq("competency_item_id", entry.competencyItemId)
       .maybeSingle();
 
     if (existing) {
       const { error } = await admin
-        .from("scores")
+        .from("item_scores")
         .update({ self_score: entry.selfScore })
         .eq("id", existing.id);
       if (error) return { error: error.message };
     } else {
-      const { error } = await admin.from("scores").insert({
+      const { error } = await admin.from("item_scores").insert({
         designer_id: tokenRow.designer_id,
-        competency_id: entry.competencyId,
+        competency_item_id: entry.competencyItemId,
         self_score: entry.selfScore,
         score: null,
-        comment: "",
         reviewed_by: null,
         reviewed_at: null,
       });
