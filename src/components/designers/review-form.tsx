@@ -5,6 +5,10 @@ import { useState, useTransition } from "react";
 import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { saveReview, type ReviewEntry } from "@/app/actions/review";
 import { ItemScoreSlider } from "@/components/ui/item-score-slider";
+import type {
+  ItemsByCompetencyRecord,
+  ScoresByItemRecord,
+} from "@/lib/data/queries";
 import {
   BLOCK_LABELS,
   blocksForDesignerRole,
@@ -16,19 +20,18 @@ import {
   type Competency,
   type CompetencyItem,
   type Designer,
-  type ItemScore,
 } from "@/lib/competency-utils";
 
 type FormState = Record<string, number>;
 
 function buildInitialState(
-  itemsByCompetency: Map<string, CompetencyItem[]>,
-  scoresByItem: Map<string, ItemScore>
+  itemsByCompetency: ItemsByCompetencyRecord,
+  scoresByItem: ScoresByItemRecord
 ): FormState {
   const state: FormState = {};
-  for (const items of Array.from(itemsByCompetency.values())) {
+  for (const items of Object.values(itemsByCompetency)) {
     for (const item of items) {
-      const existing = scoresByItem.get(item.id);
+      const existing = scoresByItem[item.id];
       state[item.id] =
         existing?.score !== null && existing?.score !== undefined
           ? Number(existing.score)
@@ -40,11 +43,11 @@ function buildInitialState(
 
 function collectAllItems(
   competencies: Competency[],
-  itemsByCompetency: Map<string, CompetencyItem[]>
+  itemsByCompetency: ItemsByCompetencyRecord
 ): CompetencyItem[] {
   const result: CompetencyItem[] = [];
   for (const c of competencies) {
-    result.push(...(itemsByCompetency.get(c.id) ?? []));
+    result.push(...(itemsByCompetency[c.id] ?? []));
   }
   return result;
 }
@@ -57,8 +60,8 @@ export function ReviewForm({
 }: {
   designer: Designer;
   competencies: Competency[];
-  itemsByCompetency: Map<string, CompetencyItem[]>;
-  scoresByItem: Map<string, ItemScore>;
+  itemsByCompetency: ItemsByCompetencyRecord;
+  scoresByItem: ScoresByItemRecord;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -110,7 +113,7 @@ export function ReviewForm({
             </h2>
             <ul className="mt-4 space-y-8">
               {list.map((competency) => {
-                const items = itemsByCompetency.get(competency.id) ?? [];
+                const items = itemsByCompetency[competency.id] ?? [];
 
                 return (
                   <li
