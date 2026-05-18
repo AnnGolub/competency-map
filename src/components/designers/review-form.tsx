@@ -2,12 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { saveReview, type ReviewEntry } from "@/app/actions/review";
 import {
   BLOCK_LABELS,
   blocksForDesignerRole,
+  formatScore,
+  getExpectedScore,
   groupByBlock,
   SCORE_OPTIONS,
+  showPreLeadColumn,
   type Competency,
   type CompetencyItem,
   type Designer,
@@ -54,6 +58,7 @@ export function ReviewForm({
 
   const grouped = groupByBlock(competencies);
   const visibleBlocks = blocksForDesignerRole(designer.role);
+  const preLead = showPreLeadColumn(designer.role);
 
   function updateCompetency(
     id: string,
@@ -118,6 +123,29 @@ export function ReviewForm({
                         {competency.description}
                       </p>
                     ) : null}
+
+                    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                      <div>
+                        <span className="text-neutral-400">Ожидается </span>
+                        <span className="tabular-nums font-medium">
+                          {formatScore(
+                            getExpectedScore(competency, designer.role)
+                          )}
+                        </span>
+                      </div>
+                      {preLead ? (
+                        <div>
+                          <span className="text-neutral-400">
+                            Готовится к лиду{" "}
+                          </span>
+                          <span className="tabular-nums font-medium">
+                            {formatScore(competency.expected_pre_lead)}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <CompetencyLevelIndicators competency={competency} />
 
                     <div className="mt-4">
                       <div className="flex items-center justify-between gap-4">
