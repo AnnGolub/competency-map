@@ -217,6 +217,36 @@ export async function fetchCompetencyItems(): Promise<CompetencyItem[]> {
   return data ?? [];
 }
 
+export async function fetchCompetencyItemsForCompetencies(
+  competencyIds: string[]
+): Promise<CompetencyItem[]> {
+  if (competencyIds.length === 0) return [];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("competency_items")
+    .select(ITEM_COLUMNS)
+    .in("competency_id", competencyIds)
+    .order("text");
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Plain object for passing competency items to client components (Map does not serialize). */
+export type ItemsByCompetencyRecord = Record<string, CompetencyItem[]>;
+export type ScoresByItemRecord = Record<string, ItemScore>;
+
+function itemsMapToRecord(
+  map: Map<string, CompetencyItem[]>
+): ItemsByCompetencyRecord {
+  return Object.fromEntries(map);
+}
+
+function scoresMapToRecord(map: Map<string, ItemScore>): ScoresByItemRecord {
+  return Object.fromEntries(map);
+}
+
 export async function fetchItemScoresForDesigner(
   designerId: string
 ): Promise<ItemScore[]> {
@@ -233,8 +263,8 @@ export async function fetchItemScoresForDesigner(
 export type ReviewPageData = {
   designer: Designer;
   competencies: Competency[];
-  itemsByCompetency: Map<string, CompetencyItem[]>;
-  scoresByItem: Map<string, ItemScore>;
+  itemsByCompetency: ItemsByCompetencyRecord;
+  scoresByItem: ScoresByItemRecord;
 };
 
 export async function fetchReviewPageData(
@@ -243,28 +273,31 @@ export async function fetchReviewPageData(
   const designer = await fetchDesigner(designerId);
   if (!designer) return null;
 
-  const [allCompetencies, items, itemScores] = await Promise.all([
-    fetchCompetencies(),
-    fetchCompetencyItems(),
-    fetchItemScoresForDesigner(designerId),
-  ]);
-
+  const allCompetencies = await fetchCompetencies();
   const competencies = filterCompetenciesForRole(
     allCompetencies,
     designer.role
   );
+  const competencyIds = competencies.map((c) => c.id);
 
-  const itemsByCompetency = groupItemsByCompetency(items, designer.role);
+  const [items, itemScores] = await Promise.all([
+    fetchCompetencyItemsForCompetencies(competencyIds),
+    fetchItemScoresForDesigner(designerId),
+  ]);
 
-  const scoresByItem = new Map<string, ItemScore>();
+  const itemsByCompetency = itemsMapToRecord(
+    groupItemsByCompetency(items, designer.role)
+  );
+
+  const scoresByItemMap = new Map<string, ItemScore>();
   for (const score of itemScores) {
-    scoresByItem.set(score.competency_item_id, score);
+    scoresByItemMap.set(score.competency_item_id, score);
   }
 
   return {
     designer,
     competencies,
     itemsByCompetency,
-    scoresByItem,
+    scoresByItem: scoresMapToRecord(scoresByItemMap),
   };
 }
