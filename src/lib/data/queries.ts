@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { filterCompetenciesForRole } from "@/lib/competency-utils";
+import { BLOCK_ORDER, filterCompetenciesForRole } from "@/lib/competency-utils";
 import type { CompetencyBlock } from "@/types/database";
 import type {
   Competency,
@@ -8,42 +8,32 @@ import type {
   Score,
 } from "@/lib/competency-utils";
 
+export type CompetencyExportColumn = {
+  id: string;
+  title: string;
+};
+
 export type DesignerWithAverage = Designer & {
   averageScore: number | null;
-  avgLeadership: number | null;
-  avgHard: number | null;
-  avgSoft: number | null;
+  competencyScoresById: Record<string, number | null>;
   lastReviewedAt: string | null;
+};
+
+export type DesignersWithAveragesResult = {
+  designers: DesignerWithAverage[];
+  competencyExportColumns: CompetencyExportColumn[];
 };
 
 const COMPETENCY_COLUMNS =
   "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, expected_pre_lead, indicators_1, indicators_2, indicators_3, indicators_4" as const;
 
-type DesignerAgg = {
-  leadership: { sum: number; count: number };
-  hard: { sum: number; count: number };
-  soft: { sum: number; count: number };
-  total: { sum: number; count: number };
-  lastReviewedAt: string | null;
-};
-
-function emptyAgg(): DesignerAgg {
-  return {
-    leadership: { sum: 0, count: 0 },
-    hard: { sum: 0, count: 0 },
-    soft: { sum: 0, count: 0 },
-    total: { sum: 0, count: 0 },
-    lastReviewedAt: null,
-  };
-}
-
-function avgFromAgg(a: { sum: number; count: number }): number | null {
-  if (a.count === 0) return null;
-  return Math.round((a.sum / a.count) * 10) / 10;
+function blockSortIndex(block: CompetencyBlock): number {
+  const i = BLOCK_ORDER.indexOf(block);
+  return i === -1 ? 999 : i;
 }
 
 export async function fetchDesignersWithAverages(): Promise<
-  DesignerWithAverage[]
+  DesignersWithAveragesResult
 > {
   const supabase = createClient();
 
@@ -56,60 +46,92 @@ export async function fetchDesignersWithAverages(): Promise<
     supabase
       .from("scores")
       .select("designer_id, competency_id, score, reviewed_at"),
-    supabase.from("competencies").select("id, block"),
+    supabase.from("competencies").select("id, block, title"),
   ]);
 
   if (designersError) throw designersError;
   if (scoresError) throw scoresError;
   if (competenciesError) throw competenciesError;
 
-  const blockByCompetencyId = new Map<string, CompetencyBlock>();
-  for (const row of competencyRows ?? []) {
-    blockByCompetencyId.set(row.id, row.block as CompetencyBlock);
-  }
+  const competencyExportColumns: CompetencyExportColumn[] = (
+    competencyRows ?? []
+  )
+    .slice()
+    .sort((a, b) => {
+      const br =
+        blockSortIndex(a.block as CompetencyBlock) -
+        blockSortIndex(b.block as CompetencyBlock);
+      if (br !== 0) return br;
+      return (a.title ?? "").localeCompare(b.title ?? "", "ru");
+    })
+    .map((r) => ({ id: r.id, title: r.title ?? "" }));
 
-  const aggs = new Map<string, DesignerAgg>();
+  const scoresByDesigner = new Map<string, Map<string, number>>();
+  const totals = new Map<string, { sum: number; count: number }>();
+  const lastReviewedAt = new Map<string, string | null>();
+
   for (const d of designers ?? []) {
-    aggs.set(d.id, emptyAgg());
+    totals.set(d.id, { sum: 0, count: 0 });
+    lastReviewedAt.set(d.id, null);
+    scoresByDesigner.set(d.id, new Map());
   }
 
   for (const row of scores ?? []) {
-    let agg = aggs.get(row.designer_id);
-    if (!agg) {
-      agg = emptyAgg();
-      aggs.set(row.designer_id, agg);
-    }
-
+    const designerId = row.designer_id;
     const scoreNum = Number(row.score);
-    agg.total.sum += scoreNum;
-    agg.total.count += 1;
 
-    const block = blockByCompetencyId.get(row.competency_id);
-    if (block === "leadership" || block === "hard" || block === "soft") {
-      agg[block].sum += scoreNum;
-      agg[block].count += 1;
+    let map = scoresByDesigner.get(designerId);
+    if (!map) {
+      map = new Map();
+      scoresByDesigner.set(designerId, map);
     }
+    map.set(row.competency_id, scoreNum);
+
+    let tot = totals.get(designerId);
+    if (!tot) {
+      tot = { sum: 0, count: 0 };
+      totals.set(designerId, tot);
+    }
+    tot.sum += scoreNum;
+    tot.count += 1;
 
     const ra = row.reviewed_at as string;
+    const prev = lastReviewedAt.get(designerId);
     if (
-      !agg.lastReviewedAt ||
-      new Date(ra).getTime() > new Date(agg.lastReviewedAt).getTime()
+      prev === undefined ||
+      !prev ||
+      new Date(ra).getTime() > new Date(prev).getTime()
     ) {
-      agg.lastReviewedAt = ra;
+      lastReviewedAt.set(designerId, ra);
     }
   }
 
-  return (designers ?? []).map((d) => {
-    const agg = aggs.get(d.id) ?? emptyAgg();
-    return {
-      ...d,
-      averageScore: avgFromAgg(agg.total),
-      avgLeadership: avgFromAgg(agg.leadership),
-      avgHard: avgFromAgg(agg.hard),
-      avgSoft: avgFromAgg(agg.soft),
-      lastReviewedAt: agg.lastReviewedAt,
-    };
-  });
+  const designersWithAverages: DesignerWithAverage[] = (designers ?? []).map(
+    (d) => {
+      const map = scoresByDesigner.get(d.id) ?? new Map();
+      const competencyScoresById: Record<string, number | null> = {};
+      for (const col of competencyExportColumns) {
+        competencyScoresById[col.id] = map.has(col.id)
+          ? (map.get(col.id) as number)
+          : null;
+      }
+
+      const tot = totals.get(d.id) ?? { sum: 0, count: 0 };
+      const averageScore =
+        tot.count > 0
+          ? Math.round((tot.sum / tot.count) * 10) / 10
+          : null;
+
+      return {
+        ...d,
+        averageScore,
+        competencyScoresById,
+        lastReviewedAt: lastReviewedAt.get(d.id) ?? null,
+      };
+    }
+  );
+
+  return { designers: designersWithAverages, competencyExportColumns };
 }
 
 export async function fetchDesigner(id: string): Promise<Designer | null> {
