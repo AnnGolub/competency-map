@@ -3,9 +3,10 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CompetencyBlockSection } from "@/components/designers/competency-block";
+import { DesignersAppShell } from "@/components/designers/designers-app-shell";
+import { DesignersPageHeader } from "@/components/designers/designers-page-header";
 import { EditDesignerPanel } from "@/components/designers/edit-designer-panel";
 import { GenerateSelfReviewLink } from "@/components/designers/generate-self-review-link";
-import { PageShell } from "@/components/ui/page-shell";
 import {
   averageScore,
   BLOCK_LABELS,
@@ -66,7 +67,9 @@ export default async function DesignerProfilePage({
     competencies,
     designer.role
   );
-  const itemsByCompetency = groupItemsByCompetency(items, designer.role);
+  const itemsByCompetency = groupItemsByCompetency(items, designer.role, {
+    includeOnlyLead: true,
+  });
   const visibleItems = collectVisibleItems(
     visibleCompetencies,
     itemsByCompetency
@@ -111,64 +114,72 @@ export default async function DesignerProfilePage({
   const visibleBlocks = blocksForDesignerRole(designer.role);
 
   return (
-    <PageShell
-      backHref="/designers"
-      backLabel="Дизайнеры"
-      actions={
-        <Link
-          href={`/designers/${designer.id}/review`}
-          className="rounded-full border border-neutral-900 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-900 hover:text-white"
-        >
-          Ревью
-        </Link>
-      }
-    >
-      <header>
-        <h1 className="text-2xl font-medium tracking-tight">{designer.name}</h1>
-        <p className="mt-1 text-neutral-500">
-          {ROLE_LABELS[designer.role]} · {designer.direction}
-        </p>
-        <p className="mt-2 text-sm text-neutral-400">
-          Последнее ревью: {formatReviewDate(lastReviewAt)}
-        </p>
-      </header>
+    <DesignersAppShell>
+      <DesignersPageHeader
+        title={designer.name}
+        backHref="/designers"
+        backLabel="Дизайнеры"
+        subtitle={
+          <>
+            <p>
+              {ROLE_LABELS[designer.role]} · {designer.direction}
+            </p>
+            <p className="mt-1">
+              Последнее ревью: {formatReviewDate(lastReviewAt)}
+            </p>
+          </>
+        }
+        actions={
+          <Link
+            href={`/designers/${designer.id}/review`}
+            className="rounded-lg bg-app-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover"
+          >
+            Ревью
+          </Link>
+        }
+      />
 
-      <EditDesignerPanel designer={designer} />
-      <GenerateSelfReviewLink designerId={designer.id} />
+      <main className="flex-1 px-10 pb-10 pt-6">
+        <EditDesignerPanel designer={designer} />
+        <GenerateSelfReviewLink designerId={designer.id} />
 
-      <dl className="mt-8 grid grid-cols-3 gap-4 rounded-lg border-[0.5px] border-neutral-200 p-4">
-        <div>
-          <dt className="text-xs text-neutral-400">Средний балл</dt>
-          <dd className="mt-1 text-xl font-medium tabular-nums">
-            {formatScore(avg)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-neutral-400">Ниже ожидаемого</dt>
-          <dd className="mt-1 text-xl font-medium tabular-nums">{belowCount}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-neutral-400">Рост за 6 мес.</dt>
-          <dd className="mt-1 text-xl font-medium tabular-nums">
-            {growth === null
-              ? "—"
-              : `${growth > 0 ? "+" : ""}${growth.toFixed(1)}`}
-          </dd>
-        </div>
-      </dl>
+        <dl className="mt-8 grid grid-cols-3 gap-4 rounded-xl border border-app-border bg-app-surface p-5">
+          <div>
+            <dt className="text-xs text-app-muted">Средний балл</dt>
+            <dd className="mt-1 text-xl font-medium tabular-nums text-white">
+              {formatScore(avg)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-app-muted">Ниже ожидаемого</dt>
+            <dd className="mt-1 text-xl font-medium tabular-nums text-white">
+              {belowCount}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-app-muted">Рост за 6 мес.</dt>
+            <dd className="mt-1 text-xl font-medium tabular-nums text-white">
+              {growth === null
+                ? "—"
+                : `${growth > 0 ? "+" : ""}${growth.toFixed(1)}`}
+            </dd>
+          </div>
+        </dl>
 
-      {visibleBlocks.map((block) => (
-        <CompetencyBlockSection
-          key={block}
-          title={BLOCK_LABELS[block]}
-          competencies={grouped[block]}
-          role={designer.role}
-          itemsByCompetency={itemsByCompetency}
-          scoresByItem={scoresByItem}
-          selfReviewCompleted={selfReviewCompleted}
-          isAdmin
-        />
-      ))}
-    </PageShell>
+        {visibleBlocks.map((block) => (
+          <CompetencyBlockSection
+            key={block}
+            title={BLOCK_LABELS[block]}
+            competencies={grouped[block]}
+            role={designer.role}
+            itemsByCompetency={itemsByCompetency}
+            scoresByItem={scoresByItem}
+            selfReviewCompleted={selfReviewCompleted}
+            isAdmin
+            theme="dark"
+          />
+        ))}
+      </main>
+    </DesignersAppShell>
   );
 }

@@ -35,23 +35,23 @@ export function GenerateSelfReviewLink({ designerId }: { designerId: string }) {
   }
 
   return (
-    <div className="mt-6 rounded-lg border-[0.5px] border-neutral-200 p-4">
-      <h2 className="text-sm font-medium">Самооценка дизайнера</h2>
-      <p className="mt-1 text-sm text-neutral-500">
+    <div className="mt-6 rounded-xl border border-app-border bg-app-surface p-5">
+      <h2 className="text-sm font-medium text-white">Самооценка дизайнера</h2>
+      <p className="mt-1 text-sm text-app-muted">
         Одноразовая ссылка без входа в систему. Действует 14 дней.
       </p>
 
-      {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
 
       {url ? (
         <div className="mt-4">
-          <p className="break-all rounded-lg border-[0.5px] border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+          <p className="break-all rounded-lg border border-app-border bg-app-canvas px-3 py-2 text-sm text-white/80">
             {url}
           </p>
           <button
             type="button"
             onClick={handleCopy}
-            className="mt-2 text-sm text-neutral-600 underline hover:text-neutral-900"
+            className="mt-2 text-sm text-app-accent transition-colors hover:text-app-accent-hover"
           >
             {copied ? "Скопировано" : "Копировать ссылку"}
           </button>
@@ -62,7 +62,7 @@ export function GenerateSelfReviewLink({ designerId }: { designerId: string }) {
         type="button"
         disabled={isPending}
         onClick={handleGenerate}
-        className="mt-4 rounded-full border-[0.5px] border-neutral-900 px-4 py-1.5 text-sm font-medium disabled:opacity-50"
+        className="mt-4 rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
       >
         {isPending ? "Генерация…" : "Сгенерировать ссылку"}
       </button>

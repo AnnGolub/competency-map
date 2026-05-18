@@ -22,6 +22,7 @@ export function CompetencyBlockSection({
   scoresByItem,
   selfReviewCompleted,
   isAdmin = false,
+  theme = "light",
 }: {
   title: string;
   competencies: Competency[];
@@ -30,17 +31,24 @@ export function CompetencyBlockSection({
   scoresByItem: Map<string, ItemScore>;
   selfReviewCompleted: boolean;
   isAdmin?: boolean;
+  theme?: "light" | "dark";
 }) {
   if (competencies.length === 0) return null;
 
+  const isDark = theme === "dark";
   const preLead = showPreLeadColumn(role) && isAdmin;
+  const sectionTitle = isDark
+    ? "text-app-muted"
+    : "text-neutral-400 uppercase tracking-wide";
+  const divide = isDark ? "divide-app-border border-app-border" : "divide-neutral-200 border-neutral-200";
+  const titleCls = isDark ? "font-medium text-white" : "font-medium";
+  const metaLabel = isDark ? "text-app-muted" : "text-neutral-400";
+  const metaValue = isDark ? "text-white/90 tabular-nums" : "tabular-nums";
 
   return (
     <section className="mt-10">
-      <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">
-        {title}
-      </h2>
-      <ul className="mt-4 divide-y divide-neutral-200 border-y-[0.5px] border-neutral-200">
+      <h2 className={`text-sm font-medium ${sectionTitle}`}>{title}</h2>
+      <ul className={`mt-4 divide-y border-y-[0.5px] ${divide}`}>
         {competencies.map((competency) => {
           const items = itemsByCompetency.get(competency.id) ?? [];
           const blind = resolveBlindScoresFromItems(
@@ -56,32 +64,31 @@ export function CompetencyBlockSection({
             <li key={competency.id} className="py-4">
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                 <div className="min-w-0">
-                  <p className="font-medium">{competency.title}</p>
+                  <p className={titleCls}>{competency.title}</p>
                   <div className="mt-2">
                     <DualScoreProgress
                       leadScore={blind.leadScore}
                       selfScore={blind.selfScore}
                       showDual={blind.showDual}
+                      theme={theme}
                     />
                   </div>
-                  <CompetencyLevelIndicators competency={competency} />
+                  <CompetencyLevelIndicators competency={competency} theme={theme} />
                 </div>
                 <div className="flex shrink-0 flex-wrap items-start gap-4 text-sm sm:justify-end">
                   <div className="text-right">
-                    <p className="text-xs text-neutral-400">Ожидается</p>
-                    <p className="tabular-nums">{formatScore(expected)}</p>
+                    <p className={`text-xs ${metaLabel}`}>Ожидается</p>
+                    <p className={metaValue}>{formatScore(expected)}</p>
                   </div>
                   {preLead ? (
                     <div className="text-right">
-                      <p className="text-xs text-neutral-400">
-                        Готовится к лиду
-                      </p>
-                      <p className="tabular-nums">
+                      <p className={`text-xs ${metaLabel}`}>Готовится к лиду</p>
+                      <p className={metaValue}>
                         {formatScore(competency.expected_pre_lead)}
                       </p>
                     </div>
                   ) : null}
-                  <GapBadgePill label={badge.label} variant={badge.variant} />
+                  <GapBadgePill label={badge.label} variant={badge.variant} theme={theme} />
                 </div>
               </div>
             </li>
