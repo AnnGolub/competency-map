@@ -47,6 +47,11 @@ export function showsLeadershipBlock(role: DesignerRole): boolean {
   return role === "senior" || role === "lead";
 }
 
+/** Показывать колонку «Готовится к лиду» (expected_pre_lead). */
+export function showPreLeadColumn(role: DesignerRole): boolean {
+  return role === "senior" || role === "lead";
+}
+
 export function blocksForDesignerRole(role: DesignerRole): CompetencyBlock[] {
   if (showsLeadershipBlock(role)) {
     return BLOCK_ORDER;

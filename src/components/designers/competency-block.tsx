@@ -1,9 +1,11 @@
+import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { GapBadgePill } from "@/components/ui/gap-badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   formatScore,
   getExpectedScore,
   getGapBadge,
+  showPreLeadColumn,
   type Competency,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
@@ -21,6 +23,8 @@ export function CompetencyBlockSection({
 }) {
   if (competencies.length === 0) return null;
 
+  const preLead = showPreLeadColumn(role);
+
   return (
     <section className="mt-10">
       <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">
@@ -33,22 +37,32 @@ export function CompetencyBlockSection({
           const badge = getGapBadge(current, expected);
 
           return (
-            <li
-              key={competency.id}
-              className="grid gap-3 py-4 sm:grid-cols-[1fr_auto] sm:items-center"
-            >
-              <div className="min-w-0">
-                <p className="font-medium">{competency.title}</p>
-                <div className="mt-2">
-                  <ProgressBar score={current} />
+            <li key={competency.id} className="py-4">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                <div className="min-w-0">
+                  <p className="font-medium">{competency.title}</p>
+                  <div className="mt-2">
+                    <ProgressBar score={current} />
+                  </div>
+                  <CompetencyLevelIndicators competency={competency} />
                 </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-4 text-sm">
-                <div className="text-right">
-                  <p className="text-xs text-neutral-400">Ожидается</p>
-                  <p className="tabular-nums">{formatScore(expected)}</p>
+                <div className="flex shrink-0 flex-wrap items-start gap-4 text-sm sm:justify-end">
+                  <div className="text-right">
+                    <p className="text-xs text-neutral-400">Ожидается</p>
+                    <p className="tabular-nums">{formatScore(expected)}</p>
+                  </div>
+                  {preLead ? (
+                    <div className="text-right">
+                      <p className="text-xs text-neutral-400">
+                        Готовится к лиду
+                      </p>
+                      <p className="tabular-nums">
+                        {formatScore(competency.expected_pre_lead)}
+                      </p>
+                    </div>
+                  ) : null}
+                  <GapBadgePill label={badge.label} variant={badge.variant} />
                 </div>
-                <GapBadgePill label={badge.label} variant={badge.variant} />
               </div>
             </li>
           );
