@@ -70,6 +70,29 @@ export function IconUsers({ className }: IconProps) {
   );
 }
 
+export function IconUsersFilled({ className }: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <path fill="white" stroke="none" d="M12 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0" />
+      <path fill="white" stroke="none" d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+      <path
+        fill="white"
+        stroke="none"
+        d="M16 11.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 0 0-7 0"
+      />
+      <path fill="white" stroke="none" d="M19.5 21v-1.5a4 4 0 0 0-3-3.87" />
+    </svg>
+  );
+}
+
 export function IconLogout({ className }: IconProps) {
   return (
     <svg
