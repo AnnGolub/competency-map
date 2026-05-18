@@ -6,12 +6,18 @@ import { PageShell } from "@/components/ui/page-shell";
 import { fetchDesignersWithAverages } from "@/lib/data/queries";
 
 export default async function DesignersPage() {
-  const designers = await fetchDesignersWithAverages();
+  const { designers, competencyExportColumns } =
+    await fetchDesignersWithAverages();
 
   return (
     <PageShell
       title="Дизайнеры"
-      actions={<DesignersCsvExport designers={designers} />}
+      actions={
+        <DesignersCsvExport
+          designers={designers}
+          competencyColumns={competencyExportColumns}
+        />
+      }
     >
       <DesignersList designers={designers} />
     </PageShell>

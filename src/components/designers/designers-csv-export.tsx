@@ -1,6 +1,9 @@
 "use client";
 
-import type { DesignerWithAverage } from "@/lib/data/queries";
+import type {
+  CompetencyExportColumn,
+  DesignerWithAverage,
+} from "@/lib/data/queries";
 import { ROLE_LABELS } from "@/lib/competency-utils";
 
 function csvCell(v: string | number | null | undefined): string {
@@ -9,7 +12,7 @@ function csvCell(v: string | number | null | undefined): string {
   return s;
 }
 
-function formatAvg(v: number | null): string {
+function formatScoreValue(v: number | null): string {
   if (v === null) return "";
   return v.toFixed(1);
 }
@@ -25,17 +28,17 @@ function formatDate(iso: string | null): string {
 
 export function DesignersCsvExport({
   designers,
+  competencyColumns,
 }: {
   designers: DesignerWithAverage[];
+  competencyColumns: CompetencyExportColumn[];
 }) {
   function download() {
     const headers = [
       "Имя",
       "Роль",
       "Направление",
-      "Leadership",
-      "Hard skills",
-      "Soft skills",
+      ...competencyColumns.map((c) => csvCell(c.title)),
       "Дата последнего ревью",
     ];
     const rows = designers.map((d) =>
@@ -43,9 +46,9 @@ export function DesignersCsvExport({
         csvCell(d.name),
         csvCell(ROLE_LABELS[d.role]),
         csvCell(d.direction),
-        csvCell(formatAvg(d.avgLeadership)),
-        csvCell(formatAvg(d.avgHard)),
-        csvCell(formatAvg(d.avgSoft)),
+        ...competencyColumns.map((c) =>
+          csvCell(formatScoreValue(d.competencyScoresById[c.id] ?? null))
+        ),
         csvCell(formatDate(d.lastReviewedAt)),
       ].join(",")
     );
