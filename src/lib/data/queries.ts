@@ -1,4 +1,7 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database";
 import {
   averageScore,
   BLOCK_ORDER,
@@ -34,6 +37,38 @@ const COMPETENCY_COLUMNS =
 
 const ITEM_COLUMNS =
   "id, competency_id, text, only_lead, expected_junior, expected_middle, expected_senior, expected_lead" as const;
+
+const ITEM_COLUMNS_MINIMAL =
+  "id, competency_id, text, only_lead" as const;
+
+type CompetencyRowWithItems = {
+  id: string;
+  competency_items: CompetencyItem[] | CompetencyItem | null;
+};
+
+function flattenNestedItems(rows: CompetencyRowWithItems[]): CompetencyItem[] {
+  const items: CompetencyItem[] = [];
+  for (const row of rows) {
+    const nested = row.competency_items;
+    if (!nested) continue;
+    if (Array.isArray(nested)) {
+      items.push(...nested);
+    } else {
+      items.push(nested);
+    }
+  }
+  return items;
+}
+
+function normalizeCompetencyItem(row: CompetencyItem): CompetencyItem {
+  return {
+    ...row,
+    expected_junior: row.expected_junior ?? null,
+    expected_middle: row.expected_middle ?? null,
+    expected_senior: row.expected_senior ?? null,
+    expected_lead: row.expected_lead ?? null,
+  };
+}
 
 function blockSortIndex(block: CompetencyBlock): number {
   const i = BLOCK_ORDER.indexOf(block);
@@ -206,31 +241,142 @@ export async function fetchCompetencies(): Promise<Competency[]> {
   return data ?? [];
 }
 
-export async function fetchCompetencyItems(): Promise<CompetencyItem[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("competency_items")
-    .select(ITEM_COLUMNS)
-    .order("text");
+async function fetchCompetencyItemsDirect(
+  supabase: SupabaseClient<Database>,
+  competencyIds: string[] | null,
+  columns: string
+): Promise<{ data: CompetencyItem[]; error: string | null }> {
+  let query = supabase.from("competency_items").select(columns).order("text");
+  if (competencyIds !== null) {
+    query = query.in("competency_id", competencyIds);
+  }
+  const { data, error } = await query;
+  return {
+    data: ((data ?? []) as unknown as CompetencyItem[]).map(
+      normalizeCompetencyItem
+    ),
+    error: error?.message ?? null,
+  };
+}
 
-  if (error) throw error;
-  return data ?? [];
+async function fetchCompetencyItemsNested(
+  supabase: SupabaseClient<Database>,
+  competencyIds: string[]
+): Promise<{ data: CompetencyItem[]; error: string | null }> {
+  const { data, error } = await supabase
+    .from("competencies")
+    .select(`id, competency_items (${ITEM_COLUMNS})`)
+    .in("id", competencyIds);
+
+  if (error) {
+    return { data: [], error: error.message };
+  }
+
+  return {
+    data: flattenNestedItems((data ?? []) as CompetencyRowWithItems[]).map(
+      normalizeCompetencyItem
+    ),
+    error: null,
+  };
+}
+
+async function fetchCompetencyItemsWithAdmin(
+  competencyIds: string[] | null
+): Promise<CompetencyItem[]> {
+  try {
+    const admin = createAdminClient();
+    const result = await fetchCompetencyItemsDirect(admin, competencyIds, ITEM_COLUMNS);
+    if (result.error) {
+      const minimal = await fetchCompetencyItemsDirect(
+        admin,
+        competencyIds,
+        ITEM_COLUMNS_MINIMAL
+      );
+      return minimal.data;
+    }
+    return result.data;
+  } catch (err) {
+    console.error(
+      "[fetchCompetencyItems] admin client unavailable:",
+      err instanceof Error ? err.message : err
+    );
+    return [];
+  }
+}
+
+async function loadCompetencyItems(
+  competencyIds: string[] | null,
+  debugLabel: string
+): Promise<CompetencyItem[]> {
+  const supabase = createClient();
+  const scope =
+    competencyIds === null ? "all" : `${competencyIds.length} competencies`;
+
+  let { data, error } = await fetchCompetencyItemsDirect(
+    supabase,
+    competencyIds,
+    ITEM_COLUMNS
+  );
+
+  console.log(`[${debugLabel}] direct select (${ITEM_COLUMNS})`, {
+    scope,
+    count: data.length,
+    error,
+  });
+
+  if (error) {
+    const minimal = await fetchCompetencyItemsDirect(
+      supabase,
+      competencyIds,
+      ITEM_COLUMNS_MINIMAL
+    );
+    console.log(`[${debugLabel}] direct select fallback (${ITEM_COLUMNS_MINIMAL})`, {
+      scope,
+      count: minimal.data.length,
+      error: minimal.error,
+    });
+    data = minimal.data;
+    error = minimal.error;
+  }
+
+  if (data.length === 0 && competencyIds !== null && competencyIds.length > 0) {
+    const nested = await fetchCompetencyItemsNested(supabase, competencyIds);
+    console.log(`[${debugLabel}] nested competencies→competency_items`, {
+      scope,
+      count: nested.data.length,
+      error: nested.error,
+    });
+    if (nested.data.length > 0) {
+      data = nested.data;
+    }
+  }
+
+  if (data.length === 0 && (competencyIds === null || competencyIds.length > 0)) {
+    const adminData = await fetchCompetencyItemsWithAdmin(competencyIds);
+    console.log(`[${debugLabel}] admin/service-role fallback`, {
+      scope,
+      count: adminData.length,
+    });
+    if (adminData.length > 0) {
+      data = adminData;
+    }
+  }
+
+  return data;
+}
+
+export async function fetchCompetencyItems(): Promise<CompetencyItem[]> {
+  return loadCompetencyItems(null, "fetchCompetencyItems");
 }
 
 export async function fetchCompetencyItemsForCompetencies(
   competencyIds: string[]
 ): Promise<CompetencyItem[]> {
-  if (competencyIds.length === 0) return [];
-
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("competency_items")
-    .select(ITEM_COLUMNS)
-    .in("competency_id", competencyIds)
-    .order("text");
-
-  if (error) throw error;
-  return data ?? [];
+  if (competencyIds.length === 0) {
+    console.log("[fetchCompetencyItemsForCompetencies] skipped: no competency ids");
+    return [];
+  }
+  return loadCompetencyItems(competencyIds, "fetchCompetencyItemsForCompetencies");
 }
 
 /** Plain object for passing competency items to client components (Map does not serialize). */
@@ -285,9 +431,30 @@ export async function fetchReviewPageData(
     fetchItemScoresForDesigner(designerId),
   ]);
 
-  const itemsByCompetency = itemsMapToRecord(
-    groupItemsByCompetency(items, designer.role)
+  const grouped = groupItemsByCompetency(items, designer.role);
+  const itemsByCompetency = itemsMapToRecord(grouped);
+
+  const groupedItemCount = Array.from(grouped.values()).reduce(
+    (sum, list) => sum + list.length,
+    0
   );
+
+  console.log("[fetchReviewPageData]", {
+    designerId,
+    designerRole: designer.role,
+    competencies: competencies.length,
+    competencyIds: competencyIds.length,
+    itemsFromDb: items.length,
+    groupedCompetencies: grouped.size,
+    groupedItemCount,
+    itemsByCompetencyKeys: Object.keys(itemsByCompetency).length,
+    itemScores: itemScores.length,
+    sampleCompetencyId: competencyIds[0] ?? null,
+    sampleItemsForFirst:
+      competencyIds[0] != null
+        ? (itemsByCompetency[competencyIds[0]]?.length ?? 0)
+        : 0,
+  });
 
   const scoresByItemMap = new Map<string, ItemScore>();
   for (const score of itemScores) {
