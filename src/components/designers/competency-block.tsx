@@ -1,12 +1,15 @@
 import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { GapBadgePill } from "@/components/ui/gap-badge";
-import { ProgressBar } from "@/components/ui/progress-bar";
+import { DualScoreProgress } from "@/components/ui/dual-score-progress";
 import {
   formatScore,
   getExpectedScore,
   getGapBadge,
+  primaryVisibleScore,
+  resolveBlindScores,
   showPreLeadColumn,
   type Competency,
+  type Score,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
 
@@ -15,15 +18,19 @@ export function CompetencyBlockSection({
   competencies,
   role,
   scoresByCompetency,
+  selfReviewCompleted,
+  isAdmin = false,
 }: {
   title: string;
   competencies: Competency[];
   role: DesignerRole;
-  scoresByCompetency: Map<string, number>;
+  scoresByCompetency: Map<string, Score>;
+  selfReviewCompleted: boolean;
+  isAdmin?: boolean;
 }) {
   if (competencies.length === 0) return null;
 
-  const preLead = showPreLeadColumn(role);
+  const preLead = showPreLeadColumn(role) && isAdmin;
 
   return (
     <section className="mt-10">
@@ -32,9 +39,17 @@ export function CompetencyBlockSection({
       </h2>
       <ul className="mt-4 divide-y divide-neutral-200 border-y-[0.5px] border-neutral-200">
         {competencies.map((competency) => {
-          const current = scoresByCompetency.get(competency.id) ?? null;
+          const row = scoresByCompetency.get(competency.id);
+          const blind = row
+            ? resolveBlindScores(row, selfReviewCompleted)
+            : {
+                leadScore: null,
+                selfScore: null,
+                showDual: false,
+              };
           const expected = getExpectedScore(competency, role);
-          const badge = getGapBadge(current, expected);
+          const primary = primaryVisibleScore(blind);
+          const badge = getGapBadge(primary, expected);
 
           return (
             <li key={competency.id} className="py-4">
@@ -42,7 +57,11 @@ export function CompetencyBlockSection({
                 <div className="min-w-0">
                   <p className="font-medium">{competency.title}</p>
                   <div className="mt-2">
-                    <ProgressBar score={current} />
+                    <DualScoreProgress
+                      leadScore={blind.leadScore}
+                      selfScore={blind.selfScore}
+                      showDual={blind.showDual}
+                    />
                   </div>
                   <CompetencyLevelIndicators competency={competency} />
                 </div>

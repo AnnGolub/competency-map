@@ -1,0 +1,146 @@
+"use server";
+
+import { randomBytes } from "crypto";
+import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { blocksForDesignerRole } from "@/lib/competency-utils";
+import { getSessionContext } from "@/lib/session";
+import type { DesignerRole } from "@/types/database";
+
+const TOKEN_TTL_DAYS = 14;
+
+export type SelfReviewEntry = {
+  competencyId: string;
+  selfScore: number;
+};
+
+function getSiteOrigin(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  if (host) return `${proto}://${host}`;
+  return "http://localhost:3000";
+}
+
+export async function generateSelfReviewLink(
+  designerId: string
+): Promise<{ url?: string; error?: string }> {
+  const session = await getSessionContext();
+  if (!session?.isAdmin) {
+    return { error: "Недостаточно прав" };
+  }
+
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + TOKEN_TTL_DAYS);
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("self_review_tokens").insert({
+    designer_id: designerId,
+    token,
+    expires_at: expiresAt.toISOString(),
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/designers/${designerId}`);
+
+  const url = `${getSiteOrigin()}/self-review?token=${token}`;
+  return { url };
+}
+
+export async function submitSelfReviewByToken(
+  token: string,
+  entries: SelfReviewEntry[]
+): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+
+  const { data: tokenRow, error: tokenError } = await admin
+    .from("self_review_tokens")
+    .select("*")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (tokenError) return { error: tokenError.message };
+  if (!tokenRow) return { error: "Ссылка недействительна" };
+  if (tokenRow.completed_at) {
+    return { error: "Самооценка уже отправлена" };
+  }
+  if (new Date(tokenRow.expires_at).getTime() < Date.now()) {
+    return { error: "Срок действия ссылки истёк" };
+  }
+
+  const { data: designer, error: designerError } = await admin
+    .from("designers")
+    .select("*")
+    .eq("id", tokenRow.designer_id)
+    .maybeSingle();
+
+  if (designerError) return { error: designerError.message };
+  if (!designer) return { error: "Дизайнер не найден" };
+
+  const { data: allCompetencies, error: compError } = await admin
+    .from("competencies")
+    .select("id, block");
+
+  if (compError) return { error: compError.message };
+
+  const allowedBlocks = new Set(
+    blocksForDesignerRole(designer.role as DesignerRole)
+  );
+  const allowedIds = new Set(
+    (allCompetencies ?? [])
+      .filter((c) => allowedBlocks.has(c.block))
+      .map((c) => c.id)
+  );
+
+  if (entries.length !== allowedIds.size) {
+    return { error: "Заполните все компетенции" };
+  }
+
+  for (const entry of entries) {
+    if (!allowedIds.has(entry.competencyId)) {
+      return { error: "Недопустимая компетенция" };
+    }
+
+    const { data: existing } = await admin
+      .from("scores")
+      .select("id, score, comment, reviewed_by, reviewed_at")
+      .eq("designer_id", tokenRow.designer_id)
+      .eq("competency_id", entry.competencyId)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await admin
+        .from("scores")
+        .update({ self_score: entry.selfScore })
+        .eq("id", existing.id);
+      if (error) return { error: error.message };
+    } else {
+      const { error } = await admin.from("scores").insert({
+        designer_id: tokenRow.designer_id,
+        competency_id: entry.competencyId,
+        self_score: entry.selfScore,
+        score: null,
+        comment: "",
+        reviewed_by: null,
+        reviewed_at: null,
+      });
+      if (error) return { error: error.message };
+    }
+  }
+
+  const { error: completeError } = await admin
+    .from("self_review_tokens")
+    .update({ completed_at: new Date().toISOString() })
+    .eq("id", tokenRow.id);
+
+  if (completeError) return { error: completeError.message };
+
+  revalidatePath(`/designers/${tokenRow.designer_id}`);
+
+  return {};
+}

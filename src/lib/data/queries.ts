@@ -78,31 +78,34 @@ export async function fetchDesignersWithAverages(): Promise<
 
   for (const row of scores ?? []) {
     const designerId = row.designer_id;
-    const scoreNum = Number(row.score);
 
     let map = scoresByDesigner.get(designerId);
     if (!map) {
       map = new Map();
       scoresByDesigner.set(designerId, map);
     }
-    map.set(row.competency_id, scoreNum);
+    if (row.score !== null) {
+      map.set(row.competency_id, Number(row.score));
 
-    let tot = totals.get(designerId);
-    if (!tot) {
-      tot = { sum: 0, count: 0 };
-      totals.set(designerId, tot);
+      let tot = totals.get(designerId);
+      if (!tot) {
+        tot = { sum: 0, count: 0 };
+        totals.set(designerId, tot);
+      }
+      tot.sum += Number(row.score);
+      tot.count += 1;
     }
-    tot.sum += scoreNum;
-    tot.count += 1;
 
-    const ra = row.reviewed_at as string;
-    const prev = lastReviewedAt.get(designerId);
-    if (
-      prev === undefined ||
-      !prev ||
-      new Date(ra).getTime() > new Date(prev).getTime()
-    ) {
-      lastReviewedAt.set(designerId, ra);
+    if (row.reviewed_at) {
+      const ra = row.reviewed_at as string;
+      const prev = lastReviewedAt.get(designerId);
+      if (
+        prev === undefined ||
+        !prev ||
+        new Date(ra).getTime() > new Date(prev).getTime()
+      ) {
+        lastReviewedAt.set(designerId, ra);
+      }
     }
   }
 

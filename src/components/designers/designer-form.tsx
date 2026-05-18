@@ -19,6 +19,7 @@ export function DesignerForm({ designer, onCancel, onSaved }: DesignerFormProps)
   const [name, setName] = useState(designer?.name ?? "");
   const [role, setRole] = useState<DesignerRole>(designer?.role ?? "middle");
   const [direction, setDirection] = useState(designer?.direction ?? "");
+  const [email, setEmail] = useState(designer?.email ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,7 @@ export function DesignerForm({ designer, onCancel, onSaved }: DesignerFormProps)
       name,
       role,
       direction,
+      email,
     };
 
     startTransition(async () => {
@@ -79,6 +81,18 @@ export function DesignerForm({ designer, onCancel, onSaved }: DesignerFormProps)
             </option>
           ))}
         </select>
+      </label>
+
+      <label className="mt-4 block">
+        <span className="text-sm text-neutral-600">Email (для входа)</span>
+        <input
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1 w-full rounded-lg border-[0.5px] border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
+        />
       </label>
 
       <label className="mt-4 block">

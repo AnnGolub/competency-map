@@ -31,7 +31,10 @@ function buildInitialState(
   for (const c of competencies) {
     const existing = scoresByCompetency.get(c.id);
     state[c.id] = {
-      score: existing ? Number(existing.score) : 2,
+      score:
+        existing?.score !== null && existing?.score !== undefined
+          ? Number(existing.score)
+          : 2,
       comment: existing?.comment ?? "",
     };
   }
