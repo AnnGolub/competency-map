@@ -13,7 +13,8 @@ const config: Config = {
         foreground: "var(--foreground)",
         app: {
           canvas: "#16181F",
-          sidebar: "#16181F",
+          sidebar: "#21222C",
+          "sidebar-border": "#252732",
           "nav-tab": "#2A2D3A",
           surface: "#1E1E28",
           border: "#2A2A36",
