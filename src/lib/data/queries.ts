@@ -431,7 +431,9 @@ export async function fetchReviewPageData(
     fetchItemScoresForDesigner(designerId),
   ]);
 
-  const grouped = groupItemsByCompetency(items, designer.role);
+  const grouped = groupItemsByCompetency(items, designer.role, {
+    includeOnlyLead: true,
+  });
   const itemsByCompetency = itemsMapToRecord(grouped);
 
   const groupedItemCount = Array.from(grouped.values()).reduce(

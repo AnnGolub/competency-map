@@ -118,13 +118,20 @@ export function getExpectedScoreForItem(
   return Number(raw);
 }
 
+export type GroupItemsByCompetencyOptions = {
+  /** Включать подпункты only_lead (для ревью лида/админа). По умолчанию — по роли дизайнера. */
+  includeOnlyLead?: boolean;
+};
+
 export function groupItemsByCompetency<T extends Pick<CompetencyItem, "id" | "competency_id" | "only_lead">>(
   items: T[],
-  role: DesignerRole
+  role: DesignerRole,
+  options?: GroupItemsByCompetencyOptions
 ): Map<string, T[]> {
+  const includeOnlyLead = options?.includeOnlyLead ?? false;
   const map = new Map<string, T[]>();
   for (const item of items) {
-    if (role !== "lead" && item.only_lead) continue;
+    if (!includeOnlyLead && role !== "lead" && item.only_lead) continue;
     const list = map.get(item.competency_id) ?? [];
     list.push(item);
     map.set(item.competency_id, list);
