@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
-import { DesignerForm } from "@/components/designers/designer-form";
+import { DesignerFormModal } from "@/components/designers/designer-form-modal";
 import {
   IconDesignerAdd,
   IconDesignerDelete,
   IconDesignerEdit,
 } from "@/components/designers/designers-icons";
-import { IconChevronDown, IconX } from "@/components/ui/tabler-icons";
+import { IconChevronDown } from "@/components/ui/tabler-icons";
 import type { DesignerWithAverage } from "@/lib/data/queries";
 import {
   DESIGNER_ROLES,
@@ -103,18 +103,6 @@ export function DesignersList({
   }, [designers, roleFilter, sortKey]);
 
   const formModalOpen = isAddModalOpen || editingDesigner !== null;
-
-  useEffect(() => {
-    if (!formModalOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setIsAddModalOpen(false);
-        setEditingDesigner(null);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [formModalOpen]);
 
   function toggleRoleSort() {
     setSortKey((key) => (key === "role" ? null : "role"));
@@ -264,50 +252,15 @@ export function DesignersList({
         </div>
       ) : null}
 
-      {formModalOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="designer-form-modal-title"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeFormModal();
-          }}
-        >
-          <div
-            className="max-h-[90vh] w-full max-w-[480px] overflow-hidden rounded-xl border border-app-sidebar-border bg-app-sidebar shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 pt-6">
-              <h2
-                id="designer-form-modal-title"
-                className="text-lg font-bold leading-6 text-white"
-              >
-                {editingDesigner
-                  ? "Редактировать дизайнера"
-                  : "Добавить дизайнера"}
-              </h2>
-              <button
-                type="button"
-                onClick={closeFormModal}
-                className="rounded-lg p-1 text-app-muted transition-colors hover:text-white"
-                aria-label="Закрыть"
-              >
-                <IconX />
-              </button>
-            </div>
-            <div className="max-h-[calc(90vh-5rem)] overflow-y-auto px-6 pb-6 pt-6">
-              <DesignerForm
-                key={editingDesigner?.id ?? "new"}
-                theme="dark"
-                variant="modal"
-                designer={editingDesigner ?? undefined}
-                onCancel={closeFormModal}
-              />
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <DesignerFormModal
+        open={formModalOpen}
+        title={
+          editingDesigner ? "Редактировать дизайнера" : "Добавить дизайнера"
+        }
+        designer={editingDesigner ?? undefined}
+        onClose={closeFormModal}
+      />
+
 
       {deletingDesigner ? (
         <div
