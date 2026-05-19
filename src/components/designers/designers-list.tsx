@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
 import { DesignerForm } from "@/components/designers/designer-form";
 import {
@@ -10,13 +10,13 @@ import {
   IconPencil,
   IconPlus,
   IconTrash,
+  IconX,
 } from "@/components/ui/tabler-icons";
 import type { DesignerWithAverage } from "@/lib/data/queries";
 import {
   DESIGNER_ROLES,
   formatScore,
   ROLE_LABELS,
-  type Designer,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
 
@@ -48,12 +48,13 @@ export function DesignersList({
   const [isPending, startTransition] = useTransition();
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [editingDesigner, setEditingDesigner] = useState<Designer | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [editingDesigner, setEditingDesigner] =
+    useState<DesignerWithAverage | null>(null);
   const [deletingDesigner, setDeletingDesigner] =
     useState<DesignerWithAverage | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     let list =
@@ -78,14 +79,27 @@ export function DesignersList({
     return list;
   }, [designers, roleFilter, sortKey, sortDir]);
 
-  const showForm = isAdding || editingDesigner !== null;
+  const formModalOpen = isAddModalOpen || editingDesigner !== null;
+
+  useEffect(() => {
+    if (!formModalOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsAddModalOpen(false);
+        setEditingDesigner(null);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [formModalOpen]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("asc");
+      // Позиция: сначала Lead → Junior; балл: сначала выше.
+      setSortDir("desc");
     }
   }
 
@@ -104,110 +118,113 @@ export function DesignersList({
     });
   }
 
+  function closeFormModal() {
+    setIsAddModalOpen(false);
+    setEditingDesigner(null);
+  }
+
   return (
     <>
-      <nav className="flex gap-8 border-b border-app-border">
-        {FILTER_OPTIONS.map((opt) => {
-          const active = roleFilter === opt.value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setRoleFilter(opt.value)}
-              className={`-mb-px pb-3 text-sm font-medium transition-colors ${
-                active
-                  ? "border-b-2 border-white text-white"
-                  : "border-b-2 border-transparent text-app-muted hover:text-white"
-              }`}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 border-b border-app-border">
+        <nav className="flex flex-wrap items-end gap-8">
+          {FILTER_OPTIONS.map((opt) => {
+            const active = roleFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRoleFilter(opt.value)}
+                className={`-mb-px pb-3.5 text-[15px] font-medium leading-5 transition-colors ${
+                  active
+                    ? "border-b-2 border-white text-white"
+                    : "border-b-2 border-transparent text-app-muted hover:text-white"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+          <Link
+            href="/designers/questionnaire"
+            className="-mb-px border-b-2 border-transparent pb-3.5 text-[15px] font-medium leading-5 text-app-muted transition-colors hover:text-white"
+          >
+            Опросник
+          </Link>
+        </nav>
 
-      {!showForm ? (
         <button
           type="button"
-          onClick={() => setIsAdding(true)}
-          className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-app-accent transition-colors hover:text-app-accent-hover"
+          onClick={() => setIsAddModalOpen(true)}
+          className="mb-3 inline-flex shrink-0 items-center gap-2 rounded-lg bg-app-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover"
         >
-          <IconPlus />
+          <IconPlus className="text-white" />
           Добавить дизайнера
         </button>
-      ) : null}
+      </div>
 
-      {showForm ? (
-        <div className="mt-6 max-w-lg">
-          <DesignerForm
-            theme="dark"
-            designer={editingDesigner ?? undefined}
-            onCancel={() => {
-              setIsAdding(false);
-              setEditingDesigner(null);
-            }}
-            onSaved={() => {
-              setIsAdding(false);
-              setEditingDesigner(null);
-            }}
-          />
-        </div>
-      ) : null}
-
-      {filtered.length === 0 && !showForm ? (
-        <p className="mt-10 text-sm text-app-muted">
+      {filtered.length === 0 && !formModalOpen ? (
+        <p className="mt-12 text-[15px] leading-6 text-app-muted">
           Нет дизайнеров по выбранному фильтру.
         </p>
       ) : null}
 
       {filtered.length > 0 ? (
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left">
+        <div className="mt-10 overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-app-border text-xs font-medium uppercase tracking-wide text-app-muted">
-                <th className="pb-4 pr-4 font-medium normal-case">ФИО</th>
-                <th className="pb-4 pr-4 font-medium normal-case">
+              <tr className="border-b border-app-border text-[13px] font-medium leading-4 tracking-wide text-app-muted">
+                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
+                  ФИО
+                </th>
+                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
                   <button
                     type="button"
                     onClick={() => toggleSort("role")}
-                    className="inline-flex items-center gap-1 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white"
                   >
                     Позиция
                     <IconChevronDown
                       className={
-                        sortKey === "role" && sortDir === "desc"
-                          ? "rotate-180"
-                          : ""
+                        sortKey === "role" && sortDir === "asc"
+                          ? "rotate-180 text-white"
+                          : sortKey === "role"
+                            ? "text-white"
+                            : "opacity-50"
                       }
                     />
                   </button>
                 </th>
-                <th className="pb-4 pr-4 font-medium normal-case">
+                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
+                  Направление
+                </th>
+                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
                   <button
                     type="button"
                     onClick={() => toggleSort("score")}
-                    className="inline-flex items-center gap-1 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white"
                   >
                     Средний балл
                     <IconChevronDown
                       className={
-                        sortKey === "score" && sortDir === "desc"
-                          ? "rotate-180"
-                          : ""
+                        sortKey === "score" && sortDir === "asc"
+                          ? "rotate-180 text-white"
+                          : sortKey === "score"
+                            ? "text-white"
+                            : "opacity-50"
                       }
                     />
                   </button>
                 </th>
-                <th className="pb-4 w-20" aria-label="Действия" />
+                <th className="pb-4 w-24" aria-label="Действия" />
               </tr>
             </thead>
             <tbody>
               {filtered.map((designer) => (
                 <tr
                   key={designer.id}
-                  className="border-b border-app-border/80 text-sm"
+                  className="border-b border-app-border/80 text-[15px] leading-5"
                 >
-                  <td className="py-4 pr-4">
+                  <td className="py-5 pr-6">
                     <Link
                       href={`/designers/${designer.id}`}
                       className="font-medium text-white transition-colors hover:text-app-accent"
@@ -215,13 +232,16 @@ export function DesignersList({
                       {designer.name}
                     </Link>
                   </td>
-                  <td className="py-4 pr-4 text-white/90">
+                  <td className="py-5 pr-6 text-white/90">
                     {ROLE_LABELS[designer.role]}
                   </td>
-                  <td className="py-4 pr-4 tabular-nums text-white/90">
+                  <td className="max-w-[220px] truncate py-5 pr-6 text-white/85">
+                    {designer.direction}
+                  </td>
+                  <td className="py-5 pr-6 tabular-nums text-white/90">
                     {formatScore(designer.averageScore)}
                   </td>
-                  <td className="py-4">
+                  <td className="py-5">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         type="button"
@@ -250,6 +270,51 @@ export function DesignersList({
               ))}
             </tbody>
           </table>
+        </div>
+      ) : null}
+
+      {formModalOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="designer-form-modal-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeFormModal();
+          }}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-[440px] overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-app-border px-6 py-4">
+              <h2
+                id="designer-form-modal-title"
+                className="text-lg font-semibold tracking-tight text-white"
+              >
+                {editingDesigner
+                  ? "Редактировать дизайнера"
+                  : "Добавить дизайнера"}
+              </h2>
+              <button
+                type="button"
+                onClick={closeFormModal}
+                className="rounded-lg p-2 text-app-muted transition-colors hover:bg-app-canvas hover:text-white"
+                aria-label="Закрыть"
+              >
+                <IconX />
+              </button>
+            </div>
+            <div className="max-h-[calc(90vh-4.5rem)] overflow-y-auto px-6 py-5">
+              <DesignerForm
+                key={editingDesigner?.id ?? "new"}
+                theme="dark"
+                variant="modal"
+                designer={editingDesigner ?? undefined}
+                onCancel={closeFormModal}
+              />
+            </div>
+          </div>
         </div>
       ) : null}
 
