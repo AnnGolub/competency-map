@@ -5,7 +5,7 @@ import { DesignersAppShell } from "@/components/designers/designers-app-shell";
 import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
 import { DesignersList } from "@/components/designers/designers-list";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
-import { DesignersTabPanel } from "@/components/designers/designers-tab-panel";
+import { DesignersTopBar } from "@/components/designers/designers-top-bar";
 import { fetchDesignersWithAverages } from "@/lib/data/queries";
 import { getSessionContext } from "@/lib/session";
 
@@ -21,7 +21,7 @@ export default async function DesignersPage() {
 
   return (
     <DesignersAppShell>
-      <DesignersTabPanel
+      <DesignersTopBar
         title="Дизайнеры"
         actions={
           <>
