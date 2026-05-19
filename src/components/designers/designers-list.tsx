@@ -146,8 +146,8 @@ export function DesignersList({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 border-b border-app-sidebar-border">
-        <nav className="flex flex-wrap items-end gap-5">
+      <div className="flex items-center justify-between gap-4">
+        <nav className="flex flex-wrap items-center gap-5">
           {FILTER_OPTIONS.map((opt) => {
             const active = roleFilter === opt.value;
             return (
@@ -155,7 +155,7 @@ export function DesignersList({
                 key={opt.value}
                 type="button"
                 onClick={() => setRoleFilter(opt.value)}
-                className={`-mb-px border-b-2 pb-3.5 text-base font-normal leading-[22px] transition-colors ${
+                className={`border-b-2 pb-1 text-base font-normal leading-[22px] transition-colors ${
                   active
                     ? "border-white text-white"
                     : "border-transparent text-app-muted hover:text-white"
@@ -170,7 +170,7 @@ export function DesignersList({
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="-mb-px inline-flex shrink-0 items-center gap-1 bg-transparent px-0 py-2.5 text-base font-semibold leading-6 text-app-accent transition-opacity hover:opacity-80"
+          className="inline-flex shrink-0 items-center gap-1 bg-transparent px-0 text-base font-semibold leading-6 text-app-accent transition-opacity hover:opacity-80"
         >
           <IconDesignerAdd className="shrink-0 text-app-accent" />
           Добавить дизайнера

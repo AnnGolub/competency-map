@@ -32,12 +32,16 @@ function ModalSelect({
   placeholder: string;
   children: ReactNode;
 }) {
+  const hasValue = value !== "";
+
   return (
     <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full appearance-none rounded-lg border-0 bg-app-input px-3 pr-10 text-base font-normal leading-6 text-white outline-none focus:ring-1 focus:ring-app-accent [&:invalid]:text-app-placeholder"
+        className={`h-12 w-full appearance-none rounded-lg border-0 bg-app-input px-3 pr-10 text-base font-normal leading-6 outline-none focus:ring-1 focus:ring-app-accent ${
+          hasValue ? "text-white" : "text-app-placeholder"
+        }`}
       >
         <option value="" disabled className="text-app-placeholder">
           {placeholder}
