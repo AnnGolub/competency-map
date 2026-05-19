@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
-import { DesignersPageHeader } from "@/components/designers/designers-page-header";
+import { DesignersTabPanel } from "@/components/designers/designers-tab-panel";
 import { getSessionContext } from "@/lib/session";
 
 export default async function QuestionnairePage() {
@@ -16,19 +16,17 @@ export default async function QuestionnairePage() {
 
   return (
     <DesignersAppShell>
-      <DesignersPageHeader
+      <DesignersTabPanel
         title="Опросник"
-        backHref="/designers"
-        backLabel="Дизайнеры"
         actions={<DesignersLogoutButton />}
       />
-      <main className="flex-1 px-10 pb-12 pt-6">
-        <p className="max-w-xl text-base leading-relaxed text-app-muted">
+      <main className="flex-1 px-8 pb-12 pt-8">
+        <p className="max-w-xl text-base leading-6 text-app-muted">
           Раздел в разработке. Здесь позже появится опросник по компетенциям.
         </p>
         <Link
           href="/designers"
-          className="mt-8 inline-block text-sm font-medium text-app-accent transition-colors hover:text-app-accent-hover"
+          className="mt-8 inline-block text-base font-semibold leading-6 text-app-accent transition-colors hover:text-app-accent-hover"
         >
           ← К списку дизайнеров
         </Link>
