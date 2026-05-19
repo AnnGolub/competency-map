@@ -6,7 +6,7 @@ import { IconQuestionnaireNav } from "@/components/designers/designers-icons";
 import { IconDesignersNav } from "@/components/ui/tabler-icons";
 
 const NAV_LINK =
-  "flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-sm font-medium transition-colors";
+  "flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-colors";
 
 function isDesignersRoute(pathname: string) {
   return (
@@ -28,8 +28,8 @@ export function DesignersSidebar() {
           href="/designers"
           className={`${NAV_LINK} ${
             designersActive
-              ? "bg-app-nav-tab text-white"
-              : "text-app-muted hover:bg-app-nav-tab/50 hover:text-white"
+              ? "bg-[#252732] text-white"
+              : "text-[#C7C9D9] hover:bg-[#252732]/50 hover:text-white"
           }`}
           aria-current={designersActive ? "page" : undefined}
         >
@@ -40,8 +40,8 @@ export function DesignersSidebar() {
           href="/designers/questionnaire"
           className={`${NAV_LINK} ${
             questionnaireActive
-              ? "bg-app-nav-tab text-white"
-              : "text-app-muted hover:bg-app-nav-tab/50 hover:text-white"
+              ? "bg-[#252732] text-white"
+              : "text-[#C7C9D9] hover:bg-[#252732]/50 hover:text-white"
           }`}
           aria-current={questionnaireActive ? "page" : undefined}
         >
