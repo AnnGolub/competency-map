@@ -5,6 +5,9 @@ import { CompetencyBlockSection } from "@/components/designers/competency-block"
 import { DesignerMetricCards } from "@/components/designers/designer-metric-cards";
 import { DesignerProfileHeader } from "@/components/designers/designer-profile-header";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
+import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
+import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
+import { DesignersTopBar } from "@/components/designers/designers-top-bar";
 import {
   BLOCK_LABELS,
   blocksForDesignerRole,
@@ -22,6 +25,7 @@ import {
   fetchCompetencies,
   fetchCompetencyItems,
   fetchDesigner,
+  fetchDesignersWithAverages,
   fetchItemScoresForDesigner,
 } from "@/lib/data/queries";
 import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
@@ -39,14 +43,21 @@ export default async function DesignerProfilePage({
     notFound();
   }
 
-  const [designer, competencies, items, itemScores, selfReviewCompleted] =
-    await Promise.all([
-      fetchDesigner(params.id),
-      fetchCompetencies(),
-      fetchCompetencyItems(),
-      fetchItemScoresForDesigner(params.id),
-      hasCompletedSelfReview(params.id),
-    ]);
+  const [
+    designer,
+    competencies,
+    items,
+    itemScores,
+    selfReviewCompleted,
+    designersExport,
+  ] = await Promise.all([
+    fetchDesigner(params.id),
+    fetchCompetencies(),
+    fetchCompetencyItems(),
+    fetchItemScoresForDesigner(params.id),
+    hasCompletedSelfReview(params.id),
+    fetchDesignersWithAverages(),
+  ]);
 
   if (!designer) notFound();
 
@@ -102,7 +113,20 @@ export default async function DesignerProfilePage({
 
   return (
     <DesignersAppShell>
-      <main className="flex-1 px-10 pb-10 pt-10">
+      <DesignersTopBar
+        title="Дизайнеры"
+        actions={
+          <>
+            <DesignersCsvExport
+              designers={designersExport.designers}
+              competencyColumns={designersExport.competencyExportColumns}
+            />
+            <DesignersLogoutButton />
+          </>
+        }
+      />
+
+      <main className="flex-1 px-8 pb-10 pt-8">
         <DesignerProfileHeader
           designer={designer}
           lastReviewAt={lastReviewAt}

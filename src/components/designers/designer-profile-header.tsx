@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { EditDesignerPanel } from "@/components/designers/edit-designer-panel";
 import { GenerateSelfReviewLink } from "@/components/designers/generate-self-review-link";
 import { IconSelectArrow } from "@/components/designers/designers-icons";
 import { ROLE_LABELS, type Designer } from "@/lib/competency-utils";
@@ -24,8 +22,6 @@ export function DesignerProfileHeader({
   designer: Designer;
   lastReviewAt: string | null;
 }) {
-  const [showEdit, setShowEdit] = useState(false);
-
   return (
     <section className="flex max-w-[818px] flex-col gap-4">
       <Link
@@ -55,24 +51,7 @@ export function DesignerProfileHeader({
         </Link>
 
         <GenerateSelfReviewLink designerId={designer.id} variant="profile" />
-
-        <button
-          type="button"
-          onClick={() => setShowEdit(true)}
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-app-input px-5 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
-        >
-          Изменить
-        </button>
       </div>
-
-      {showEdit ? (
-        <EditDesignerPanel
-          designer={designer}
-          open
-          hideTrigger
-          onClose={() => setShowEdit(false)}
-        />
-      ) : null}
     </section>
   );
 }

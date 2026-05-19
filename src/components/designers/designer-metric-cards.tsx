@@ -1,5 +1,11 @@
-import type { ReactNode } from "react";
+import Image from "next/image";
 import { formatScore } from "@/lib/competency-utils";
+
+const METRIC_ICONS = {
+  average: "/icons/Ranking.svg",
+  below: "/icons/Emoji-sad.svg",
+  growth: "/icons/Activity.svg",
+} as const;
 
 function ScoreRing({
   value,
@@ -51,59 +57,11 @@ function ScoreRing({
   );
 }
 
-function MetricIcon({ children }: { children: ReactNode }) {
+function MetricIcon({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#3E7BFA] to-[#6600CC] text-white">
-      {children}
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#3E7BFA] to-[#6600CC]">
+      <Image src={src} alt={alt} width={24} height={24} className="shrink-0" />
     </div>
-  );
-}
-
-function IconChart() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M3 14V10M7 14V6M11 14V8M15 14V4"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function IconAlert() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M10 3L17 16H3L10 3Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path d="M10 9V11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconTrend() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M3 14L8 9L11 12L17 6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M12 6H17V11"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 
@@ -112,18 +70,20 @@ function MetricCard({
   subtitle,
   value,
   progress,
-  icon,
+  iconSrc,
+  iconAlt,
 }: {
   title: string;
   subtitle: string;
   value: string;
   progress: number;
-  icon: ReactNode;
+  iconSrc: string;
+  iconAlt: string;
 }) {
   return (
     <article className="flex min-w-0 flex-1 items-center justify-between gap-4 rounded-3xl bg-app-sidebar p-6">
       <div className="flex min-w-0 items-center gap-4">
-        <MetricIcon>{icon}</MetricIcon>
+        <MetricIcon src={iconSrc} alt={iconAlt} />
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-5 text-white">{title}</p>
           <p className="text-sm leading-5 text-app-placeholder">{subtitle}</p>
@@ -167,21 +127,24 @@ export function DesignerMetricCards({
           subtitle="По карте компетенций"
           value={avgValue}
           progress={avgProgress}
-          icon={<IconChart />}
+          iconSrc={METRIC_ICONS.average}
+          iconAlt=""
         />
         <MetricCard
           title="Ниже ожидаемого"
-          subtitle="Компетенций"
+          subtitle="По карте компетенций"
           value={String(belowCount)}
           progress={belowProgress}
-          icon={<IconAlert />}
+          iconSrc={METRIC_ICONS.below}
+          iconAlt=""
         />
         <MetricCard
           title="Рост в навыках"
           subtitle="За полгода"
           value={growthValue}
           progress={growthProgress}
-          icon={<IconTrend />}
+          iconSrc={METRIC_ICONS.growth}
+          iconAlt=""
         />
       </div>
     </section>
