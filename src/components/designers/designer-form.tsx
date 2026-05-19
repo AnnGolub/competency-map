@@ -37,7 +37,7 @@ function ModalSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full appearance-none rounded-lg border-0 bg-app-input px-3 pr-10 text-sm leading-5 text-white outline-none focus:ring-1 focus:ring-app-accent [&:invalid]:text-app-placeholder"
+        className="h-12 w-full appearance-none rounded-lg border-0 bg-app-input px-3 pr-10 text-base font-normal leading-6 text-white outline-none focus:ring-1 focus:ring-app-accent [&:invalid]:text-app-placeholder"
       >
         <option value="" disabled className="text-app-placeholder">
           {placeholder}
@@ -81,7 +81,7 @@ export function DesignerForm({
   const label = isDark ? "text-sm text-app-muted" : "text-sm text-neutral-600";
 
   const input = isModal
-    ? "h-12 w-full rounded-lg border-0 bg-app-input px-3 text-sm leading-5 text-white placeholder:text-app-placeholder outline-none focus:ring-1 focus:ring-app-accent"
+    ? "h-12 w-full rounded-lg border-0 bg-app-input px-3 text-base font-normal leading-6 text-white placeholder:text-app-placeholder outline-none focus:ring-1 focus:ring-app-accent"
     : isDark
       ? "mt-1 w-full rounded-lg border border-app-border bg-app-canvas px-3 py-2.5 text-sm text-white outline-none focus:border-app-accent"
       : "mt-1 w-full rounded-lg border-[0.5px] border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-neutral-400";
@@ -91,13 +91,13 @@ export function DesignerForm({
     : `${input} bg-white`;
 
   const primaryBtn = isModal
-    ? "h-12 rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+    ? "h-10 rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
     : isDark
       ? "rounded-lg bg-app-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
       : "rounded-lg border-[0.5px] border-neutral-900 bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50";
 
   const secondaryBtn = isModal
-    ? "h-12 rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-input/80"
+    ? "h-10 rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-input/80"
     : isDark
       ? "rounded-lg border border-app-border px-4 py-2.5 text-sm text-app-muted transition-colors hover:text-white"
       : "rounded-lg border-[0.5px] border-neutral-200 px-4 py-2.5 text-sm text-neutral-600";

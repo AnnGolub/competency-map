@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { IconQuestionnaireNav } from "@/components/designers/designers-icons";
 import { IconDesignersNav } from "@/components/ui/tabler-icons";
 
 const NAV_LINK =
@@ -44,7 +45,8 @@ export function DesignersSidebar() {
           }`}
           aria-current={questionnaireActive ? "page" : undefined}
         >
-          <span className="pl-6">Опросник</span>
+          <IconQuestionnaireNav className="shrink-0" />
+          <span>Опросник</span>
         </Link>
       </nav>
     </aside>

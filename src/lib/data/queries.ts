@@ -102,7 +102,7 @@ export async function fetchDesignersWithAverages(): Promise<
     { data: competencyRows, error: competenciesError },
     { data: items, error: itemsError },
   ] = await Promise.all([
-    supabase.from("designers").select("*").order("name"),
+    supabase.from("designers").select("*").order("created_at", { ascending: true }),
     supabase
       .from("item_scores")
       .select("designer_id, competency_item_id, score, reviewed_at"),

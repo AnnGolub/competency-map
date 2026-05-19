@@ -21,7 +21,6 @@ import type { DesignerRole } from "@/types/database";
 
 type RoleFilter = "all" | DesignerRole;
 type SortKey = "role" | "score";
-type SortDir = "asc" | "desc";
 
 const FILTER_OPTIONS: { value: RoleFilter; label: string }[] = [
   { value: "all", label: "Все" },
@@ -42,13 +41,11 @@ function SortableHeader({
   label,
   columnKey,
   sortKey,
-  sortDir,
   onSort,
 }: {
   label: string;
   columnKey: SortKey;
   sortKey: SortKey | null;
-  sortDir: SortDir;
   onSort: () => void;
 }) {
   const active = sortKey === columnKey;
@@ -60,10 +57,8 @@ function SortableHeader({
     >
       {label}
       <IconChevronDown
-        className={`shrink-0 transition-opacity ${
-          active
-            ? `opacity-100 ${sortDir === "asc" ? "rotate-180" : ""}`
-            : "opacity-0 group-hover:opacity-100"
+        className={`shrink-0 text-app-placeholder transition-colors group-hover:text-white ${
+          active ? "rotate-180 text-app-placeholder" : ""
         }`}
       />
     </button>
@@ -79,7 +74,6 @@ export function DesignersList({
   const [isPending, startTransition] = useTransition();
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [editingDesigner, setEditingDesigner] =
     useState<DesignerWithAverage | null>(null);
   const [deletingDesigner, setDeletingDesigner] =
@@ -93,22 +87,20 @@ export function DesignersList({
         ? designers
         : designers.filter((d) => d.role === roleFilter);
 
-    if (sortKey) {
+    if (sortKey === "role") {
+      list = [...list].sort(
+        (a, b) => ROLE_ORDER[b.role] - ROLE_ORDER[a.role]
+      );
+    } else if (sortKey === "score") {
       list = [...list].sort((a, b) => {
-        let cmp = 0;
-        if (sortKey === "role") {
-          cmp = ROLE_ORDER[a.role] - ROLE_ORDER[b.role];
-        } else {
-          const sa = a.averageScore ?? -1;
-          const sb = b.averageScore ?? -1;
-          cmp = sa - sb;
-        }
-        return sortDir === "asc" ? cmp : -cmp;
+        const sa = a.averageScore ?? -1;
+        const sb = b.averageScore ?? -1;
+        return sb - sa;
       });
     }
 
     return list;
-  }, [designers, roleFilter, sortKey, sortDir]);
+  }, [designers, roleFilter, sortKey]);
 
   const formModalOpen = isAddModalOpen || editingDesigner !== null;
 
@@ -125,29 +117,11 @@ export function DesignersList({
   }, [formModalOpen]);
 
   function toggleRoleSort() {
-    if (sortKey !== "role") {
-      setSortKey("role");
-      setSortDir("desc");
-      return;
-    }
-    if (sortDir === "desc") {
-      setSortDir("asc");
-      return;
-    }
-    setSortKey(null);
+    setSortKey((key) => (key === "role" ? null : "role"));
   }
 
   function toggleScoreSort() {
-    if (sortKey !== "score") {
-      setSortKey("score");
-      setSortDir("desc");
-      return;
-    }
-    if (sortDir === "desc") {
-      setSortDir("asc");
-      return;
-    }
-    setSortKey(null);
+    setSortKey((key) => (key === "score" ? null : "score"));
   }
 
   function handleConfirmDelete() {
@@ -196,9 +170,9 @@ export function DesignersList({
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="-mb-px inline-flex shrink-0 items-center gap-1 rounded-lg bg-app-accent px-4 py-2.5 text-base font-semibold leading-6 text-white transition-colors hover:bg-app-accent-hover"
+          className="-mb-px inline-flex shrink-0 items-center gap-1 bg-transparent px-0 py-2.5 text-base font-semibold leading-6 text-app-accent transition-opacity hover:opacity-80"
         >
-          <IconDesignerAdd className="shrink-0 text-white" />
+          <IconDesignerAdd className="shrink-0 text-app-accent" />
           Добавить дизайнера
         </button>
       </div>
@@ -220,7 +194,6 @@ export function DesignersList({
                     label="Позиция"
                     columnKey="role"
                     sortKey={sortKey}
-                    sortDir={sortDir}
                     onSort={toggleRoleSort}
                   />
                 </th>
@@ -232,7 +205,6 @@ export function DesignersList({
                     label="Средний балл"
                     columnKey="score"
                     sortKey={sortKey}
-                    sortDir={sortDir}
                     onSort={toggleScoreSort}
                   />
                 </th>

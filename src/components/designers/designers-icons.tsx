@@ -65,6 +65,26 @@ export function IconDesignerDelete({ className }: IconProps) {
   );
 }
 
+/** Опросник (Dashboard.svg) */
+export function IconQuestionnaireNav({ className }: IconProps) {
+  return (
+    <svg
+      width={16}
+      height={16}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <rect x="1.33331" y="1.33331" width="5.33333" height="5.33333" rx="1" fill="currentColor" />
+      <rect x="9.33331" y="1.33331" width="5.33333" height="5.33333" rx="1" fill="currentColor" />
+      <rect x="1.33331" y="9.33331" width="5.33333" height="5.33333" rx="1" fill="currentColor" />
+      <rect x="9.33331" y="9.33331" width="5.33333" height="5.33333" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
+
 /** Стрелка дропдауна (Arrows.svg) */
 export function IconSelectArrow({ className }: IconProps) {
   return (
