@@ -6,12 +6,11 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
 import { DesignerForm } from "@/components/designers/designer-form";
 import {
-  IconChevronDown,
-  IconPencil,
-  IconPlus,
-  IconTrash,
-  IconX,
-} from "@/components/ui/tabler-icons";
+  IconDesignerAdd,
+  IconDesignerDelete,
+  IconDesignerEdit,
+} from "@/components/designers/designers-icons";
+import { IconChevronDown, IconX } from "@/components/ui/tabler-icons";
 import type { DesignerWithAverage } from "@/lib/data/queries";
 import {
   DESIGNER_ROLES,
@@ -38,6 +37,22 @@ const ROLE_ORDER: Record<DesignerRole, number> = {
   senior: 2,
   lead: 3,
 };
+
+function SortChevron({
+  active,
+  asc,
+}: {
+  active: boolean;
+  asc: boolean;
+}) {
+  return (
+    <IconChevronDown
+      className={`shrink-0 ${active && asc ? "rotate-180" : ""} ${
+        active ? "text-white" : "text-white/50"
+      }`}
+    />
+  );
+}
 
 export function DesignersList({
   designers,
@@ -98,7 +113,6 @@ export function DesignersList({
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      // Позиция: сначала Lead → Junior; балл: сначала выше.
       setSortDir("desc");
     }
   }
@@ -125,8 +139,8 @@ export function DesignersList({
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 border-b border-app-border">
-        <nav className="flex flex-wrap items-end gap-8">
+      <div className="flex items-center justify-between gap-4">
+        <nav className="flex flex-wrap items-center gap-5">
           {FILTER_OPTIONS.map((opt) => {
             const active = roleFilter === opt.value;
             return (
@@ -134,10 +148,8 @@ export function DesignersList({
                 key={opt.value}
                 type="button"
                 onClick={() => setRoleFilter(opt.value)}
-                className={`-mb-px pb-3.5 text-[15px] font-medium leading-5 transition-colors ${
-                  active
-                    ? "border-b-2 border-white text-white"
-                    : "border-b-2 border-transparent text-app-muted hover:text-white"
+                className={`text-base font-bold leading-[22px] transition-colors ${
+                  active ? "text-white" : "text-app-muted hover:text-white"
                 }`}
               >
                 {opt.label}
@@ -146,7 +158,7 @@ export function DesignersList({
           })}
           <Link
             href="/designers/questionnaire"
-            className="-mb-px border-b-2 border-transparent pb-3.5 text-[15px] font-medium leading-5 text-app-muted transition-colors hover:text-white"
+            className="text-base font-bold leading-[22px] text-app-muted transition-colors hover:text-white"
           >
             Опросник
           </Link>
@@ -155,102 +167,88 @@ export function DesignersList({
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="mb-3 inline-flex shrink-0 items-center gap-2 rounded-lg bg-app-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover"
+          className="inline-flex shrink-0 items-center gap-1 text-base font-semibold leading-6 text-white transition-opacity hover:opacity-80"
         >
-          <IconPlus className="text-white" />
           Добавить дизайнера
+          <IconDesignerAdd className="text-white" />
         </button>
       </div>
 
       {filtered.length === 0 && !formModalOpen ? (
-        <p className="mt-12 text-[15px] leading-6 text-app-muted">
+        <p className="mt-6 text-base leading-6 text-app-muted">
           Нет дизайнеров по выбранному фильтру.
         </p>
       ) : null}
 
       {filtered.length > 0 ? (
-        <div className="mt-10 overflow-x-auto">
+        <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-app-border text-[13px] font-medium leading-4 tracking-wide text-app-muted">
-                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
-                  ФИО
-                </th>
-                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
+              <tr className="border-b border-app-sidebar-border text-xs font-normal leading-4 text-app-muted">
+                <th className="pb-3 pr-6 font-normal text-app-muted">ФИО</th>
+                <th className="pb-3 pr-6 font-normal">
                   <button
                     type="button"
                     onClick={() => toggleSort("role")}
-                    className="inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
                   >
                     Позиция
-                    <IconChevronDown
-                      className={
-                        sortKey === "role" && sortDir === "asc"
-                          ? "rotate-180 text-white"
-                          : sortKey === "role"
-                            ? "text-white"
-                            : "opacity-50"
-                      }
+                    <SortChevron
+                      active={sortKey === "role"}
+                      asc={sortDir === "asc"}
                     />
                   </button>
                 </th>
-                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
+                <th className="pb-3 pr-6 font-normal text-app-muted">
                   Направление
                 </th>
-                <th className="pb-4 pr-6 font-medium normal-case text-white/70">
+                <th className="pb-3 pr-6 font-normal">
                   <button
                     type="button"
                     onClick={() => toggleSort("score")}
-                    className="inline-flex items-center gap-1.5 text-white/70 transition-colors hover:text-white"
+                    className="inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
                   >
                     Средний балл
-                    <IconChevronDown
-                      className={
-                        sortKey === "score" && sortDir === "asc"
-                          ? "rotate-180 text-white"
-                          : sortKey === "score"
-                            ? "text-white"
-                            : "opacity-50"
-                      }
+                    <SortChevron
+                      active={sortKey === "score"}
+                      asc={sortDir === "asc"}
                     />
                   </button>
                 </th>
-                <th className="pb-4 w-24" aria-label="Действия" />
+                <th className="pb-3 w-28" aria-label="Действия" />
               </tr>
             </thead>
             <tbody>
               {filtered.map((designer) => (
                 <tr
                   key={designer.id}
-                  className="border-b border-app-border/80 text-[15px] leading-5"
+                  className="border-b border-app-sidebar-border text-base leading-6 text-white/90"
                 >
-                  <td className="py-5 pr-6">
+                  <td className="py-3 pr-6">
                     <Link
                       href={`/designers/${designer.id}`}
-                      className="font-medium text-white transition-colors hover:text-app-accent"
+                      className="font-normal text-white transition-colors hover:text-app-accent"
                     >
                       {designer.name}
                     </Link>
                   </td>
-                  <td className="py-5 pr-6 text-white/90">
-                    {ROLE_LABELS[designer.role]}
-                  </td>
-                  <td className="max-w-[220px] truncate py-5 pr-6 text-white/85">
+                  <td className="py-3 pr-6">{ROLE_LABELS[designer.role]}</td>
+                  <td className="max-w-[220px] truncate py-3 pr-6">
                     {designer.direction}
                   </td>
-                  <td className="py-5 pr-6 tabular-nums text-white/90">
+                  <td className="py-3 pr-6 tabular-nums">
                     {formatScore(designer.averageScore)}
                   </td>
-                  <td className="py-5">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className="py-3">
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
                         title="Изменить"
                         aria-label={`Изменить ${designer.name}`}
                         onClick={() => setEditingDesigner(designer)}
-                        className="rounded p-1.5 text-app-muted transition-colors hover:bg-app-surface hover:text-white"
+                        className="rounded p-0.5 transition-opacity hover:opacity-80"
                       >
-                        <IconPencil />
+                        <IconDesignerEdit />
                       </button>
                       <button
                         type="button"
@@ -260,9 +258,9 @@ export function DesignersList({
                           setDeleteError(null);
                           setDeletingDesigner(designer);
                         }}
-                        className="rounded p-1.5 text-app-muted transition-colors hover:bg-app-surface hover:text-white"
+                        className="rounded p-0.5 transition-opacity hover:opacity-80"
                       >
-                        <IconTrash />
+                        <IconDesignerDelete />
                       </button>
                     </div>
                   </td>
@@ -284,13 +282,13 @@ export function DesignersList({
           }}
         >
           <div
-            className="max-h-[90vh] w-full max-w-[440px] overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl"
+            className="max-h-[90vh] w-full max-w-[480px] overflow-hidden rounded-xl border border-app-sidebar-border bg-app-sidebar shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-app-border px-6 py-4">
+            <div className="flex items-center justify-between px-6 pb-4 pt-6">
               <h2
                 id="designer-form-modal-title"
-                className="text-lg font-semibold tracking-tight text-white"
+                className="text-lg font-bold leading-6 text-white"
               >
                 {editingDesigner
                   ? "Редактировать дизайнера"
@@ -299,13 +297,13 @@ export function DesignersList({
               <button
                 type="button"
                 onClick={closeFormModal}
-                className="rounded-lg p-2 text-app-muted transition-colors hover:bg-app-canvas hover:text-white"
+                className="rounded-lg p-1 text-app-muted transition-colors hover:text-white"
                 aria-label="Закрыть"
               >
                 <IconX />
               </button>
             </div>
-            <div className="max-h-[calc(90vh-4.5rem)] overflow-y-auto px-6 py-5">
+            <div className="max-h-[calc(90vh-5rem)] overflow-y-auto px-6 pb-6">
               <DesignerForm
                 key={editingDesigner?.id ?? "new"}
                 theme="dark"
@@ -325,14 +323,14 @@ export function DesignersList({
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
         >
-          <div className="w-full max-w-sm rounded-xl border border-app-border bg-app-surface p-6 text-white shadow-xl">
-            <p id="delete-dialog-title" className="font-medium">
+          <div className="w-full max-w-sm rounded-xl border border-app-sidebar-border bg-app-sidebar p-6 text-white shadow-xl">
+            <p id="delete-dialog-title" className="text-base font-bold leading-6">
               Удалить {deletingDesigner.name}?
             </p>
             {deleteError ? (
               <p className="mt-2 text-sm text-red-400">{deleteError}</p>
             ) : null}
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
                 disabled={isPending}
@@ -340,7 +338,7 @@ export function DesignersList({
                   setDeletingDesigner(null);
                   setDeleteError(null);
                 }}
-                className="rounded-lg border border-app-border px-4 py-2 text-sm text-app-muted transition-colors hover:text-white"
+                className="h-10 rounded-lg border border-app-sidebar-border px-5 text-sm font-semibold text-white/80 transition-colors hover:text-white"
               >
                 Отмена
               </button>
@@ -348,7 +346,7 @@ export function DesignersList({
                 type="button"
                 disabled={isPending}
                 onClick={handleConfirmDelete}
-                className="rounded-lg bg-app-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+                className="h-10 rounded-lg bg-app-accent px-5 text-sm font-semibold text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
               >
                 {isPending ? "Удаление…" : "Удалить"}
               </button>
