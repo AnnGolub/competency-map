@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { DesignerForm } from "@/components/designers/designer-form";
+import { DesignerFormModal } from "@/components/designers/designer-form-modal";
 import type { Designer } from "@/lib/competency-utils";
 
 export function EditDesignerPanel({ designer }: { designer: Designer }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!isOpen) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={() => setIsOpen(true)}
@@ -16,17 +16,13 @@ export function EditDesignerPanel({ designer }: { designer: Designer }) {
       >
         Изменить
       </button>
-    );
-  }
 
-  return (
-    <div className="mt-6 max-w-lg">
-      <DesignerForm
-        theme="dark"
+      <DesignerFormModal
+        open={isOpen}
+        title="Редактировать дизайнера"
         designer={designer}
-        onCancel={() => setIsOpen(false)}
-        onSaved={() => setIsOpen(false)}
+        onClose={() => setIsOpen(false)}
       />
-    </div>
+    </>
   );
 }
