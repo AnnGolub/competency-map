@@ -22,8 +22,10 @@ const config: Config = {
           surface: "#1E1E28",
           border: "#2A2A36",
           muted: "#8B8FA3",
-          accent: "#3B82F6",
-          "accent-hover": "#2563EB",
+          placeholder: "#8F90A6",
+          input: "#3E4153",
+          accent: "#3E7BFA",
+          "accent-hover": "#3569D4",
         },
       },
       fontSize: {
