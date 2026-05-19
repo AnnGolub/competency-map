@@ -38,19 +38,35 @@ const ROLE_ORDER: Record<DesignerRole, number> = {
   lead: 3,
 };
 
-function SortChevron({
-  active,
-  asc,
+function SortableHeader({
+  label,
+  columnKey,
+  sortKey,
+  sortDir,
+  onSort,
 }: {
-  active: boolean;
-  asc: boolean;
+  label: string;
+  columnKey: SortKey;
+  sortKey: SortKey | null;
+  sortDir: SortDir;
+  onSort: () => void;
 }) {
+  const active = sortKey === columnKey;
   return (
-    <IconChevronDown
-      className={`shrink-0 ${active && asc ? "rotate-180" : ""} ${
-        active ? "text-white" : "text-white/50"
-      }`}
-    />
+    <button
+      type="button"
+      onClick={onSort}
+      className="group inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
+    >
+      {label}
+      <IconChevronDown
+        className={`shrink-0 transition-opacity ${
+          active
+            ? `opacity-100 ${sortDir === "asc" ? "rotate-180" : ""}`
+            : "opacity-0 group-hover:opacity-100"
+        }`}
+      />
+    </button>
   );
 }
 
@@ -108,13 +124,30 @@ export function DesignersList({
     return () => window.removeEventListener("keydown", onKey);
   }, [formModalOpen]);
 
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
+  function toggleRoleSort() {
+    if (sortKey !== "role") {
+      setSortKey("role");
       setSortDir("desc");
+      return;
     }
+    if (sortDir === "desc") {
+      setSortDir("asc");
+      return;
+    }
+    setSortKey(null);
+  }
+
+  function toggleScoreSort() {
+    if (sortKey !== "score") {
+      setSortKey("score");
+      setSortDir("desc");
+      return;
+    }
+    if (sortDir === "desc") {
+      setSortDir("asc");
+      return;
+    }
+    setSortKey(null);
   }
 
   function handleConfirmDelete() {
@@ -139,8 +172,8 @@ export function DesignersList({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <nav className="flex flex-wrap items-center gap-5">
+      <div className="flex items-center justify-between gap-4 border-b border-app-sidebar-border">
+        <nav className="flex flex-wrap items-end gap-5">
           {FILTER_OPTIONS.map((opt) => {
             const active = roleFilter === opt.value;
             return (
@@ -148,29 +181,25 @@ export function DesignersList({
                 key={opt.value}
                 type="button"
                 onClick={() => setRoleFilter(opt.value)}
-                className={`text-base font-bold leading-[22px] transition-colors ${
-                  active ? "text-white" : "text-app-muted hover:text-white"
+                className={`-mb-px border-b-2 pb-3.5 text-base font-normal leading-[22px] transition-colors ${
+                  active
+                    ? "border-white text-white"
+                    : "border-transparent text-app-muted hover:text-white"
                 }`}
               >
                 {opt.label}
               </button>
             );
           })}
-          <Link
-            href="/designers/questionnaire"
-            className="text-base font-bold leading-[22px] text-app-muted transition-colors hover:text-white"
-          >
-            Опросник
-          </Link>
         </nav>
 
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1 text-base font-semibold leading-6 text-white transition-opacity hover:opacity-80"
+          className="-mb-px inline-flex shrink-0 items-center gap-1 rounded-lg bg-app-accent px-4 py-2.5 text-base font-semibold leading-6 text-white transition-colors hover:bg-app-accent-hover"
         >
+          <IconDesignerAdd className="shrink-0 text-white" />
           Добавить дизайнера
-          <IconDesignerAdd className="text-white" />
         </button>
       </div>
 
@@ -187,33 +216,25 @@ export function DesignersList({
               <tr className="border-b border-app-sidebar-border text-xs font-normal leading-4 text-app-muted">
                 <th className="pb-3 pr-6 font-normal text-app-muted">ФИО</th>
                 <th className="pb-3 pr-6 font-normal">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort("role")}
-                    className="inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
-                  >
-                    Позиция
-                    <SortChevron
-                      active={sortKey === "role"}
-                      asc={sortDir === "asc"}
-                    />
-                  </button>
+                  <SortableHeader
+                    label="Позиция"
+                    columnKey="role"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={toggleRoleSort}
+                  />
                 </th>
                 <th className="pb-3 pr-6 font-normal text-app-muted">
                   Направление
                 </th>
                 <th className="pb-3 pr-6 font-normal">
-                  <button
-                    type="button"
-                    onClick={() => toggleSort("score")}
-                    className="inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
-                  >
-                    Средний балл
-                    <SortChevron
-                      active={sortKey === "score"}
-                      asc={sortDir === "asc"}
-                    />
-                  </button>
+                  <SortableHeader
+                    label="Средний балл"
+                    columnKey="score"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={toggleScoreSort}
+                  />
                 </th>
                 <th className="pb-3 w-28" aria-label="Действия" />
               </tr>
@@ -227,7 +248,7 @@ export function DesignersList({
                   <td className="py-3 pr-6">
                     <Link
                       href={`/designers/${designer.id}`}
-                      className="font-normal text-white transition-colors hover:text-app-accent"
+                      className="text-sm font-semibold leading-5 text-white transition-colors hover:text-app-accent"
                     >
                       {designer.name}
                     </Link>
@@ -285,7 +306,7 @@ export function DesignersList({
             className="max-h-[90vh] w-full max-w-[480px] overflow-hidden rounded-xl border border-app-sidebar-border bg-app-sidebar shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 pb-4 pt-6">
+            <div className="flex items-center justify-between px-6 pt-6">
               <h2
                 id="designer-form-modal-title"
                 className="text-lg font-bold leading-6 text-white"
@@ -303,7 +324,7 @@ export function DesignersList({
                 <IconX />
               </button>
             </div>
-            <div className="max-h-[calc(90vh-5rem)] overflow-y-auto px-6 pb-6">
+            <div className="max-h-[calc(90vh-5rem)] overflow-y-auto px-6 pb-6 pt-6">
               <DesignerForm
                 key={editingDesigner?.id ?? "new"}
                 theme="dark"
