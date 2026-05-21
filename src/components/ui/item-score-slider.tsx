@@ -7,6 +7,7 @@ export function ItemScoreSlider({
   onChange,
   expected,
   theme = "light",
+  variant = "default",
 }: {
   id: string;
   label: string;
@@ -14,7 +15,51 @@ export function ItemScoreSlider({
   onChange: (value: number) => void;
   expected?: number | null;
   theme?: "light" | "dark";
+  variant?: "default" | "review";
 }) {
+  if (variant === "review") {
+    return (
+      <div className="flex flex-col">
+        <p className="pb-1.5 text-sm leading-[18px] text-app-placeholder">
+          {label}
+        </p>
+        <div className="rounded-lg bg-app-input p-3">
+          <div className="flex items-center gap-2.5">
+            <span className="min-w-[2.5rem] text-base leading-6 tabular-nums text-white">
+              {value.toFixed(1)}
+            </span>
+            <label htmlFor={id} className="sr-only">
+              {label}
+            </label>
+            <input
+              id={id}
+              type="range"
+              min={1}
+              max={4}
+              step={0.5}
+              value={value}
+              onChange={(e) => onChange(parseFloat(e.target.value))}
+              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg bg-[#2A2D3A] accent-[#E53535] [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#E53535]"
+              list={`ticks-${id}`}
+            />
+          </div>
+        </div>
+        <datalist id={`ticks-${id}`}>
+          {SCORE_OPTIONS.map((v) => (
+            <option key={v} value={v} />
+          ))}
+        </datalist>
+        <div className="flex justify-between px-3 pt-1.5 text-sm leading-[18px] text-app-placeholder">
+          {SCORE_OPTIONS.map((v) => (
+            <span key={v} className="tabular-nums">
+              {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const isDark = theme === "dark";
   const shell = isDark
     ? "mt-3 rounded-lg border border-app-border bg-app-canvas p-3"

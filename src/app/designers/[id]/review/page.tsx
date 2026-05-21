@@ -2,10 +2,12 @@ export const dynamic = "force-dynamic";
 
 import { notFound, redirect } from "next/navigation";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
-import { DesignersPageHeader } from "@/components/designers/designers-page-header";
+import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
+import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
+import { DesignersTopBar } from "@/components/designers/designers-top-bar";
 import { ReviewForm } from "@/components/designers/review-form";
-import { ROLE_LABELS } from "@/lib/competency-utils";
-import { fetchReviewPageData } from "@/lib/data/queries";
+import { ReviewPageHeader } from "@/components/designers/review-page-header";
+import { fetchDesignersWithAverages, fetchReviewPageData } from "@/lib/data/queries";
 import { getSessionContext } from "@/lib/session";
 
 export default async function DesignerReviewPage({
@@ -19,33 +21,40 @@ export default async function DesignerReviewPage({
     redirect("/no-access");
   }
 
-  const data = await fetchReviewPageData(params.id);
+  const [data, designersExport] = await Promise.all([
+    fetchReviewPageData(params.id),
+    fetchDesignersWithAverages(),
+  ]);
   if (!data) notFound();
 
   const { designer, competencies, itemsByCompetency, scoresByItem } = data;
 
   return (
     <DesignersAppShell>
-      <DesignersPageHeader
-        title="Ревью"
-        backHref={`/designers/${designer.id}`}
-        backLabel="Профиль"
-        subtitle={
-          <p>
-            {designer.name} · {ROLE_LABELS[designer.role]} · {designer.direction}
-          </p>
+      <DesignersTopBar
+        title="Дизайнеры"
+        actions={
+          <>
+            <DesignersCsvExport
+              designers={designersExport.designers}
+              competencyColumns={designersExport.competencyExportColumns}
+            />
+            <DesignersLogoutButton />
+          </>
         }
-        showLogout={false}
       />
 
-      <main className="flex-1 px-10 pb-10 pt-6">
-        <ReviewForm
-          designer={designer}
-          competencies={competencies}
-          itemsByCompetency={itemsByCompetency}
-          scoresByItem={scoresByItem}
-          theme="dark"
-        />
+      <main className="flex-1 px-8 pb-10 pt-8">
+        <ReviewPageHeader designer={designer} />
+
+        <div className="mt-10">
+          <ReviewForm
+            designer={designer}
+            competencies={competencies}
+            itemsByCompetency={itemsByCompetency}
+            scoresByItem={scoresByItem}
+          />
+        </div>
       </main>
     </DesignersAppShell>
   );
