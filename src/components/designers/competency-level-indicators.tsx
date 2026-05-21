@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import { useState } from "react";
 import type { Competency } from "@/lib/competency-utils";
 
 type IndicatorField =
@@ -22,35 +24,56 @@ export function CompetencyLevelIndicators({
   competency: Competency;
   theme?: "light" | "dark";
 }) {
+  const [open, setOpen] = useState(false);
   const isDark = theme === "dark";
-  const summary = isDark
-    ? "text-app-muted hover:text-white border-neutral-600"
-    : "text-neutral-500 hover:text-neutral-700 border-neutral-300";
-  const list = isDark
-    ? "border-app-border text-white/80"
-    : "border-neutral-200 text-neutral-600";
-  const scoreLabel = isDark ? "text-app-muted" : "text-neutral-400";
+  const scoreLabel = isDark ? "text-app-placeholder" : "text-neutral-400";
+  const textCls = isDark ? "text-white/80" : "text-neutral-600";
 
   return (
-    <details className="mt-3">
-      <summary
-        className={`cursor-pointer list-none text-sm [&::-webkit-details-marker]:hidden ${summary}`}
+    <div
+      className="relative inline-flex shrink-0"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="inline-flex h-5 w-5 items-center justify-center rounded transition-opacity hover:opacity-80"
+        aria-label="Что означает каждый уровень"
+        aria-expanded={open}
       >
-        <span className={`border-b border-dotted`}>Что означает каждый уровень</span>
-      </summary>
-      <ul className={`mt-2 space-y-1.5 border-l pl-3 text-sm ${list}`}>
-        {LEVEL_ROWS.map(({ score, field }) => {
-          const raw = competency[field];
-          const text =
-            typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : "—";
-          return (
-            <li key={field} className="flex gap-2">
-              <span className={`shrink-0 tabular-nums ${scoreLabel}`}>{score}</span>
-              <span className="min-w-0">{text}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </details>
+        <Image
+          src="/icons/Information.svg"
+          alt=""
+          width={20}
+          height={20}
+          className="shrink-0"
+        />
+      </button>
+
+      {open ? (
+        <div
+          role="tooltip"
+          className="absolute left-full top-1/2 z-20 ml-2 w-[288px] -translate-y-1/2 rounded-xl border border-app-border bg-[#1E2130] p-4 shadow-lg"
+        >
+          <ul className={`space-y-2 text-sm ${textCls}`}>
+            {LEVEL_ROWS.map(({ score, field }) => {
+              const raw = competency[field];
+              const text =
+                typeof raw === "string" && raw.trim().length > 0
+                  ? raw.trim()
+                  : "—";
+              return (
+                <li key={field} className="flex gap-2">
+                  <span className={`shrink-0 tabular-nums ${scoreLabel}`}>
+                    {score}
+                  </span>
+                  <span className="min-w-0">{text}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }

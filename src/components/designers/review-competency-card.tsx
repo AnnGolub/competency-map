@@ -79,10 +79,11 @@ export function ReviewCompetencyCard({
     <article className="rounded-3xl bg-app-sidebar p-6">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold leading-6 text-white">
               {competency.title}
             </h3>
+            <CompetencyLevelIndicators competency={competency} theme="dark" />
           </div>
           {competency.description ? (
             <p className="mt-2 text-sm leading-5 text-app-placeholder">
@@ -102,8 +103,6 @@ export function ReviewCompetencyCard({
         </div>
         <CompetencyScoreRing value={avg} />
       </div>
-
-      <CompetencyLevelIndicators competency={competency} theme="dark" />
 
       {items.length > 0 ? (
         <ul className="mt-6 flex flex-col gap-6">
