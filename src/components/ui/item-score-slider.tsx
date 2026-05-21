@@ -18,6 +18,8 @@ export function ItemScoreSlider({
   variant?: "default" | "review";
 }) {
   if (variant === "review") {
+    const fill = `${((value - 1) / 3) * 100}%`;
+
     return (
       <div className="flex flex-col">
         <p className="pb-1.5 text-sm leading-[18px] text-app-placeholder">
@@ -39,7 +41,10 @@ export function ItemScoreSlider({
               step={0.5}
               value={value}
               onChange={(e) => onChange(parseFloat(e.target.value))}
-              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg bg-[#2A2D3A] accent-[#E53535] [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#E53535]"
+              style={{
+                background: `linear-gradient(to right, #E53535 ${fill}, #2A2D3A ${fill})`,
+              }}
+              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#E53535]"
               list={`ticks-${id}`}
             />
           </div>

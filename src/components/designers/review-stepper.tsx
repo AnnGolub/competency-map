@@ -1,22 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { Fragment } from "react";
 import { BLOCK_LABELS } from "@/lib/competency-utils";
 import type { CompetencyBlock } from "@/types/database";
-
-function IconCheck() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M4 10L8 14L16 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function StepConnector({ completed }: { completed: boolean }) {
   return (
@@ -52,14 +39,18 @@ function ReviewStep({
     <div className="flex w-[108px] shrink-0 flex-col items-center gap-2">
       <div
         className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${
-          isCompleted ? "bg-[#05A660] text-white" : "bg-app-input text-[#C7C9D9]"
+          isCompleted ? "bg-[#05A660]" : "bg-app-input"
         }`}
       >
-        {isCompleted ? (
-          <IconCheck />
-        ) : (
-          <span className="h-5 w-5 rounded-full border-2 border-current opacity-60" />
-        )}
+        <Image
+          src={
+            isCompleted ? "/icons/Emoji-normal.svg" : "/icons/Emoji-sad.svg"
+          }
+          alt=""
+          width={24}
+          height={24}
+          className="shrink-0"
+        />
       </div>
       <div className="flex flex-col items-center gap-1 text-center">
         <span className="text-xs leading-none text-white">step {stepNumber}</span>
