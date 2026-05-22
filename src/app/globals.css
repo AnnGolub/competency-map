@@ -21,39 +21,24 @@ body {
 }
 
 .review-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 16px;
-  background: transparent;
-  outline: none;
-  cursor: pointer;
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
   margin: 0;
   padding: 0;
 }
 
-.review-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
+.review-slider-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: #e53535;
-  cursor: pointer;
-  border: none;
-  box-shadow: none;
-}
-
-.review-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #e53535;
-  cursor: pointer;
-  border: none;
-}
-
-.review-slider::-webkit-slider-runnable-track {
-  background: transparent;
+  pointer-events: none;
+  margin-left: -8px;
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { SCORE_OPTIONS } from "@/lib/competency-utils";
 
 export function ItemScoreSlider({
@@ -18,30 +20,32 @@ export function ItemScoreSlider({
   variant?: "default" | "review";
 }) {
   if (variant === "review") {
+    const thumbPercent = ((value - 1) / (4 - 1)) * 100;
+
     return (
       <div className="flex flex-col">
         <p className="pb-1.5 text-sm leading-[18px] text-app-placeholder">
           {label}
         </p>
-
         <div
           className="relative rounded-xl"
           style={{ height: "48px", background: "#3E4153" }}
         >
-          <span className="absolute left-3 top-3 text-base tabular-nums text-white">
-            {value.toFixed(1)}
-          </span>
-          <label htmlFor={id} className="sr-only">
-            {label}
-          </label>
           <div
             className="absolute"
             style={{ bottom: "12px", left: "12px", right: "12px", height: "2px" }}
           >
             <div
-              className="absolute inset-0 rounded-[8px]"
-              style={{ background: "#8F90A6" }}
+              className="absolute inset-0"
+              style={{ background: "#8F90A6", borderRadius: "8px" }}
             />
+            <div
+              className="review-slider-thumb"
+              style={{ left: `${thumbPercent}%` }}
+            />
+            <label htmlFor={id} className="sr-only">
+              {label}
+            </label>
             <input
               id={id}
               type="range"
@@ -50,12 +54,10 @@ export function ItemScoreSlider({
               step={0.5}
               value={value}
               onChange={(e) => onChange(parseFloat(e.target.value))}
-              className="review-slider absolute inset-x-0"
-              style={{ top: "50%", transform: "translateY(-50%)", margin: 0 }}
+              className="review-slider"
             />
           </div>
         </div>
-
         <div className="flex justify-between px-3 pt-[6px]">
           {SCORE_OPTIONS.map((v) => (
             <span
