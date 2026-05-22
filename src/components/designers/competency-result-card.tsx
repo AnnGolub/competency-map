@@ -1,34 +1,46 @@
-"use client";
-
 import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { CompetencyScoreRing } from "@/components/designers/competency-score-ring";
-import { ItemScoreSlider } from "@/components/ui/item-score-slider";
 import {
   averageScore,
   formatScore,
   getExpectedScore,
   type Competency,
   type CompetencyItem,
+  type ItemScore,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
 
-export function ReviewCompetencyCard({
+function ItemScoreBadge({ score }: { score: number | null | undefined }) {
+  const display =
+    score !== null && score !== undefined ? Number(score).toFixed(1) : "—";
+
+  return (
+    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-input text-sm font-semibold tabular-nums text-white">
+      {display}
+    </span>
+  );
+}
+
+export function CompetencyResultCard({
   competency,
   items,
   role,
-  form,
-  onScoreChange,
+  scoresByItem,
   showPreLead,
 }: {
   competency: Competency;
   items: CompetencyItem[];
   role: DesignerRole;
-  form: Record<string, number>;
-  onScoreChange: (itemId: string, score: number) => void;
+  scoresByItem: Record<string, ItemScore>;
   showPreLead: boolean;
 }) {
-  const itemScores = items.map((item) => form[item.id]);
-  const avg = averageScore(itemScores);
+  const itemScores = items.map((item) => {
+    const s = scoresByItem[item.id]?.score;
+    return s !== null && s !== undefined ? Number(s) : null;
+  });
+  const avg = averageScore(
+    itemScores.filter((s): s is number => s !== null)
+  );
   const expected = getExpectedScore(competency, role);
 
   return (
@@ -61,18 +73,16 @@ export function ReviewCompetencyCard({
       </div>
 
       {items.length > 0 ? (
-        <ul className="mt-6 flex flex-col gap-6">
+        <ul className="mt-6 flex flex-col gap-4">
           {items.map((item) => (
-            <li key={item.id}>
-              <ItemScoreSlider
-                id={`review-${item.id}`}
-                label={item.text}
-                value={form[item.id]}
-                expected={null}
-                theme="dark"
-                variant="review"
-                onChange={(score) => onScoreChange(item.id, score)}
-              />
+            <li
+              key={item.id}
+              className="flex items-center justify-between gap-4"
+            >
+              <p className="min-w-0 flex-1 text-sm leading-[18px] text-app-placeholder">
+                {item.text}
+              </p>
+              <ItemScoreBadge score={scoresByItem[item.id]?.score} />
             </li>
           ))}
         </ul>

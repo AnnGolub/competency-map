@@ -18,45 +18,48 @@ export function ItemScoreSlider({
   variant?: "default" | "review";
 }) {
   if (variant === "review") {
-    const fill = `${((value - 1) / 3) * 100}%`;
-
     return (
       <div className="flex flex-col">
         <p className="pb-1.5 text-sm leading-[18px] text-app-placeholder">
           {label}
         </p>
-        <div className="rounded-lg bg-app-input p-3">
-          <div className="flex items-center gap-2.5">
-            <span className="min-w-[2.5rem] text-base leading-6 tabular-nums text-white">
-              {value.toFixed(1)}
-            </span>
-            <label htmlFor={id} className="sr-only">
-              {label}
-            </label>
-            <input
-              id={id}
-              type="range"
-              min={1}
-              max={4}
-              step={0.5}
-              value={value}
-              onChange={(e) => onChange(parseFloat(e.target.value))}
-              style={{
-                background: `linear-gradient(to right, #E53535 ${fill}, #2A2D3A ${fill})`,
-              }}
-              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#E53535]"
-              list={`ticks-${id}`}
-            />
-          </div>
+
+        <div
+          className="review-slider-wrapper relative flex items-end rounded-xl px-3"
+          style={{ height: "48px", background: "#3E4153", paddingBottom: "12px" }}
+        >
+          <span className="absolute left-3 top-3 text-base tabular-nums text-white">
+            {value.toFixed(1)}
+          </span>
+          <label htmlFor={id} className="sr-only">
+            {label}
+          </label>
+          <input
+            id={id}
+            type="range"
+            min={1}
+            max={4}
+            step={0.5}
+            value={value}
+            onChange={(e) => onChange(parseFloat(e.target.value))}
+            className="review-slider w-full cursor-pointer appearance-none"
+            style={{ marginLeft: "12px", marginRight: "12px" }}
+          />
         </div>
-        <datalist id={`ticks-${id}`}>
+
+        <div className="flex justify-between px-3 pt-[6px]">
           {SCORE_OPTIONS.map((v) => (
-            <option key={v} value={v} />
-          ))}
-        </datalist>
-        <div className="flex justify-between px-3 pt-1.5 text-sm leading-[18px] text-app-placeholder">
-          {SCORE_OPTIONS.map((v) => (
-            <span key={v} className="tabular-nums">
+            <span
+              key={v}
+              className="tabular-nums"
+              style={{
+                color: "#8F90A6",
+                fontSize: "14px",
+                lineHeight: "18px",
+                fontFamily: "Avenir Next, sans-serif",
+                fontWeight: 400,
+              }}
+            >
               {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
             </span>
           ))}
