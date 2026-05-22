@@ -25,8 +25,8 @@ export function ItemScoreSlider({
         </p>
 
         <div
-          className="review-slider-wrapper relative flex items-end rounded-xl px-3"
-          style={{ height: "48px", background: "#3E4153", paddingBottom: "12px" }}
+          className="relative rounded-xl"
+          style={{ height: "48px", background: "#3E4153" }}
         >
           <span className="absolute left-3 top-3 text-base tabular-nums text-white">
             {value.toFixed(1)}
@@ -34,17 +34,26 @@ export function ItemScoreSlider({
           <label htmlFor={id} className="sr-only">
             {label}
           </label>
-          <input
-            id={id}
-            type="range"
-            min={1}
-            max={4}
-            step={0.5}
-            value={value}
-            onChange={(e) => onChange(parseFloat(e.target.value))}
-            className="review-slider w-full cursor-pointer appearance-none"
-            style={{ marginLeft: "12px", marginRight: "12px" }}
-          />
+          <div
+            className="absolute"
+            style={{ bottom: "12px", left: "12px", right: "12px", height: "2px" }}
+          >
+            <div
+              className="absolute inset-0 rounded-[8px]"
+              style={{ background: "#8F90A6" }}
+            />
+            <input
+              id={id}
+              type="range"
+              min={1}
+              max={4}
+              step={0.5}
+              value={value}
+              onChange={(e) => onChange(parseFloat(e.target.value))}
+              className="review-slider absolute inset-x-0"
+              style={{ top: "50%", transform: "translateY(-50%)", margin: 0 }}
+            />
+          </div>
         </div>
 
         <div className="flex justify-between px-3 pt-[6px]">
@@ -56,7 +65,6 @@ export function ItemScoreSlider({
                 color: "#8F90A6",
                 fontSize: "14px",
                 lineHeight: "18px",
-                fontFamily: "Avenir Next, sans-serif",
                 fontWeight: 400,
               }}
             >
