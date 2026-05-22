@@ -50,6 +50,17 @@ export function ItemScoreSlider({
             borderRadius: "8px",
             pointerEvents: "none",
           }}>
+            {/* Красная заливка до thumb */}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: `${thumbPercent}%`,
+              height: "2px",
+              background: "#E53535",
+              borderRadius: "8px",
+              pointerEvents: "none",
+            }} />
             {/* Thumb */}
             <div style={{
               position: "absolute",
