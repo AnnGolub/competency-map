@@ -15,14 +15,14 @@ export function ItemScoreSlider({
   if (variant === "review") {
     const thumbPercent = ((value - 1) / 3) * 100;
 
-    function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const ratio = Math.min(1, Math.max(0, x / rect.width));
       const raw = 1 + ratio * 3;
       const snapped = Math.round(raw / 0.5) * 0.5;
       onChange(Math.min(4, Math.max(1, snapped)));
-    }
+    };
 
     return (
       <div style={{ display: "flex", flexDirection: "column" }}>
