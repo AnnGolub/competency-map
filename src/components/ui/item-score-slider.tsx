@@ -27,25 +27,42 @@ export function ItemScoreSlider({
         <p className="pb-1.5 text-sm leading-[18px] text-app-placeholder">
           {label}
         </p>
+
         <div
-          className="relative rounded-xl"
-          style={{ height: "48px", background: "#3E4153" }}
+          style={{
+            position: "relative",
+            height: "48px",
+            background: "#3E4153",
+            borderRadius: "12px",
+            paddingLeft: "12px",
+            paddingRight: "12px",
+            paddingBottom: "11px",
+            display: "flex",
+            alignItems: "flex-end",
+          }}
         >
           <div
-            className="absolute"
-            style={{ bottom: "12px", left: "12px", right: "12px", height: "2px" }}
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "2px",
+              background: "#8F90A6",
+              borderRadius: "8px",
+            }}
           >
             <div
-              className="absolute inset-0"
-              style={{ background: "#8F90A6", borderRadius: "8px" }}
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: `${thumbPercent}%`,
+                transform: "translate(-50%, -50%)",
+                width: "16px",
+                height: "16px",
+                borderRadius: "50%",
+                background: "#E53535",
+                pointerEvents: "none",
+              }}
             />
-            <div
-              className="review-slider-thumb"
-              style={{ left: `${thumbPercent}%` }}
-            />
-            <label htmlFor={id} className="sr-only">
-              {label}
-            </label>
             <input
               id={id}
               type="range"
@@ -54,10 +71,21 @@ export function ItemScoreSlider({
               step={0.5}
               value={value}
               onChange={(e) => onChange(parseFloat(e.target.value))}
-              className="review-slider"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                opacity: 0,
+                cursor: "pointer",
+                margin: 0,
+                padding: 0,
+                zIndex: 10,
+              }}
             />
           </div>
         </div>
+
         <div className="flex justify-between px-3 pt-[6px]">
           {SCORE_OPTIONS.map((v) => (
             <span
