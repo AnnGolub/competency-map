@@ -1,21 +1,18 @@
 export const dynamic = "force-dynamic";
 
 import { notFound, redirect } from "next/navigation";
-import { CompetencyBlockSection } from "@/components/designers/competency-block";
 import { DesignerMetricCards } from "@/components/designers/designer-metric-cards";
 import { DesignerProfileHeader } from "@/components/designers/designer-profile-header";
+import { DesignerProfileResults } from "@/components/designers/designer-profile-results";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
 import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import { DesignersTopBar } from "@/components/designers/designers-top-bar";
 import {
-  BLOCK_LABELS,
-  blocksForDesignerRole,
   collectVisibleItems,
   computeHalfYearGrowth,
   countBelowExpected,
   filterCompetenciesForRole,
-  groupByBlock,
   groupItemsByCompetency,
   primaryVisibleScore,
   resolveBlindScoresFromItems,
@@ -23,7 +20,7 @@ import {
 } from "@/lib/competency-utils";
 import {
   fetchCompetencies,
-  fetchCompetencyItems,
+  fetchCompetencyItemsForCompetencies,
   fetchDesigner,
   fetchDesignersWithAverages,
   fetchItemScoresForDesigner,
@@ -43,46 +40,47 @@ export default async function DesignerProfilePage({
     notFound();
   }
 
-  const [
-    designer,
-    competencies,
-    items,
-    itemScores,
-    selfReviewCompleted,
-    designersExport,
-  ] = await Promise.all([
-    fetchDesigner(params.id),
-    fetchCompetencies(),
-    fetchCompetencyItems(),
-    fetchItemScoresForDesigner(params.id),
-    hasCompletedSelfReview(params.id),
-    fetchDesignersWithAverages(),
-  ]);
-
+  const designer = await fetchDesigner(params.id);
   if (!designer) notFound();
 
+  const allCompetencies = await fetchCompetencies();
   const visibleCompetencies = filterCompetenciesForRole(
-    competencies,
+    allCompetencies,
     designer.role
   );
-  const itemsByCompetency = groupItemsByCompetency(items, designer.role, {
+  const competencyIds = visibleCompetencies.map((c) => c.id);
+
+  const [items, itemScores, selfReviewCompleted, designersExport] =
+    await Promise.all([
+      fetchCompetencyItemsForCompetencies(competencyIds),
+      fetchItemScoresForDesigner(params.id),
+      hasCompletedSelfReview(params.id),
+      fetchDesignersWithAverages(),
+    ]);
+
+  const itemsByCompetencyMap = groupItemsByCompetency(items, designer.role, {
     includeOnlyLead: true,
   });
-  const visibleItems = collectVisibleItems(
-    visibleCompetencies,
-    itemsByCompetency
+  const itemsByCompetency = Object.fromEntries(itemsByCompetencyMap);
+  const scoresByItem = Object.fromEntries(
+    itemScores.map((s) => [s.competency_item_id, s])
   );
 
-  const scoresByItem = new Map(
+  const visibleItems = collectVisibleItems(
+    visibleCompetencies,
+    itemsByCompetencyMap
+  );
+
+  const scoresByItemMap = new Map(
     itemScores.map((s) => [s.competency_item_id, s])
   );
 
   const primaryScores = new Map<string, number>();
   for (const c of visibleCompetencies) {
-    const competencyItems = itemsByCompetency.get(c.id) ?? [];
+    const competencyItems = itemsByCompetencyMap.get(c.id) ?? [];
     const blind = resolveBlindScoresFromItems(
       competencyItems,
-      scoresByItem,
+      scoresByItemMap,
       selfReviewCompleted
     );
     const primary = primaryVisibleScore(blind);
@@ -90,7 +88,7 @@ export default async function DesignerProfilePage({
   }
 
   const leadItemScores = visibleItems
-    .map((item) => scoresByItem.get(item.id)?.score)
+    .map((item) => scoresByItemMap.get(item.id)?.score)
     .filter((s): s is number => s !== null && s !== undefined)
     .map(Number);
 
@@ -107,9 +105,6 @@ export default async function DesignerProfilePage({
     if (!latest) return s.reviewed_at;
     return new Date(s.reviewed_at) > new Date(latest) ? s.reviewed_at : latest;
   }, null);
-
-  const grouped = groupByBlock(visibleCompetencies);
-  const visibleBlocks = blocksForDesignerRole(designer.role);
 
   return (
     <DesignersAppShell>
@@ -139,21 +134,12 @@ export default async function DesignerProfilePage({
           maxBelow={visibleCompetencies.length}
         />
 
-        <div className="mt-10 max-w-[1152px] space-y-10">
-          {visibleBlocks.map((block) => (
-            <CompetencyBlockSection
-              key={block}
-              title={BLOCK_LABELS[block]}
-              competencies={grouped[block]}
-              role={designer.role}
-              itemsByCompetency={itemsByCompetency}
-              scoresByItem={scoresByItem}
-              selfReviewCompleted={selfReviewCompleted}
-              isAdmin
-              theme="dark"
-            />
-          ))}
-        </div>
+        <DesignerProfileResults
+          designer={designer}
+          competencies={visibleCompetencies}
+          itemsByCompetency={itemsByCompetency}
+          scoresByItem={scoresByItem}
+        />
       </main>
     </DesignersAppShell>
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { DesignerBackLink } from "@/components/designers/designer-back-link";
 import { GenerateSelfReviewLink } from "@/components/designers/generate-self-review-link";
-import { IconSelectArrow } from "@/components/designers/designers-icons";
 import { ROLE_LABELS, type Designer } from "@/lib/competency-utils";
 
 function formatReviewDate(iso: string | null): string {
@@ -24,13 +24,7 @@ export function DesignerProfileHeader({
 }) {
   return (
     <section className="flex max-w-[818px] flex-col gap-4">
-      <Link
-        href="/designers"
-        className="inline-flex h-8 w-fit items-center gap-1 rounded-lg bg-app-input px-4 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
-      >
-        <IconSelectArrow className="rotate-90 text-current" />
-        К списку дизайнеров
-      </Link>
+      <DesignerBackLink href="/designers">К списку дизайнеров</DesignerBackLink>
 
       <h1 className="text-[30px] font-bold leading-9 text-white">{designer.name}</h1>
 
