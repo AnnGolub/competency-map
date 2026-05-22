@@ -34,23 +34,21 @@ export function ItemScoreSlider({
             height: "48px",
             background: "#3E4153",
             borderRadius: "12px",
-            paddingLeft: "12px",
-            paddingRight: "12px",
-            paddingBottom: "11px",
-            display: "flex",
-            alignItems: "flex-end",
           }}
         >
           <div
             style={{
-              position: "relative",
-              width: "100%",
+              position: "absolute",
+              bottom: "12px",
+              left: "12px",
+              right: "12px",
               height: "2px",
               background: "#8F90A6",
               borderRadius: "8px",
             }}
           >
             <div
+              aria-hidden
               style={{
                 position: "absolute",
                 top: "50%",
@@ -61,6 +59,7 @@ export function ItemScoreSlider({
                 borderRadius: "50%",
                 background: "#E53535",
                 pointerEvents: "none",
+                zIndex: 1,
               }}
             />
             <input
@@ -73,14 +72,16 @@ export function ItemScoreSlider({
               onChange={(e) => onChange(parseFloat(e.target.value))}
               style={{
                 position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
+                top: "-22px",
+                left: "-12px",
+                width: "calc(100% + 24px)",
+                height: "46px",
                 opacity: 0,
                 cursor: "pointer",
                 margin: 0,
                 padding: 0,
-                zIndex: 10,
+                zIndex: 2,
+                WebkitAppearance: "none",
               }}
             />
           </div>
