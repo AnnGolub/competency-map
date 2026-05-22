@@ -42,7 +42,7 @@ export function ItemScoreSlider({
           {/* Трек внизу */}
           <div style={{
             position: "absolute",
-            bottom: "12px",
+            bottom: "0",
             left: "12px",
             right: "12px",
             height: "2px",
