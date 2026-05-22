@@ -15,13 +15,39 @@ export function ItemScoreSlider({
   if (variant === "review") {
     const thumbPercent = ((value - 1) / 3) * 100;
 
-    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
+    const handlePointerMove = (clientX: number, rect: DOMRect) => {
+      const x = clientX - rect.left;
       const ratio = Math.min(1, Math.max(0, x / rect.width));
       const raw = 1 + ratio * 3;
       const snapped = Math.round(raw / 0.5) * 0.5;
       onChange(Math.min(4, Math.max(1, snapped)));
+    };
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const rect = e.currentTarget.getBoundingClientRect();
+      handlePointerMove(e.clientX, rect);
+
+      const onMove = (me: MouseEvent) => handlePointerMove(me.clientX, rect);
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const onMove = (te: TouchEvent) => {
+        handlePointerMove(te.touches[0].clientX, rect);
+      };
+      const onEnd = () => {
+        window.removeEventListener("touchmove", onMove);
+        window.removeEventListener("touchend", onEnd);
+      };
+      window.addEventListener("touchmove", onMove);
+      window.addEventListener("touchend", onEnd);
     };
 
     return (
@@ -30,7 +56,8 @@ export function ItemScoreSlider({
           {label}
         </p>
         <div
-          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
           style={{
             position: "relative",
             height: "48px",
