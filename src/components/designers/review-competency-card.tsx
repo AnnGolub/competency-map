@@ -48,6 +48,30 @@ export function ReviewCompetencyCard({
               {competency.description}
             </p>
           ) : null}
+          <div className="mt-4 flex flex-wrap gap-1">
+            {LEVEL_BADGES.map((badge) => {
+              const rawValue = competency[badge.field];
+              const value =
+                badge.key === "lead" &&
+                (rawValue === null || Number(rawValue) === 0)
+                  ? 4
+                  : rawValue;
+              if (value === null) return null;
+
+              return (
+                <span
+                  key={badge.key}
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                    badge.key === role
+                      ? "bg-[#F5820D] text-white"
+                      : "bg-app-input text-app-muted"
+                  }`}
+                >
+                  {badge.label} {Number(value).toFixed(1)}
+                </span>
+              );
+            })}
+          </div>
         </div>
         <CompetencyScoreRing value={avg} />
       </div>
@@ -61,32 +85,6 @@ export function ReviewCompetencyCard({
                 label={item.text}
                 value={form[item.id]}
                 expected={null}
-                helperContent={
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {LEVEL_BADGES.map((badge) => {
-                      const rawValue = item[badge.field];
-                      const value =
-                        badge.key === "lead" &&
-                        (rawValue === null || Number(rawValue) === 0)
-                          ? 4
-                          : rawValue;
-                      if (value === null) return null;
-
-                      return (
-                        <span
-                          key={badge.key}
-                          className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                            badge.key === role
-                              ? "bg-app-accent text-white"
-                              : "bg-app-input text-app-muted"
-                          }`}
-                        >
-                          {badge.label} {Number(value).toFixed(1)}
-                        </span>
-                      );
-                    })}
-                  </div>
-                }
                 theme="dark"
                 variant="review"
                 onChange={(score) => onScoreChange(item.id, score)}
