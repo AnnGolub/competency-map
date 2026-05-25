@@ -12,10 +12,7 @@ import {
   blocksForDesignerRole,
   groupByBlock,
 } from "@/lib/competency-utils";
-import type {
-  PublicSelfReviewCompetency,
-  PublicSelfReviewData,
-} from "@/lib/data/self-review-tokens";
+import type { PublicSelfReviewData } from "@/lib/data/self-review-tokens";
 import type { CompetencyBlock } from "@/types/database";
 
 const REVIEW_STEP_ORDER: CompetencyBlock[] = ["hard", "soft", "leadership"];

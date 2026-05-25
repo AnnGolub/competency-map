@@ -8,7 +8,7 @@ import {
   type CompetencyItem,
 } from "@/lib/competency-utils";
 import type { Database } from "@/types/database";
-import type { CompetencyBlock, DesignerRole } from "@/types/database";
+import type { DesignerRole } from "@/types/database";
 
 export type SelfReviewToken =
   Database["public"]["Tables"]["self_review_tokens"]["Row"];
