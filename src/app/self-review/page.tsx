@@ -44,7 +44,7 @@ export default async function SelfReviewPage({
         <div className="mx-auto max-w-lg">
           <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
           <p className="mt-2 text-base leading-6 text-app-placeholder">
-            {data.designerName} · {data.designerRole}
+            {data.designerName}
           </p>
           <p className="mt-6 rounded-xl border border-app-border bg-app-sidebar p-6 text-sm text-app-placeholder">
             Самооценка уже отправлена. Повторно заполнить форму по этой ссылке
@@ -74,7 +74,7 @@ export default async function SelfReviewPage({
         <header className="mb-10 max-w-[818px]">
           <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
           <p className="mt-1 text-base leading-6 text-app-placeholder">
-            {data.designerName} · {data.designerRole}
+            {data.designerName}
           </p>
         </header>
         <PublicSelfReviewForm token={token} data={data} />

@@ -79,8 +79,9 @@ export function GenerateSelfReviewLink({
         <span
           style={{
             position: "absolute",
-            bottom: "calc(100% + 6px)",
-            right: 0,
+            left: "calc(100% + 8px)",
+            top: "50%",
+            transform: "translateY(-50%)",
             width: "260px",
             background: "#1E2130",
             border: "1px solid var(--app-border)",

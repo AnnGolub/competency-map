@@ -154,6 +154,7 @@ export function PublicSelfReviewForm({
               role={data.role}
               form={form}
               onScoreChange={handleScoreChange}
+              hideLevelBadges
             />
           ))}
         </div>

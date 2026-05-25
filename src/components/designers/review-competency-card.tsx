@@ -23,12 +23,14 @@ export function ReviewCompetencyCard({
   role,
   form,
   onScoreChange,
+  hideLevelBadges = false,
 }: {
   competency: Competency;
   items: Pick<CompetencyItem, "id" | "text">[];
   role: DesignerRole;
   form: Record<string, number>;
   onScoreChange: (itemId: string, score: number) => void;
+  hideLevelBadges?: boolean;
 }) {
   const itemScores = items.map((item) => form[item.id]);
   const avg = averageScore(itemScores);
@@ -54,30 +56,32 @@ export function ReviewCompetencyCard({
               {competency.description}
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-1">
-            {levelBadges.map((badge) => {
-              const rawValue = competency[badge.field];
-              const value =
-                badge.key === "lead" &&
-                (rawValue === null || Number(rawValue) === 0)
-                  ? 4
-                  : rawValue;
-              if (value === null) return null;
+          {!hideLevelBadges ? (
+            <div className="mt-4 flex flex-wrap gap-1">
+              {levelBadges.map((badge) => {
+                const rawValue = competency[badge.field];
+                const value =
+                  badge.key === "lead" &&
+                  (rawValue === null || Number(rawValue) === 0)
+                    ? 4
+                    : rawValue;
+                if (value === null) return null;
 
-              return (
-                <span
-                  key={badge.key}
-                  className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                    badge.key === role
-                      ? "bg-[#F5820D] text-white"
-                      : "bg-app-input text-app-muted"
-                  }`}
-                >
-                  {badge.label} {Number(value).toFixed(1)}
-                </span>
-              );
-            })}
-          </div>
+                return (
+                  <span
+                    key={badge.key}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                      badge.key === role
+                        ? "bg-[#F5820D] text-white"
+                        : "bg-app-input text-app-muted"
+                    }`}
+                  >
+                    {badge.label} {Number(value).toFixed(1)}
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
         <CompetencyScoreRing value={avg} />
       </div>

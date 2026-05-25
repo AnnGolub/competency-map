@@ -80,19 +80,19 @@ export function DesignerProfileResults({
       </nav>
 
       {isWaitingForReviews ? (
-        <p className="mt-6 text-base leading-6 text-app-muted">
+        <p className="mt-10 text-base leading-6 text-app-muted">
           Ревью ещё не завершено. Ожидается оценка{" "}
           {!hasLeadReview ? "лида" : "дизайнера"}.
         </p>
       ) : !hasFinalReview ? (
-        <div className="mt-6">
+        <div className="mt-10">
           <p className="text-base leading-6 text-app-muted">
             Ревью дизайнера выполнено самим дизайнером и лидом. Завершите ревью
             выбором окончательной оценки по каждой компетенции.
           </p>
           <Link
             href={`/designers/${designer.id}/review`}
-            className="mt-4 inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
+            className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
           >
             Завершить ревью
           </Link>
