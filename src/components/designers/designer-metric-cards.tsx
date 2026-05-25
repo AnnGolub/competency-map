@@ -132,7 +132,7 @@ export function DesignerMetricCards({
         />
         <MetricCard
           title="Ниже ожидаемого"
-          subtitle="По карте компетенций"
+          subtitle="Уровень по грейду"
           value={String(belowCount)}
           progress={belowProgress}
           iconSrc={METRIC_ICONS.below}
