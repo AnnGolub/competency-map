@@ -226,82 +226,103 @@ export function FinalReviewForm({
                         marginTop: "8px",
                       }}
                     >
-                      <div
-                        style={{
-                          background: "#3E4153",
-                          borderRadius: "12px",
-                          padding: "12px 16px",
-                        }}
-                      >
-                        <p style={{ fontSize: "16px", color: "#fff" }}>
-                          {selfScore !== null && selfScore !== undefined
-                            ? Number(selfScore).toFixed(1)
-                            : "—"}
-                        </p>
+                      <div>
+                        <div
+                          style={{
+                            background: "#3E4153",
+                            borderRadius: "12px",
+                            padding: "12px 16px",
+                            height: "48px",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <p
+                            style={{ fontSize: "16px", color: "#fff", margin: 0 }}
+                          >
+                            {selfScore !== null && selfScore !== undefined
+                              ? Number(selfScore).toFixed(1)
+                              : "—"}
+                          </p>
+                        </div>
                         <p
                           style={{
                             fontSize: "12px",
                             color: "#8F90A6",
-                            marginTop: "4px",
+                            marginTop: "6px",
                           }}
                         >
                           Дизайнер
                         </p>
                       </div>
-                      <div
-                        style={{
-                          background: "#3E4153",
-                          borderRadius: "12px",
-                          padding: "12px 16px",
-                        }}
-                      >
-                        <p style={{ fontSize: "16px", color: "#fff" }}>
-                          {leadScore !== null && leadScore !== undefined
-                            ? Number(leadScore).toFixed(1)
-                            : "—"}
-                        </p>
+                      <div>
+                        <div
+                          style={{
+                            background: "#3E4153",
+                            borderRadius: "12px",
+                            padding: "12px 16px",
+                            height: "48px",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <p
+                            style={{ fontSize: "16px", color: "#fff", margin: 0 }}
+                          >
+                            {leadScore !== null && leadScore !== undefined
+                              ? Number(leadScore).toFixed(1)
+                              : "—"}
+                          </p>
+                        </div>
                         <p
                           style={{
                             fontSize: "12px",
                             color: "#8F90A6",
-                            marginTop: "4px",
+                            marginTop: "6px",
                           }}
                         >
                           Лид
                         </p>
                       </div>
-                      <div
-                        style={{
-                          background: "#3E4153",
-                          borderRadius: "12px",
-                          padding: "12px 16px",
-                          border: "1px solid #4A4D5E",
-                        }}
-                      >
-                        <input
-                          type="number"
-                          min={1}
-                          max={4}
-                          step={0.5}
-                          value={finalScore}
-                          onChange={(event) =>
-                            handleFinalScoreChange(item.id, event.target.value)
-                          }
-                          placeholder="—"
+                      <div>
+                        <div
                           style={{
-                            background: "transparent",
-                            border: "none",
-                            outline: "none",
-                            fontSize: "16px",
-                            color: "#fff",
-                            width: "100%",
+                            background: "#3E4153",
+                            borderRadius: "12px",
+                            padding: "12px 16px",
+                            height: "48px",
+                            display: "flex",
+                            alignItems: "center",
+                            border: "1px solid #4A4D5E",
                           }}
-                        />
+                        >
+                          <input
+                            type="number"
+                            min={1}
+                            max={4}
+                            step={0.5}
+                            value={finalScore}
+                            onChange={(event) =>
+                              handleFinalScoreChange(item.id, event.target.value)
+                            }
+                            placeholder="—"
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              outline: "none",
+                              fontSize: "16px",
+                              color: "#fff",
+                              width: "100%",
+                              padding: 0,
+                              margin: 0,
+                            }}
+                          />
+                        </div>
                         <p
                           style={{
                             fontSize: "12px",
                             color: "#8F90A6",
-                            marginTop: "4px",
+                            marginTop: "6px",
                           }}
                         >
                           Финальное значение
