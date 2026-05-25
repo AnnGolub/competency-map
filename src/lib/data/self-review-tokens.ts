@@ -86,7 +86,7 @@ export async function fetchPublicSelfReviewByToken(
       admin
         .from("competencies")
         .select("id, block, title, description")
-        .order("block")
+        .order("sort_order", { ascending: true, nullsFirst: false })
         .order("title"),
       admin
         .from("competency_items")

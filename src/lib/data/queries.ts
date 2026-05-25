@@ -4,11 +4,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database";
 import {
   averageScore,
-  BLOCK_ORDER,
   filterCompetenciesForRole,
   groupItemsByCompetency,
 } from "@/lib/competency-utils";
-import type { CompetencyBlock } from "@/types/database";
 import type {
   Competency,
   CompetencyItem,
@@ -70,11 +68,6 @@ function normalizeCompetencyItem(row: CompetencyItem): CompetencyItem {
   };
 }
 
-function blockSortIndex(block: CompetencyBlock): number {
-  const i = BLOCK_ORDER.indexOf(block);
-  return i === -1 ? 999 : i;
-}
-
 function aggregateScoresByCompetency(
   itemScores: { competency_item_id: string; score: number | null }[],
   itemToCompetency: Map<string, string>
@@ -106,7 +99,11 @@ export async function fetchDesignersWithAverages(): Promise<
     supabase
       .from("item_scores")
       .select("designer_id, competency_item_id, score, reviewed_at"),
-    supabase.from("competencies").select("id, block, title"),
+    supabase
+      .from("competencies")
+      .select("id, block, title")
+      .order("sort_order", { ascending: true, nullsFirst: false })
+      .order("title"),
     supabase.from("competency_items").select("id, competency_id"),
   ]);
 
@@ -119,18 +116,9 @@ export async function fetchDesignersWithAverages(): Promise<
     (items ?? []).map((i) => [i.id, i.competency_id])
   );
 
-  const competencyExportColumns: CompetencyExportColumn[] = (
-    competencyRows ?? []
-  )
-    .slice()
-    .sort((a, b) => {
-      const br =
-        blockSortIndex(a.block as CompetencyBlock) -
-        blockSortIndex(b.block as CompetencyBlock);
-      if (br !== 0) return br;
-      return (a.title ?? "").localeCompare(b.title ?? "", "ru");
-    })
-    .map((r) => ({ id: r.id, title: r.title ?? "" }));
+  const competencyExportColumns: CompetencyExportColumn[] = (competencyRows ?? []).map(
+    (r) => ({ id: r.id, title: r.title ?? "" })
+  );
 
   const scoresByDesigner = new Map<string, Map<string, number>>();
   const itemTotals = new Map<string, { sum: number; count: number }>();
@@ -234,7 +222,7 @@ export async function fetchCompetencies(): Promise<Competency[]> {
   const { data, error } = await supabase
     .from("competencies")
     .select(COMPETENCY_COLUMNS)
-    .order("block")
+    .order("sort_order", { ascending: true, nullsFirst: false })
     .order("title");
 
   if (error) throw error;
@@ -266,7 +254,9 @@ async function fetchCompetencyItemsNested(
   const { data, error } = await supabase
     .from("competencies")
     .select(`id, competency_items (${ITEM_COLUMNS})`)
-    .in("id", competencyIds);
+    .in("id", competencyIds)
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("title");
 
   if (error) {
     return { data: [], error: error.message };

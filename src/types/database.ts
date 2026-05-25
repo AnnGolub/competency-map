@@ -38,6 +38,7 @@ export type Database = {
           block: CompetencyBlock;
           title: string;
           description: string;
+          sort_order: number | null;
           expected_junior: number;
           expected_middle: number;
           expected_senior: number;
@@ -52,6 +53,7 @@ export type Database = {
           block: CompetencyBlock;
           title: string;
           description?: string;
+          sort_order?: number | null;
           expected_junior: number;
           expected_middle: number;
           expected_senior: number;
@@ -66,6 +68,7 @@ export type Database = {
           block?: CompetencyBlock;
           title?: string;
           description?: string;
+          sort_order?: number | null;
           expected_junior?: number;
           expected_middle?: number;
           expected_senior?: number;
