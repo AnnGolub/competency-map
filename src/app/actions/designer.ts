@@ -10,8 +10,6 @@ export type DesignerFormData = {
   name: string;
   role: DesignerRole;
   direction: string;
-  /** Не передаётся из модалки — при создании остаётся null. */
-  email?: string | null;
 };
 
 export async function saveDesigner(
@@ -25,10 +23,6 @@ export async function saveDesigner(
   const supabase = createClient();
   const name = data.name.trim();
   const direction = data.direction.trim();
-  const email =
-    data.email !== undefined && data.email !== null && data.email !== ""
-      ? data.email.trim().toLowerCase()
-      : null;
 
   if (!name || !direction) {
     return { error: "Заполните имя и направление" };
@@ -39,11 +33,7 @@ export async function saveDesigner(
       name: string;
       role: DesignerRole;
       direction: string;
-      email?: string | null;
     } = { name, role: data.role, direction };
-    if (data.email !== undefined) {
-      patch.email = email;
-    }
 
     const { error } = await supabase
       .from("designers")
@@ -62,7 +52,6 @@ export async function saveDesigner(
     name,
     role: data.role,
     direction,
-    email: email ?? null,
   });
 
   if (error) return { error: error.message };

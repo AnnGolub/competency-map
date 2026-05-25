@@ -132,12 +132,6 @@ export function DesignerForm({
       direction,
     };
 
-    if (showEmail) {
-      payload.email = email;
-    } else if (designer?.id) {
-      payload.email = designer.email;
-    }
-
     startTransition(async () => {
       const result = await saveDesigner(payload);
       if (result.error) {
