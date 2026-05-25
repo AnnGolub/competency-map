@@ -3,12 +3,18 @@ import { CompetencyScoreRing } from "@/components/designers/competency-score-rin
 import {
   averageScore,
   formatScore,
-  getExpectedScore,
   type Competency,
   type CompetencyItem,
   type ItemScore,
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
+
+const LEVEL_BADGES = [
+  { key: "junior", label: "Junior", field: "expected_junior" },
+  { key: "middle", label: "Middle", field: "expected_middle" },
+  { key: "senior", label: "Senior", field: "expected_senior" },
+  { key: "lead", label: "Lead", field: "expected_lead" },
+] as const;
 
 function ItemScoreBadge({ score }: { score: number | null | undefined }) {
   const display =
@@ -39,7 +45,6 @@ export function CompetencyResultCard({
   const avg = averageScore(
     itemScores.filter((s): s is number => s !== null)
   );
-  const expected = getExpectedScore(competency, role);
 
   return (
     <article className="rounded-3xl bg-app-sidebar p-6">
@@ -56,10 +61,26 @@ export function CompetencyResultCard({
               {competency.description}
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="inline-flex h-[22px] items-center justify-center rounded bg-[#E57A00] px-1 text-xs text-white">
-              Ожидается {formatScore(expected)}
-            </span>
+          <div className="mt-4 flex flex-wrap gap-1">
+            {LEVEL_BADGES.map((badge) => {
+              const value = competency[badge.field];
+              if (value === null) return null;
+
+              return (
+                <span
+                  key={badge.key}
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                    badge.key === role
+                      ? "bg-[#E57A00] text-white"
+                      : "bg-app-input text-app-muted"
+                  }`}
+                >
+                  {badge.key === role
+                    ? `Ожидается для ${badge.label} ${formatScore(value)}`
+                    : `${badge.label} ${formatScore(value)}`}
+                </span>
+              );
+            })}
           </div>
         </div>
         <CompetencyScoreRing value={avg} />
