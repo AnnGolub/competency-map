@@ -54,10 +54,8 @@ export function PublicSelfReviewForm({
     () => Object.fromEntries(data.competencies.map((c) => [c.id, c.items])),
     [data.competencies]
   );
-  const secondaryButtonCls =
-    "inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white";
-  const primaryButtonCls =
-    "inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
+  const navigationButtonCls =
+    "inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
 
   function handleScoreChange(itemId: string, score: number) {
     setForm((prev) => ({ ...prev, [itemId]: score }));
@@ -165,7 +163,7 @@ export function PublicSelfReviewForm({
           <button
             type="button"
             onClick={handleBack}
-            className={secondaryButtonCls}
+            className={navigationButtonCls}
           >
             Назад
           </button>
@@ -176,7 +174,7 @@ export function PublicSelfReviewForm({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || allItems.length === 0}
-            className={primaryButtonCls}
+            className={navigationButtonCls}
           >
             Отправить
           </button>
@@ -184,7 +182,7 @@ export function PublicSelfReviewForm({
           <button
             type="button"
             onClick={handleContinue}
-            className={primaryButtonCls}
+            className={navigationButtonCls}
           >
             Продолжить
           </button>
