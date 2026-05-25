@@ -20,7 +20,6 @@ export function CompetencyBlockSection({
   itemsByCompetency,
   scoresByItem,
   selfReviewCompleted,
-  isAdmin = false,
   theme = "light",
 }: {
   title: string;
@@ -29,7 +28,6 @@ export function CompetencyBlockSection({
   itemsByCompetency: Map<string, CompetencyItem[]>;
   scoresByItem: Map<string, ItemScore>;
   selfReviewCompleted: boolean;
-  isAdmin?: boolean;
   theme?: "light" | "dark";
 }) {
   if (competencies.length === 0) return null;
