@@ -24,6 +24,7 @@ import {
   fetchDesigner,
   fetchDesignersWithAverages,
   fetchItemScoresForDesigner,
+  fetchScoresForDesigner,
 } from "@/lib/data/queries";
 import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
 import { canAccessDesignerProfile, getSessionContext } from "@/lib/session";
@@ -50,10 +51,11 @@ export default async function DesignerProfilePage({
   );
   const competencyIds = visibleCompetencies.map((c) => c.id);
 
-  const [items, itemScores, selfReviewCompleted, designersExport] =
+  const [items, itemScores, finalScores, selfReviewCompleted, designersExport] =
     await Promise.all([
       fetchCompetencyItemsForCompetencies(competencyIds),
       fetchItemScoresForDesigner(params.id),
+      fetchScoresForDesigner(params.id),
       hasCompletedSelfReview(params.id),
       fetchDesignersWithAverages(),
     ]);
@@ -106,6 +108,14 @@ export default async function DesignerProfilePage({
     return new Date(s.reviewed_at) > new Date(latest) ? s.reviewed_at : latest;
   }, null);
 
+  const hasLeadReview = itemScores.some(
+    (score) => score.score !== null && score.score !== undefined
+  );
+  const hasSelfReview = itemScores.some(
+    (score) => score.self_score !== null && score.self_score !== undefined
+  );
+  const hasFinalReview = finalScores.length > 0;
+
   return (
     <DesignersAppShell>
       <DesignersTopBar
@@ -139,6 +149,9 @@ export default async function DesignerProfilePage({
           competencies={visibleCompetencies}
           itemsByCompetency={itemsByCompetency}
           scoresByItem={scoresByItem}
+          hasLeadReview={hasLeadReview}
+          hasSelfReview={hasSelfReview}
+          hasFinalReview={hasFinalReview}
         />
       </main>
     </DesignersAppShell>

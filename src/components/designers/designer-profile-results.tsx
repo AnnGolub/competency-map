@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CompetencyResultCard } from "@/components/designers/competency-result-card";
 import {
@@ -21,11 +22,17 @@ export function DesignerProfileResults({
   competencies,
   itemsByCompetency,
   scoresByItem,
+  hasLeadReview,
+  hasSelfReview,
+  hasFinalReview,
 }: {
   designer: Designer;
   competencies: Competency[];
   itemsByCompetency: Record<string, CompetencyItem[]>;
   scoresByItem: Record<string, ItemScore>;
+  hasLeadReview: boolean;
+  hasSelfReview: boolean;
+  hasFinalReview: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<BlockTab>("all");
   const roleBlocks = blocksForDesignerRole(designer.role);
@@ -47,6 +54,8 @@ export function DesignerProfileResults({
     if (activeTab === "all") return competencies;
     return competencies.filter((c) => c.block === activeTab);
   }, [competencies, activeTab]);
+
+  const isWaitingForReviews = !hasLeadReview || !hasSelfReview;
 
   return (
     <section className="mt-10 max-w-[1152px]">
@@ -70,7 +79,25 @@ export function DesignerProfileResults({
         })}
       </nav>
 
-      {filteredCompetencies.length === 0 ? (
+      {isWaitingForReviews ? (
+        <p className="mt-6 text-base leading-6 text-app-muted">
+          Ревью ещё не завершено. Ожидается оценка{" "}
+          {!hasLeadReview ? "лида" : "дизайнера"}.
+        </p>
+      ) : !hasFinalReview ? (
+        <div className="mt-6">
+          <p className="text-base leading-6 text-app-muted">
+            Ревью дизайнера выполнено самим дизайнером и лидом. Завершите ревью
+            выбором окончательной оценки по каждой компетенции.
+          </p>
+          <Link
+            href={`/designers/${designer.id}/review`}
+            className="mt-4 inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
+          >
+            Завершить ревью
+          </Link>
+        </div>
+      ) : filteredCompetencies.length === 0 ? (
         <p className="mt-6 text-base leading-6 text-app-muted">
           Нет компетенций по выбранному фильтру.
         </p>

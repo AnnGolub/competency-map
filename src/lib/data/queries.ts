@@ -12,6 +12,7 @@ import type {
   CompetencyItem,
   Designer,
   ItemScore,
+  Score,
 } from "@/lib/competency-utils";
 
 export type CompetencyExportColumn = {
@@ -389,6 +390,19 @@ export async function fetchItemScoresForDesigner(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("item_scores")
+    .select("*")
+    .eq("designer_id", designerId);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchScoresForDesigner(
+  designerId: string
+): Promise<Score[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("scores")
     .select("*")
     .eq("designer_id", designerId);
 
