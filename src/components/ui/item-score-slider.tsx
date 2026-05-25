@@ -69,6 +69,20 @@ export function ItemScoreSlider({
             cursor: "pointer",
           }}
         >
+          <span
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "12px",
+              fontSize: "16px",
+              lineHeight: "24px",
+              color: "#ffffff",
+              fontVariantNumeric: "tabular-nums",
+              pointerEvents: "none",
+            }}
+          >
+            {value.toFixed(1)}
+          </span>
           {/* Трек внизу */}
           <div style={{
             position: "absolute",
