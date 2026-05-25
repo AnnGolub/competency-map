@@ -42,7 +42,6 @@ export type Database = {
           expected_middle: number;
           expected_senior: number;
           expected_lead: number;
-          expected_pre_lead: number;
           indicators_1: string | null;
           indicators_2: string | null;
           indicators_3: string | null;
@@ -57,7 +56,6 @@ export type Database = {
           expected_middle: number;
           expected_senior: number;
           expected_lead: number;
-          expected_pre_lead?: number;
           indicators_1?: string | null;
           indicators_2?: string | null;
           indicators_3?: string | null;
@@ -72,7 +70,6 @@ export type Database = {
           expected_middle?: number;
           expected_senior?: number;
           expected_lead?: number;
-          expected_pre_lead?: number;
           indicators_1?: string | null;
           indicators_2?: string | null;
           indicators_3?: string | null;

@@ -41,7 +41,6 @@ function toCompetencyRows(
     expected_middle: 0,
     expected_senior: 0,
     expected_lead: 0,
-    expected_pre_lead: 0,
     indicators_1: null,
     indicators_2: null,
     indicators_3: null,

@@ -12,7 +12,6 @@ import {
   BLOCK_LABELS,
   blocksForDesignerRole,
   groupByBlock,
-  showPreLeadColumn,
   type Competency,
   type CompetencyItem,
   type Designer,
@@ -74,7 +73,6 @@ export function ReviewForm({
   const steps = REVIEW_STEP_ORDER.filter((block) => roleBlocks.includes(block));
   const currentBlock = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
-  const preLead = showPreLeadColumn(designer.role);
   const allItems = collectAllItems(competencies, itemsByCompetency);
   const blockCompetencies = currentBlock ? grouped[currentBlock] : [];
 
@@ -139,7 +137,6 @@ export function ReviewForm({
               role={designer.role}
               form={form}
               onScoreChange={handleScoreChange}
-              showPreLead={preLead}
             />
           ))}
         </div>

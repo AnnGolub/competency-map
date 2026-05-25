@@ -1,14 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { SCORE_OPTIONS } from "@/lib/competency-utils";
 
 export function ItemScoreSlider({
-  id, label, value, onChange, expected,
+  id, label, value, onChange, expected, helperContent,
   theme = "light", variant = "default",
 }: {
   id: string; label: string; value: number;
   onChange: (value: number) => void;
   expected?: number | null;
+  helperContent?: ReactNode;
   theme?: "light" | "dark";
   variant?: "default" | "review";
 }) {
@@ -55,6 +57,7 @@ export function ItemScoreSlider({
         <p style={{ paddingBottom: "6px", fontSize: "14px", lineHeight: "18px", color: "#8F90A6" }}>
           {label}
         </p>
+        {helperContent}
         <div
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}

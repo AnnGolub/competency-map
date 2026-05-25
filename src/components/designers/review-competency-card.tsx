@@ -12,20 +12,25 @@ import {
 } from "@/lib/competency-utils";
 import type { DesignerRole } from "@/types/database";
 
+const LEVEL_BADGES = [
+  { key: "junior", label: "Junior", field: "expected_junior" },
+  { key: "middle", label: "Middle", field: "expected_middle" },
+  { key: "senior", label: "Senior", field: "expected_senior" },
+  { key: "lead", label: "Lead", field: "expected_lead" },
+] as const;
+
 export function ReviewCompetencyCard({
   competency,
   items,
   role,
   form,
   onScoreChange,
-  showPreLead,
 }: {
   competency: Competency;
   items: CompetencyItem[];
   role: DesignerRole;
   form: Record<string, number>;
   onScoreChange: (itemId: string, score: number) => void;
-  showPreLead: boolean;
 }) {
   const itemScores = items.map((item) => form[item.id]);
   const avg = averageScore(itemScores);
@@ -50,11 +55,6 @@ export function ReviewCompetencyCard({
             <span className="inline-flex h-[22px] items-center justify-center rounded bg-[#E57A00] px-1 text-xs text-white">
               Ожидается {formatScore(expected)}
             </span>
-            {showPreLead ? (
-              <span className="inline-flex h-[22px] items-center justify-center rounded bg-app-input px-1 text-xs text-[#C7C9D9]">
-                Готовится к лиду {formatScore(competency.expected_pre_lead)}
-              </span>
-            ) : null}
           </div>
         </div>
         <CompetencyScoreRing value={avg} />
@@ -69,6 +69,27 @@ export function ReviewCompetencyCard({
                 label={item.text}
                 value={form[item.id]}
                 expected={null}
+                helperContent={
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {LEVEL_BADGES.map((badge) => {
+                      const value = item[badge.field];
+                      if (value === null) return null;
+
+                      return (
+                        <span
+                          key={badge.key}
+                          className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                            badge.key === role
+                              ? "bg-app-accent text-white"
+                              : "bg-app-input text-app-muted"
+                          }`}
+                        >
+                          {badge.label} {Number(value).toFixed(1)}
+                        </span>
+                      );
+                    })}
+                  </div>
+                }
                 theme="dark"
                 variant="review"
                 onChange={(score) => onScoreChange(item.id, score)}

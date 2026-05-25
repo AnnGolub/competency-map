@@ -4,7 +4,21 @@ import type {
   DesignerRole,
 } from "@/types/database";
 
-export type Competency = Database["public"]["Tables"]["competencies"]["Row"];
+export type Competency = Pick<
+  Database["public"]["Tables"]["competencies"]["Row"],
+  | "id"
+  | "block"
+  | "title"
+  | "description"
+  | "expected_junior"
+  | "expected_middle"
+  | "expected_senior"
+  | "expected_lead"
+  | "indicators_1"
+  | "indicators_2"
+  | "indicators_3"
+  | "indicators_4"
+>;
 export type Designer = Database["public"]["Tables"]["designers"]["Row"];
 export type Score = Database["public"]["Tables"]["scores"]["Row"];
 export type ItemScore = Database["public"]["Tables"]["item_scores"]["Row"];
@@ -45,11 +59,6 @@ export const ROLE_LABELS: Record<DesignerRole, string> = {
 };
 
 export function showsLeadershipBlock(role: DesignerRole): boolean {
-  return role === "senior" || role === "lead";
-}
-
-/** Показывать колонку «Готовится к лиду» (expected_pre_lead). */
-export function showPreLeadColumn(role: DesignerRole): boolean {
   return role === "senior" || role === "lead";
 }
 

@@ -33,7 +33,7 @@ export type DesignersWithAveragesResult = {
 };
 
 const COMPETENCY_COLUMNS =
-  "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, expected_pre_lead, indicators_1, indicators_2, indicators_3, indicators_4" as const;
+  "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, indicators_1, indicators_2, indicators_3, indicators_4" as const;
 
 const ITEM_COLUMNS =
   "id, competency_id, text, only_lead, expected_junior, expected_middle, expected_senior, expected_lead" as const;

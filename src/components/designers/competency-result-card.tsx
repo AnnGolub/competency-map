@@ -26,13 +26,11 @@ export function CompetencyResultCard({
   items,
   role,
   scoresByItem,
-  showPreLead,
 }: {
   competency: Competency;
   items: CompetencyItem[];
   role: DesignerRole;
   scoresByItem: Record<string, ItemScore>;
-  showPreLead: boolean;
 }) {
   const itemScores = items.map((item) => {
     const s = scoresByItem[item.id]?.score;
@@ -62,11 +60,6 @@ export function CompetencyResultCard({
             <span className="inline-flex h-[22px] items-center justify-center rounded bg-[#E57A00] px-1 text-xs text-white">
               Ожидается {formatScore(expected)}
             </span>
-            {showPreLead ? (
-              <span className="inline-flex h-[22px] items-center justify-center rounded bg-app-input px-1 text-xs text-[#C7C9D9]">
-                Готовится к лиду {formatScore(competency.expected_pre_lead)}
-              </span>
-            ) : null}
           </div>
         </div>
         <CompetencyScoreRing value={avg} />

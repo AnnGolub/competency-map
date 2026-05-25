@@ -5,7 +5,6 @@ import { CompetencyResultCard } from "@/components/designers/competency-result-c
 import {
   BLOCK_LABELS,
   blocksForDesignerRole,
-  showPreLeadColumn,
   type Competency,
   type CompetencyItem,
   type Designer,
@@ -30,7 +29,6 @@ export function DesignerProfileResults({
 }) {
   const [activeTab, setActiveTab] = useState<BlockTab>("all");
   const roleBlocks = blocksForDesignerRole(designer.role);
-  const showPreLead = showPreLeadColumn(designer.role);
 
   const tabs: { value: BlockTab; label: string }[] = useMemo(
     () => [
@@ -85,7 +83,6 @@ export function DesignerProfileResults({
               items={itemsByCompetency[competency.id] ?? []}
               role={designer.role}
               scoresByItem={scoresByItem}
-              showPreLead={showPreLead}
             />
           ))}
         </div>

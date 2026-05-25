@@ -7,7 +7,6 @@ import {
   getGapBadge,
   primaryVisibleScore,
   resolveBlindScoresFromItems,
-  showPreLeadColumn,
   type Competency,
   type CompetencyItem,
   type ItemScore,
@@ -36,7 +35,6 @@ export function CompetencyBlockSection({
   if (competencies.length === 0) return null;
 
   const isDark = theme === "dark";
-  const preLead = showPreLeadColumn(role) && isAdmin;
   const sectionTitle = isDark
     ? "text-app-muted"
     : "text-neutral-400 uppercase tracking-wide";
@@ -80,14 +78,6 @@ export function CompetencyBlockSection({
                     <p className={`text-xs ${metaLabel}`}>Ожидается</p>
                     <p className={metaValue}>{formatScore(expected)}</p>
                   </div>
-                  {preLead ? (
-                    <div className="text-right">
-                      <p className={`text-xs ${metaLabel}`}>Готовится к лиду</p>
-                      <p className={metaValue}>
-                        {formatScore(competency.expected_pre_lead)}
-                      </p>
-                    </div>
-                  ) : null}
                   <GapBadgePill label={badge.label} variant={badge.variant} theme={theme} />
                 </div>
               </div>
