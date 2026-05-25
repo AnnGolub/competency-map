@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   filterCompetenciesForRole,
-  getExpectedScoreForItem,
   groupItemsByCompetency,
   ROLE_LABELS,
   type Competency,
@@ -17,14 +16,13 @@ export type SelfReviewToken =
 export type PublicSelfReviewItem = {
   id: string;
   text: string;
-  expected: number | null;
+  expected_junior: number | null;
+  expected_middle: number | null;
+  expected_senior: number | null;
+  expected_lead: number | null;
 };
 
-export type PublicSelfReviewCompetency = {
-  id: string;
-  block: CompetencyBlock;
-  title: string;
-  description: string;
+export type PublicSelfReviewCompetency = Competency & {
   items: PublicSelfReviewItem[];
 };
 
@@ -85,7 +83,9 @@ export async function fetchPublicSelfReviewByToken(
     await Promise.all([
       admin
         .from("competencies")
-        .select("id, block, title, description")
+        .select(
+          "id, block, title, description, expected_junior, expected_middle, expected_senior, expected_lead, indicators_1, indicators_2, indicators_3, indicators_4"
+        )
         .order("sort_order", { ascending: true, nullsFirst: false })
         .order("title"),
       admin
@@ -123,14 +123,14 @@ export async function fetchPublicSelfReviewByToken(
   const publicCompetencies: PublicSelfReviewCompetency[] = visible.map((c) => {
     const competencyItems = itemsByCompetency.get(c.id) ?? [];
     return {
-      id: c.id,
-      block: c.block,
-      title: c.title,
-      description: c.description,
+      ...c,
       items: competencyItems.map((item) => ({
         id: item.id,
         text: item.text,
-        expected: getExpectedScoreForItem(item, role),
+        expected_junior: item.expected_junior,
+        expected_middle: item.expected_middle,
+        expected_senior: item.expected_senior,
+        expected_lead: item.expected_lead,
       })),
     };
   }).filter((c) => c.items.length > 0);

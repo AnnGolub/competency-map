@@ -1,21 +1,24 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import {
   submitSelfReviewByToken,
   type SelfReviewEntry,
 } from "@/app/actions/self-review-token";
-import { ItemScoreSlider } from "@/components/ui/item-score-slider";
+import { ReviewCompetencyCard } from "@/components/designers/review-competency-card";
+import { ReviewStepper } from "@/components/designers/review-stepper";
 import {
   BLOCK_LABELS,
   blocksForDesignerRole,
   groupByBlock,
-  type Competency,
 } from "@/lib/competency-utils";
 import type {
   PublicSelfReviewCompetency,
   PublicSelfReviewData,
 } from "@/lib/data/self-review-tokens";
+import type { CompetencyBlock } from "@/types/database";
+
+const REVIEW_STEP_ORDER: CompetencyBlock[] = ["hard", "soft", "leadership"];
 
 type FormState = Record<string, number>;
 
@@ -29,25 +32,6 @@ function buildInitialState(data: PublicSelfReviewData): FormState {
   return state;
 }
 
-function toCompetencyRows(
-  competencies: PublicSelfReviewCompetency[]
-): Competency[] {
-  return competencies.map((c) => ({
-    id: c.id,
-    block: c.block,
-    title: c.title,
-    description: c.description,
-    expected_junior: 0,
-    expected_middle: 0,
-    expected_senior: 0,
-    expected_lead: 0,
-    indicators_1: null,
-    indicators_2: null,
-    indicators_3: null,
-    indicators_4: null,
-  }));
-}
-
 export function PublicSelfReviewForm({
   token,
   data,
@@ -55,117 +39,154 @@ export function PublicSelfReviewForm({
   token: string;
   data: PublicSelfReviewData;
 }) {
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormState>(() => buildInitialState(data));
 
-  const grouped = groupByBlock(toCompetencyRows(data.competencies));
+  const grouped = groupByBlock(data.competencies);
   const visibleBlocks = blocksForDesignerRole(data.role);
   const allItems = data.competencies.flatMap((c) => c.items);
-  const competenciesById = new Map(data.competencies.map((c) => [c.id, c]));
+  const steps = REVIEW_STEP_ORDER.filter((block) => visibleBlocks.includes(block));
+  const currentBlock = steps[stepIndex];
+  const isLastStep = stepIndex === steps.length - 1;
+  const blockCompetencies = currentBlock ? grouped[currentBlock] : [];
+  const itemsByCompetency = useMemo(
+    () => Object.fromEntries(data.competencies.map((c) => [c.id, c.items])),
+    [data.competencies]
+  );
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function handleScoreChange(itemId: string, score: number) {
+    setForm((prev) => ({ ...prev, [itemId]: score }));
+  }
+
+  function handleBack() {
     setError(null);
+    if (stepIndex > 0) {
+      setStepIndex((i) => i - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function handleContinue() {
+    setError(null);
+    if (!isLastStep) {
+      setStepIndex((i) => i + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  async function handleSubmit() {
+    if (isSubmitting) return;
+    setError(null);
+    setIsSubmitting(true);
 
     const entries: SelfReviewEntry[] = allItems.map((item) => ({
       competencyItemId: item.id,
       selfScore: form[item.id],
     }));
 
-    startTransition(async () => {
+    try {
       const result = await submitSelfReviewByToken(token, entries);
       if (result.error) {
         setError(result.error);
+        setIsSubmitting(false);
         return;
       }
       setSubmitted(true);
-    });
+    } catch (error) {
+      setIsSubmitting(false);
+      throw error;
+    }
   }
 
   if (submitted) {
     return (
-      <div className="rounded-lg border-[0.5px] border-neutral-200 bg-neutral-50 p-6 text-center">
+      <div className="rounded-xl border border-app-border bg-app-sidebar p-6 text-center text-white">
         <p className="font-medium">Спасибо!</p>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-app-placeholder">
           Самооценка отправлена. Повторно заполнить форму по этой ссылке нельзя.
         </p>
       </div>
     );
   }
 
+  if (steps.length === 0) {
+    return (
+      <p className="text-base leading-6 text-app-placeholder">
+        Нет блоков компетенций для самооценки.
+      </p>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
+    <div className="max-w-[1152px]">
+      <ReviewStepper steps={steps} currentIndex={stepIndex} />
+
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {error}
         </p>
       ) : null}
 
-      <p className="text-sm text-neutral-500">
-        Оцените себя по каждому подпункту от 1.0 до 4.0.
-      </p>
+      <section className="mt-10">
+        <h2
+          style={{
+            fontFamily: "Avenir Next, sans-serif",
+            fontWeight: 700,
+            fontSize: "22px",
+            lineHeight: "26px",
+            color: "#ffffff",
+          }}
+        >
+          {currentBlock ? BLOCK_LABELS[currentBlock] : ""}
+        </h2>
 
-      {visibleBlocks.map((block) => {
-        const list = grouped[block];
-        if (list.length === 0) return null;
+        <div className="mt-6 flex flex-col gap-6">
+          {blockCompetencies.map((competency) => (
+            <ReviewCompetencyCard
+              key={competency.id}
+              competency={competency}
+              items={itemsByCompetency[competency.id] ?? []}
+              role={data.role}
+              form={form}
+              onScoreChange={handleScoreChange}
+            />
+          ))}
+        </div>
+      </section>
 
-        return (
-          <section key={block}>
-            <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">
-              {BLOCK_LABELS[block]}
-            </h2>
-            <ul className="mt-4 space-y-6">
-              {list.map((competency) => {
-                const c = competenciesById.get(competency.id);
-                if (!c) return null;
+      <div className="mt-10 flex gap-3">
+        {stepIndex > 0 ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+          >
+            Назад
+          </button>
+        ) : null}
 
-                return (
-                  <li
-                    key={c.id}
-                    className="rounded-lg border-[0.5px] border-neutral-200 p-4"
-                  >
-                    <h3 className="font-medium">{c.title}</h3>
-                    {c.description ? (
-                      <p className="mt-1 text-sm text-neutral-500">
-                        {c.description}
-                      </p>
-                    ) : null}
-
-                    <ul className="mt-4 space-y-1">
-                      {c.items.map((item) => (
-                        <li key={item.id}>
-                          <ItemScoreSlider
-                            id={`self-${item.id}`}
-                            label={item.text}
-                            value={form[item.id]}
-                            expected={item.expected}
-                            onChange={(selfScore) =>
-                              setForm((prev) => ({
-                                ...prev,
-                                [item.id]: selfScore,
-                              }))
-                            }
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        );
-      })}
-
-      <button
-        type="submit"
-        disabled={isPending || allItems.length === 0}
-        className="w-full rounded-lg border border-neutral-900 bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition-opacity disabled:opacity-50"
-      >
-        {isPending ? "Отправка…" : "Отправить самооценку"}
-      </button>
-    </form>
+        {isLastStep ? (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting || allItems.length === 0}
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+          >
+            Отправить
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleContinue}
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+          >
+            Далее
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
