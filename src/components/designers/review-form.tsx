@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { ReviewCompetencyCard } from "@/components/designers/review-competency-card";
 import { ReviewStepper } from "@/components/designers/review-stepper";
 import { saveReview, type ReviewEntry } from "@/app/actions/review";
@@ -61,7 +61,7 @@ export function ReviewForm({
   itemsByCompetency: ItemsByCompetencyRecord;
   scoresByItem: ScoresByItemRecord;
 }) {
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormState>(() =>
@@ -88,21 +88,26 @@ export function ReviewForm({
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
+    if (isSubmitting) return;
     setError(null);
+    setIsSubmitting(true);
 
     const entries: ReviewEntry[] = allItems.map((item) => ({
       competencyItemId: item.id,
       score: form[item.id],
     }));
 
-    startTransition(async () => {
+    try {
       const result = await saveReview(designer.id, entries);
       if (result?.error) {
         setError(result.error);
+        setIsSubmitting(false);
       }
-    });
+    } catch (error) {
+      setIsSubmitting(false);
+      throw error;
+    }
   }
 
   if (steps.length === 0) {
@@ -114,7 +119,7 @@ export function ReviewForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[1152px]">
+    <div className="max-w-[1152px]">
       <ReviewStepper steps={steps} currentIndex={stepIndex} />
 
       {error ? (
@@ -153,11 +158,12 @@ export function ReviewForm({
       <div className="mt-10">
         {isLastStep ? (
           <button
-            type="submit"
-            disabled={isPending || allItems.length === 0}
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting || allItems.length === 0}
             className="inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
           >
-            {isPending ? "Отправка…" : "Отправить"}
+            Отправить
           </button>
         ) : (
           <button
@@ -169,6 +175,6 @@ export function ReviewForm({
           </button>
         )}
       </div>
-    </form>
+    </div>
   );
 }
