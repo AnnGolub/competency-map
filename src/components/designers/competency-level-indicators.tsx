@@ -44,8 +44,8 @@ export function CompetencyLevelIndicators({
         <Image
           src="/icons/Information.svg"
           alt=""
-          width={20}
-          height={20}
+          width={16}
+          height={16}
           className="shrink-0"
         />
       </button>
