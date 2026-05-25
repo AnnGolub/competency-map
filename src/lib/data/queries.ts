@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database";
 import {
   averageScore,
+  blocksForDesignerRole,
   filterCompetenciesForRole,
   groupItemsByCompetency,
 } from "@/lib/competency-utils";
@@ -46,6 +47,12 @@ const ITEM_COLUMNS_MINIMAL =
 type CompetencyRowWithItems = {
   id: string;
   competency_items: CompetencyItem[] | CompetencyItem | null;
+};
+
+type DesignerListItemRow = {
+  id: string;
+  competency_id: string;
+  only_lead: boolean;
 };
 
 function flattenNestedItems(rows: CompetencyRowWithItems[]): CompetencyItem[] {
@@ -96,7 +103,6 @@ export async function fetchDesignersWithAverages(): Promise<
   const [
     { data: designers, error: designersError },
     { data: itemScores, error: itemScoresError },
-    { data: finalScores, error: finalScoresError },
     { data: competencyRows, error: competenciesError },
     { data: items, error: itemsError },
   ] = await Promise.all([
@@ -104,23 +110,24 @@ export async function fetchDesignersWithAverages(): Promise<
     supabase
       .from("item_scores")
       .select("designer_id, competency_item_id, score, self_score, reviewed_at"),
-    supabase.from("scores").select("designer_id"),
     supabase
       .from("competencies")
       .select("id, block, title")
       .order("sort_order", { ascending: true, nullsFirst: false })
       .order("title"),
-    supabase.from("competency_items").select("id, competency_id"),
+    supabase.from("competency_items").select("id, competency_id, only_lead"),
   ]);
 
   if (designersError) throw designersError;
   if (itemScoresError) throw itemScoresError;
-  if (finalScoresError) throw finalScoresError;
   if (competenciesError) throw competenciesError;
   if (itemsError) throw itemsError;
 
   const itemToCompetency = new Map(
-    (items ?? []).map((i) => [i.id, i.competency_id])
+    ((items ?? []) as DesignerListItemRow[]).map((i) => [i.id, i.competency_id])
+  );
+  const competencyBlockById = new Map(
+    (competencyRows ?? []).map((row) => [row.id, row.block])
   );
 
   const competencyExportColumns: CompetencyExportColumn[] = (competencyRows ?? []).map(
@@ -130,10 +137,6 @@ export async function fetchDesignersWithAverages(): Promise<
   const scoresByDesigner = new Map<string, Map<string, number>>();
   const itemTotals = new Map<string, { sum: number; count: number }>();
   const lastReviewedAt = new Map<string, string | null>();
-  const startedReviews = new Set<string>();
-  const completedReviews = new Set(
-    (finalScores ?? []).map((score) => score.designer_id)
-  );
 
   for (const d of designers ?? []) {
     itemTotals.set(d.id, { sum: 0, count: 0 });
@@ -159,10 +162,6 @@ export async function fetchDesignersWithAverages(): Promise<
       scoresByDesignerItems.set(designerId, list);
     }
     list.push(row);
-
-    if (row.score !== null || row.self_score !== null) {
-      startedReviews.add(designerId);
-    }
 
     if (row.score !== null) {
       let tot = itemTotals.get(designerId);
@@ -212,17 +211,41 @@ export async function fetchDesignersWithAverages(): Promise<
         tot.count > 0
           ? Math.round((tot.sum / tot.count) * 10) / 10
           : null;
+      const designerRows = scoresByDesignerItems.get(d.id) ?? [];
+      const hasAnyItemScores = designerRows.length > 0;
+      const requiredItemIds = new Set<string>();
+
+      for (const item of (items ?? []) as DesignerListItemRow[]) {
+        const block = competencyBlockById.get(item.competency_id);
+        if (!block) continue;
+        if (!blocksForDesignerRole(d.role).includes(block)) continue;
+        if (d.role !== "lead" && item.only_lead) continue;
+        requiredItemIds.add(item.id);
+      }
+
+      const completedItemIds = new Set(
+        designerRows
+          .filter(
+            (row) => row.score !== null && row.self_score !== null
+          )
+          .map((row) => row.competency_item_id)
+      );
+      const hasCompletedReview =
+        requiredItemIds.size > 0 &&
+        Array.from(requiredItemIds).every((itemId) =>
+          completedItemIds.has(itemId)
+        );
 
       return {
         ...d,
         averageScore: averageScoreValue,
         competencyScoresById,
         lastReviewedAt: lastReviewedAt.get(d.id) ?? null,
-        reviewStatus: completedReviews.has(d.id)
-          ? "done"
-          : startedReviews.has(d.id)
-            ? "in progress"
-            : "to do",
+        reviewStatus: !hasAnyItemScores
+          ? "to do"
+          : hasCompletedReview
+            ? "done"
+            : "in progress",
       };
     }
   );
