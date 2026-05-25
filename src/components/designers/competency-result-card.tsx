@@ -39,7 +39,11 @@ export function CompetencyResultCard({
   scoresByItem: Record<string, ItemScore>;
 }) {
   const itemScores = items.map((item) => {
-    const s = scoresByItem[item.id]?.score;
+    const row = scoresByItem[item.id];
+    const s =
+      row?.final_score !== null && row?.final_score !== undefined
+        ? row.final_score
+        : row?.score;
     return s !== null && s !== undefined ? Number(s) : null;
   });
   const avg = averageScore(
@@ -96,7 +100,12 @@ export function CompetencyResultCard({
               <p className="min-w-0 flex-1 text-sm leading-[18px] text-app-placeholder">
                 {item.text}
               </p>
-              <ItemScoreBadge score={scoresByItem[item.id]?.score} />
+              <ItemScoreBadge
+                score={
+                  scoresByItem[item.id]?.final_score ??
+                  scoresByItem[item.id]?.score
+                }
+              />
             </li>
           ))}
         </ul>

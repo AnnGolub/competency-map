@@ -127,6 +127,7 @@ export type Database = {
           competency_item_id: string;
           score: number | null;
           self_score: number | null;
+          final_score: number | null;
           reviewed_at: string | null;
           reviewed_by: string | null;
         };
@@ -136,6 +137,7 @@ export type Database = {
           competency_item_id: string;
           score?: number | null;
           self_score?: number | null;
+          final_score?: number | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
         };
@@ -145,6 +147,7 @@ export type Database = {
           competency_item_id?: string;
           score?: number | null;
           self_score?: number | null;
+          final_score?: number | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
         };

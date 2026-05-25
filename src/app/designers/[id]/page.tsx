@@ -24,7 +24,6 @@ import {
   fetchDesigner,
   fetchDesignersWithAverages,
   fetchItemScoresForDesigner,
-  fetchScoresForDesigner,
 } from "@/lib/data/queries";
 import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
 import { canAccessDesignerProfile, getSessionContext } from "@/lib/session";
@@ -51,14 +50,12 @@ export default async function DesignerProfilePage({
   );
   const competencyIds = visibleCompetencies.map((c) => c.id);
 
-  const [items, itemScores, finalScores, selfReviewCompleted, designersExport] =
-    await Promise.all([
-      fetchCompetencyItemsForCompetencies(competencyIds),
-      fetchItemScoresForDesigner(params.id),
-      fetchScoresForDesigner(params.id),
-      hasCompletedSelfReview(params.id),
-      fetchDesignersWithAverages(),
-    ]);
+  const [items, itemScores, selfReviewCompleted, designersExport] = await Promise.all([
+    fetchCompetencyItemsForCompetencies(competencyIds),
+    fetchItemScoresForDesigner(params.id),
+    hasCompletedSelfReview(params.id),
+    fetchDesignersWithAverages(),
+  ]);
 
   const itemsByCompetencyMap = groupItemsByCompetency(items, designer.role, {
     includeOnlyLead: true,
@@ -76,23 +73,44 @@ export default async function DesignerProfilePage({
   const scoresByItemMap = new Map(
     itemScores.map((s) => [s.competency_item_id, s])
   );
+  const reviewItemIds = new Set(visibleItems.map((item) => item.id));
+  const selfReviewItemIds = new Set(
+    items
+      .filter((item) => designer.role === "lead" || !item.only_lead)
+      .map((item) => item.id)
+  );
+
+  function resolvedPrimaryScore(itemId: string): number | null {
+    const row = scoresByItemMap.get(itemId);
+    if (!row) return null;
+    if (row.final_score !== null && row.final_score !== undefined) {
+      return Number(row.final_score);
+    }
+    if (row.score !== null && row.score !== undefined) {
+      return Number(row.score);
+    }
+    return null;
+  }
 
   const primaryScores = new Map<string, number>();
   for (const c of visibleCompetencies) {
     const competencyItems = itemsByCompetencyMap.get(c.id) ?? [];
+    const finalValues = competencyItems
+      .map((item) => resolvedPrimaryScore(item.id))
+      .filter((score): score is number => score !== null);
     const blind = resolveBlindScoresFromItems(
       competencyItems,
       scoresByItemMap,
       selfReviewCompleted
     );
-    const primary = primaryVisibleScore(blind);
+    const primary =
+      finalValues.length > 0 ? averageScore(finalValues) : primaryVisibleScore(blind);
     if (primary !== null) primaryScores.set(c.id, primary);
   }
 
   const leadItemScores = visibleItems
-    .map((item) => scoresByItemMap.get(item.id)?.score)
-    .filter((s): s is number => s !== null && s !== undefined)
-    .map(Number);
+    .map((item) => resolvedPrimaryScore(item.id))
+    .filter((s): s is number => s !== null && s !== undefined);
 
   const avg = averageScore(leadItemScores);
   const belowCount = countBelowExpected(
@@ -108,13 +126,24 @@ export default async function DesignerProfilePage({
     return new Date(s.reviewed_at) > new Date(latest) ? s.reviewed_at : latest;
   }, null);
 
-  const hasLeadReview = itemScores.some(
-    (score) => score.score !== null && score.score !== undefined
-  );
-  const hasSelfReview = itemScores.some(
-    (score) => score.self_score !== null && score.self_score !== undefined
-  );
-  const hasFinalReview = finalScores.length > 0;
+  const hasLeadReview =
+    reviewItemIds.size > 0 &&
+    Array.from(reviewItemIds).every((itemId) => {
+      const row = scoresByItemMap.get(itemId);
+      return row?.score !== null && row?.score !== undefined;
+    });
+  const hasSelfReview =
+    selfReviewItemIds.size > 0 &&
+    Array.from(selfReviewItemIds).every((itemId) => {
+      const row = scoresByItemMap.get(itemId);
+      return row?.self_score !== null && row?.self_score !== undefined;
+    });
+  const hasFinalReview =
+    reviewItemIds.size > 0 &&
+    Array.from(reviewItemIds).every((itemId) => {
+      const row = scoresByItemMap.get(itemId);
+      return row?.final_score !== null && row?.final_score !== undefined;
+    });
 
   return (
     <DesignersAppShell>

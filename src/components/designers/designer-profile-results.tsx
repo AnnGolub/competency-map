@@ -108,7 +108,7 @@ export function DesignerProfileResults({
             Завершите ревью выбором окончательной оценки по каждой компетенции.
           </p>
           <Link
-            href={`/designers/${designer.id}/review`}
+            href={`/designers/${designer.id}/final-review`}
             className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
           >
             Завершить ревью

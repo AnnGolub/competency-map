@@ -55,6 +55,8 @@ type DesignerListItemRow = {
   only_lead: boolean;
 };
 
+type DesignerListCompetencyBlock = Competency["block"];
+
 function flattenNestedItems(rows: CompetencyRowWithItems[]): CompetencyItem[] {
   const items: CompetencyItem[] = [];
   for (const row of rows) {
@@ -80,19 +82,69 @@ function normalizeCompetencyItem(row: CompetencyItem): CompetencyItem {
 }
 
 function aggregateScoresByCompetency(
-  itemScores: { competency_item_id: string; score: number | null }[],
+  itemScores: {
+    competency_item_id: string;
+    score: number | null;
+    final_score?: number | null;
+  }[],
   itemToCompetency: Map<string, string>
 ): Map<string, number[]> {
   const byCompetency = new Map<string, number[]>();
   for (const row of itemScores) {
-    if (row.score === null) continue;
+    const effectiveScore =
+      row.final_score !== null && row.final_score !== undefined
+        ? Number(row.final_score)
+        : row.score !== null && row.score !== undefined
+          ? Number(row.score)
+          : null;
+    if (effectiveScore === null) continue;
     const competencyId = itemToCompetency.get(row.competency_item_id);
     if (!competencyId) continue;
     const list = byCompetency.get(competencyId) ?? [];
-    list.push(Number(row.score));
+    list.push(effectiveScore);
     byCompetency.set(competencyId, list);
   }
   return byCompetency;
+}
+
+function buildRequiredItemIds(
+  role: Designer["role"],
+  items: DesignerListItemRow[],
+  competencyBlockById: Map<string, DesignerListCompetencyBlock>
+): Set<string> {
+  const requiredItemIds = new Set<string>();
+  const visibleBlocks = new Set(blocksForDesignerRole(role));
+
+  for (const item of items) {
+    const block = competencyBlockById.get(item.competency_id);
+    if (!block || !visibleBlocks.has(block)) continue;
+    requiredItemIds.add(item.id);
+  }
+
+  return requiredItemIds;
+}
+
+function hasAllRequiredScores(
+  rows: {
+    competency_item_id: string;
+    score: number | null;
+    self_score: number | null;
+    final_score: number | null;
+  }[],
+  requiredItemIds: Set<string>,
+  field: "score" | "self_score" | "final_score"
+): boolean {
+  if (requiredItemIds.size === 0) return false;
+
+  const completedItemIds = new Set(
+    rows
+      .filter((row) => row[field] !== null && row[field] !== undefined)
+      .map((row) => row.competency_item_id)
+  );
+
+  return Array.from(requiredItemIds).every((itemId) =>
+    completedItemIds.has(itemId)
+  );
 }
 
 export async function fetchDesignersWithAverages(): Promise<
@@ -109,7 +161,7 @@ export async function fetchDesignersWithAverages(): Promise<
     supabase.from("designers").select("*").order("created_at", { ascending: true }),
     supabase
       .from("item_scores")
-      .select("designer_id, competency_item_id, score, self_score, reviewed_at"),
+      .select("designer_id, competency_item_id, score, self_score, final_score, reviewed_at"),
     supabase
       .from("competencies")
       .select("id, block, title")
@@ -150,6 +202,7 @@ export async function fetchDesignersWithAverages(): Promise<
       competency_item_id: string;
       score: number | null;
       self_score: number | null;
+      final_score: number | null;
       reviewed_at: string | null;
     }[]
   >();
@@ -163,13 +216,20 @@ export async function fetchDesignersWithAverages(): Promise<
     }
     list.push(row);
 
-    if (row.score !== null) {
+    const effectiveScore =
+      row.final_score !== null && row.final_score !== undefined
+        ? Number(row.final_score)
+        : row.score !== null && row.score !== undefined
+          ? Number(row.score)
+          : null;
+
+    if (effectiveScore !== null) {
       let tot = itemTotals.get(designerId);
       if (!tot) {
         tot = { sum: 0, count: 0 };
         itemTotals.set(designerId, tot);
       }
-      tot.sum += Number(row.score);
+      tot.sum += effectiveScore;
       tot.count += 1;
     }
 
@@ -213,28 +273,16 @@ export async function fetchDesignersWithAverages(): Promise<
           : null;
       const designerRows = scoresByDesignerItems.get(d.id) ?? [];
       const hasAnyItemScores = designerRows.length > 0;
-      const requiredItemIds = new Set<string>();
-
-      for (const item of (items ?? []) as DesignerListItemRow[]) {
-        const block = competencyBlockById.get(item.competency_id);
-        if (!block) continue;
-        if (!blocksForDesignerRole(d.role).includes(block)) continue;
-        if (d.role !== "lead" && item.only_lead) continue;
-        requiredItemIds.add(item.id);
-      }
-
-      const completedItemIds = new Set(
-        designerRows
-          .filter(
-            (row) => row.score !== null && row.self_score !== null
-          )
-          .map((row) => row.competency_item_id)
+      const requiredItemIds = buildRequiredItemIds(
+        d.role,
+        (items ?? []) as DesignerListItemRow[],
+        competencyBlockById
       );
-      const hasCompletedReview =
-        requiredItemIds.size > 0 &&
-        Array.from(requiredItemIds).every((itemId) =>
-          completedItemIds.has(itemId)
-        );
+      const hasCompletedReview = hasAllRequiredScores(
+        designerRows,
+        requiredItemIds,
+        "final_score"
+      );
 
       return {
         ...d,

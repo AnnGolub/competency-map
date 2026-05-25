@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { CompetencyLevelIndicators } from "@/components/designers/competency-level-indicators";
 import { CompetencyScoreRing } from "@/components/designers/competency-score-ring";
 import { ItemScoreSlider } from "@/components/ui/item-score-slider";
@@ -24,16 +25,20 @@ export function ReviewCompetencyCard({
   form,
   onScoreChange,
   hideLevelBadges = false,
+  renderItem,
 }: {
   competency: Competency;
   items: Pick<CompetencyItem, "id" | "text">[];
   role: DesignerRole;
-  form: Record<string, number>;
+  form: Record<string, number | null | undefined>;
   onScoreChange: (itemId: string, score: number) => void;
   hideLevelBadges?: boolean;
+  renderItem?: (item: Pick<CompetencyItem, "id" | "text">) => ReactNode;
 }) {
   const itemScores = items.map((item) => form[item.id]);
-  const avg = averageScore(itemScores);
+  const avg = averageScore(
+    itemScores.filter((score): score is number => score !== null && score !== undefined)
+  );
   const levelBadges = LEVEL_BADGES.filter(({ key }) => {
     if (competency.block === "leadership") {
       return key === "senior" || key === "lead";
@@ -90,15 +95,19 @@ export function ReviewCompetencyCard({
         <ul className="mt-6 flex flex-col gap-6">
           {items.map((item) => (
             <li key={item.id}>
-              <ItemScoreSlider
-                id={`review-${item.id}`}
-                label={item.text}
-                value={form[item.id]}
-                expected={null}
-                theme="dark"
-                variant="review"
-                onChange={(score) => onScoreChange(item.id, score)}
-              />
+              {renderItem ? (
+                renderItem(item)
+              ) : (
+                <ItemScoreSlider
+                  id={`review-${item.id}`}
+                  label={item.text}
+                  value={form[item.id] ?? 2}
+                  expected={null}
+                  theme="dark"
+                  variant="review"
+                  onChange={(score) => onScoreChange(item.id, score)}
+                />
+              )}
             </li>
           ))}
         </ul>
