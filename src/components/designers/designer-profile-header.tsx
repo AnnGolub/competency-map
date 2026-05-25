@@ -18,10 +18,17 @@ function formatReviewDate(iso: string | null): string {
 export function DesignerProfileHeader({
   designer,
   lastReviewAt,
+  hasFinalReview,
 }: {
   designer: Designer;
   lastReviewAt: string | null;
+  hasFinalReview: boolean;
 }) {
+  const reviewHref = hasFinalReview
+    ? `/designers/${designer.id}/review`
+    : `/designers/${designer.id}/final-review`;
+  const reviewLabel = hasFinalReview ? "Провести ревью" : "Завершить ревью";
+
   return (
     <section className="flex max-w-[818px] flex-col gap-4">
       <DesignerBackLink href="/designers">К списку дизайнеров</DesignerBackLink>
@@ -38,10 +45,10 @@ export function DesignerProfileHeader({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          href={`/designers/${designer.id}/final-review`}
+          href={reviewHref}
           className="inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
         >
-          Завершить ревью
+          {reviewLabel}
         </Link>
 
         <GenerateSelfReviewLink designerId={designer.id} variant="profile" />

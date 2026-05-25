@@ -164,6 +164,7 @@ export default async function DesignerProfilePage({
         <DesignerProfileHeader
           designer={designer}
           lastReviewAt={lastReviewAt}
+          hasFinalReview={hasFinalReview}
         />
 
         <DesignerMetricCards
