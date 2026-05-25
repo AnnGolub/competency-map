@@ -25,7 +25,7 @@ export function ReviewCompetencyCard({
   onScoreChange,
 }: {
   competency: Competency;
-  items: CompetencyItem[];
+  items: Pick<CompetencyItem, "id" | "text">[];
   role: DesignerRole;
   form: Record<string, number>;
   onScoreChange: (itemId: string, score: number) => void;
