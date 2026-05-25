@@ -20,10 +20,13 @@ export type CompetencyExportColumn = {
   title: string;
 };
 
+export type DesignerReviewStatus = "to do" | "in progress" | "done";
+
 export type DesignerWithAverage = Designer & {
   averageScore: number | null;
   competencyScoresById: Record<string, number | null>;
   lastReviewedAt: string | null;
+  reviewStatus: DesignerReviewStatus;
 };
 
 export type DesignersWithAveragesResult = {
@@ -93,13 +96,15 @@ export async function fetchDesignersWithAverages(): Promise<
   const [
     { data: designers, error: designersError },
     { data: itemScores, error: itemScoresError },
+    { data: finalScores, error: finalScoresError },
     { data: competencyRows, error: competenciesError },
     { data: items, error: itemsError },
   ] = await Promise.all([
     supabase.from("designers").select("*").order("created_at", { ascending: true }),
     supabase
       .from("item_scores")
-      .select("designer_id, competency_item_id, score, reviewed_at"),
+      .select("designer_id, competency_item_id, score, self_score, reviewed_at"),
+    supabase.from("scores").select("designer_id"),
     supabase
       .from("competencies")
       .select("id, block, title")
@@ -110,6 +115,7 @@ export async function fetchDesignersWithAverages(): Promise<
 
   if (designersError) throw designersError;
   if (itemScoresError) throw itemScoresError;
+  if (finalScoresError) throw finalScoresError;
   if (competenciesError) throw competenciesError;
   if (itemsError) throw itemsError;
 
@@ -124,6 +130,10 @@ export async function fetchDesignersWithAverages(): Promise<
   const scoresByDesigner = new Map<string, Map<string, number>>();
   const itemTotals = new Map<string, { sum: number; count: number }>();
   const lastReviewedAt = new Map<string, string | null>();
+  const startedReviews = new Set<string>();
+  const completedReviews = new Set(
+    (finalScores ?? []).map((score) => score.designer_id)
+  );
 
   for (const d of designers ?? []) {
     itemTotals.set(d.id, { sum: 0, count: 0 });
@@ -133,7 +143,12 @@ export async function fetchDesignersWithAverages(): Promise<
 
   const scoresByDesignerItems = new Map<
     string,
-    { competency_item_id: string; score: number | null; reviewed_at: string | null }[]
+    {
+      competency_item_id: string;
+      score: number | null;
+      self_score: number | null;
+      reviewed_at: string | null;
+    }[]
   >();
 
   for (const row of itemScores ?? []) {
@@ -144,6 +159,10 @@ export async function fetchDesignersWithAverages(): Promise<
       scoresByDesignerItems.set(designerId, list);
     }
     list.push(row);
+
+    if (row.score !== null || row.self_score !== null) {
+      startedReviews.add(designerId);
+    }
 
     if (row.score !== null) {
       let tot = itemTotals.get(designerId);
@@ -199,6 +218,11 @@ export async function fetchDesignersWithAverages(): Promise<
         averageScore: averageScoreValue,
         competencyScoresById,
         lastReviewedAt: lastReviewedAt.get(d.id) ?? null,
+        reviewStatus: completedReviews.has(d.id)
+          ? "done"
+          : startedReviews.has(d.id)
+            ? "in progress"
+            : "to do",
       };
     }
   );

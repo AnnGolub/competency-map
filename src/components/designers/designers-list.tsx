@@ -22,6 +22,12 @@ import type { DesignerRole } from "@/types/database";
 type RoleFilter = "all" | DesignerRole;
 type SortKey = "role" | "score";
 
+const STATUS_STYLES = {
+  "to do": { background: "#3E4153", color: "#C7C9D9" },
+  "in progress": { background: "#E57A00", color: "#ffffff" },
+  done: { background: "#05A660", color: "#ffffff" },
+} as const;
+
 const FILTER_OPTIONS: { value: RoleFilter; label: string }[] = [
   { value: "all", label: "Все" },
   ...DESIGNER_ROLES.map((role) => ({
@@ -173,7 +179,7 @@ export function DesignersList({
 
       {filtered.length > 0 ? (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-left">
+          <table className="w-full min-w-[880px] border-collapse text-left">
             <thead>
               <tr className="border-b border-app-sidebar-border text-xs font-normal leading-4 text-app-muted">
                 <th className="pb-3 pr-6 font-normal text-app-muted">ФИО</th>
@@ -196,6 +202,7 @@ export function DesignersList({
                     onSort={toggleScoreSort}
                   />
                 </th>
+                <th className="pb-3 pr-6 font-normal text-app-muted">Статус</th>
                 <th className="pb-3 w-28" aria-label="Действия" />
               </tr>
             </thead>
@@ -219,6 +226,20 @@ export function DesignersList({
                   </td>
                   <td className="py-3 pr-6 tabular-nums">
                     {formatScore(designer.averageScore)}
+                  </td>
+                  <td className="py-3 pr-6">
+                    <span
+                      style={{
+                        ...STATUS_STYLES[designer.reviewStatus],
+                        borderRadius: "6px",
+                        padding: "2px 8px",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {designer.reviewStatus}
+                    </span>
                   </td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-2">
