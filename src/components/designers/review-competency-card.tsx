@@ -5,8 +5,6 @@ import { CompetencyScoreRing } from "@/components/designers/competency-score-rin
 import { ItemScoreSlider } from "@/components/ui/item-score-slider";
 import {
   averageScore,
-  formatScore,
-  getExpectedScore,
   type Competency,
   type CompetencyItem,
 } from "@/lib/competency-utils";
@@ -34,7 +32,6 @@ export function ReviewCompetencyCard({
 }) {
   const itemScores = items.map((item) => form[item.id]);
   const avg = averageScore(itemScores);
-  const expected = getExpectedScore(competency, role);
 
   return (
     <article className="rounded-3xl bg-app-sidebar p-6">
@@ -51,11 +48,6 @@ export function ReviewCompetencyCard({
               {competency.description}
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="inline-flex h-[22px] items-center justify-center rounded bg-[#E57A00] px-1 text-xs text-white">
-              Ожидается {formatScore(expected)}
-            </span>
-          </div>
         </div>
         <CompetencyScoreRing value={avg} />
       </div>
@@ -72,7 +64,12 @@ export function ReviewCompetencyCard({
                 helperContent={
                   <div className="mt-1 flex flex-wrap gap-1">
                     {LEVEL_BADGES.map((badge) => {
-                      const value = item[badge.field];
+                      const rawValue = item[badge.field];
+                      const value =
+                        badge.key === "lead" &&
+                        (rawValue === null || Number(rawValue) === 0)
+                          ? 4
+                          : rawValue;
                       if (value === null) return null;
 
                       return (

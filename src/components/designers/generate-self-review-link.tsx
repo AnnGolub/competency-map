@@ -55,58 +55,49 @@ export function GenerateSelfReviewLink({
   }
 
   const generateButton = (
-    <div
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={handleGenerate}
+      onMouseEnter={() => setTooltipOpen(true)}
+      onMouseLeave={() => setTooltipOpen(false)}
       className={
-        variant === "profile" ? "flex items-center gap-1" : "mt-4 flex items-center gap-1"
+        variant === "profile"
+          ? "relative inline-flex h-10 items-center justify-center rounded-lg bg-app-input px-5 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white disabled:opacity-50"
+          : "relative mt-4 inline-flex items-center justify-center rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
       }
     >
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={handleGenerate}
-        className={
-          variant === "profile"
-            ? "inline-flex h-10 items-center justify-center rounded-lg bg-app-input px-5 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white disabled:opacity-50"
-            : "rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
-        }
-      >
-        {isPending ? "Генерация…" : "Сгенерировать ссылку"}
-      </button>
-      <div
-        className="relative ml-1"
-        onMouseEnter={() => setTooltipOpen(true)}
-        onMouseLeave={() => setTooltipOpen(false)}
-      >
-        <Image
-          src="/icons/Information.svg"
-          alt=""
-          width={16}
-          height={16}
-          className="opacity-60 transition-opacity hover:opacity-100"
-        />
-        {tooltipOpen ? (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "calc(100% + 6px)",
-              right: 0,
-              width: "260px",
-              background: "#1E2130",
-              border: "1px solid var(--app-border)",
-              borderRadius: "12px",
-              padding: "12px",
-              fontSize: "13px",
-              lineHeight: "18px",
-              color: "rgba(255,255,255,0.8)",
-              zIndex: 50,
-            }}
-          >
-            Одноразовая ссылка для отправки дизайнеру для оценки своих навыков по
-            карте компетенций
-          </div>
-        ) : null}
-      </div>
-    </div>
+      {isPending ? "Генерация…" : "Сгенерировать ссылку"}
+      <Image
+        src="/icons/Information.svg"
+        alt=""
+        width={16}
+        height={16}
+        className="ml-1 opacity-70"
+      />
+      {tooltipOpen ? (
+        <span
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 6px)",
+            right: 0,
+            width: "260px",
+            background: "#1E2130",
+            border: "1px solid var(--app-border)",
+            borderRadius: "12px",
+            padding: "12px",
+            fontSize: "13px",
+            lineHeight: "18px",
+            color: "rgba(255,255,255,0.8)",
+            zIndex: 50,
+            whiteSpace: "normal",
+          }}
+        >
+          Одноразовая ссылка для отправки дизайнеру для оценки своих навыков по
+          карте компетенций
+        </span>
+      ) : null}
+    </button>
   );
 
   const modal = dialogOpen ? (
