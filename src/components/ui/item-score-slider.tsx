@@ -17,20 +17,22 @@ export function ItemScoreSlider({
   if (variant === "review") {
     const thumbPercent = ((value - 1) / 3) * 100;
 
-    const handlePointerMove = (clientX: number, rect: DOMRect) => {
-      const x = clientX - rect.left;
-      const ratio = Math.min(1, Math.max(0, x / rect.width));
-      const raw = 1 + ratio * 3;
-      const snapped = Math.round(raw / 0.5) * 0.5;
-      onChange(Math.min(4, Math.max(1, snapped)));
-    };
-
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
-      const rect = e.currentTarget.getBoundingClientRect();
-      handlePointerMove(e.clientX, rect);
+      const el = e.currentTarget;
 
-      const onMove = (me: MouseEvent) => handlePointerMove(me.clientX, rect);
+      const updateFromEvent = (clientX: number) => {
+        const rect = el.getBoundingClientRect();
+        const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+        const ratio = x / rect.width;
+        const raw = 1 + ratio * 3;
+        const snapped = Math.round(raw / 0.5) * 0.5;
+        onChange(Math.min(4, Math.max(1, snapped)));
+      };
+
+      updateFromEvent(e.clientX);
+
+      const onMove = (me: MouseEvent) => updateFromEvent(me.clientX);
       const onUp = () => {
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
@@ -40,10 +42,20 @@ export function ItemScoreSlider({
     };
 
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const onMove = (te: TouchEvent) => {
-        handlePointerMove(te.touches[0].clientX, rect);
+      const el = e.currentTarget;
+
+      const updateFromEvent = (clientX: number) => {
+        const rect = el.getBoundingClientRect();
+        const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+        const ratio = x / rect.width;
+        const raw = 1 + ratio * 3;
+        const snapped = Math.round(raw / 0.5) * 0.5;
+        onChange(Math.min(4, Math.max(1, snapped)));
       };
+
+      updateFromEvent(e.touches[0].clientX);
+
+      const onMove = (te: TouchEvent) => updateFromEvent(te.touches[0].clientX);
       const onEnd = () => {
         window.removeEventListener("touchmove", onMove);
         window.removeEventListener("touchend", onEnd);
@@ -115,6 +127,7 @@ export function ItemScoreSlider({
               height: "16px",
               borderRadius: "50%",
               background: "#E53535",
+              transition: "left 0.05s ease-out",
               pointerEvents: "none",
             }} />
           </div>
