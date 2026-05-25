@@ -22,6 +22,7 @@ import {
 import type { CompetencyBlock } from "@/types/database";
 
 const REVIEW_STEP_ORDER: CompetencyBlock[] = ["hard", "soft", "leadership"];
+const FINAL_SCORE_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4] as const;
 
 type FormState = Record<string, string>;
 
@@ -296,16 +297,11 @@ export function FinalReviewForm({
                             border: "1px solid #4A4D5E",
                           }}
                         >
-                          <input
-                            type="number"
-                            min={1}
-                            max={4}
-                            step={0.5}
+                          <select
                             value={finalScore}
                             onChange={(event) =>
                               handleFinalScoreChange(item.id, event.target.value)
                             }
-                            placeholder="—"
                             style={{
                               background: "transparent",
                               border: "none",
@@ -316,7 +312,14 @@ export function FinalReviewForm({
                               padding: 0,
                               margin: 0,
                             }}
-                          />
+                          >
+                            <option value="">—</option>
+                            {FINAL_SCORE_OPTIONS.map((option) => (
+                              <option key={option} value={option}>
+                                {option.toFixed(1)}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <p
                           style={{

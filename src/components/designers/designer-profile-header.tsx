@@ -38,10 +38,10 @@ export function DesignerProfileHeader({
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          href={`/designers/${designer.id}/review`}
+          href={`/designers/${designer.id}/final-review`}
           className="inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
         >
-          Провести ревью
+          Завершить ревью
         </Link>
 
         <GenerateSelfReviewLink designerId={designer.id} variant="profile" />
