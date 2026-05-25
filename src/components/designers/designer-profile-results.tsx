@@ -86,9 +86,26 @@ export function DesignerProfileResults({
         </p>
       ) : !hasFinalReview ? (
         <div className="mt-10">
-          <p className="text-base leading-6 text-app-muted">
-            Ревью дизайнера выполнено самим дизайнером и лидом. Завершите ревью
-            выбором окончательной оценки по каждой компетенции.
+          <p
+            style={{
+              color: "#ffffff",
+              fontSize: "16px",
+              lineHeight: "24px",
+              fontWeight: 400,
+            }}
+          >
+            Ревью дизайнера выполнено самим дизайнером и лидом.
+          </p>
+          <p
+            style={{
+              color: "#ffffff",
+              fontSize: "16px",
+              lineHeight: "24px",
+              fontWeight: 400,
+              marginTop: "4px",
+            }}
+          >
+            Завершите ревью выбором окончательной оценки по каждой компетенции.
           </p>
           <Link
             href={`/designers/${designer.id}/review`}
