@@ -47,12 +47,17 @@ export function PublicSelfReviewForm({
   const allItems = data.competencies.flatMap((c) => c.items);
   const steps = REVIEW_STEP_ORDER.filter((block) => visibleBlocks.includes(block));
   const currentBlock = steps[stepIndex];
+  const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === steps.length - 1;
   const blockCompetencies = currentBlock ? grouped[currentBlock] : [];
   const itemsByCompetency = useMemo(
     () => Object.fromEntries(data.competencies.map((c) => [c.id, c.items])),
     [data.competencies]
   );
+  const secondaryButtonCls =
+    "inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white";
+  const primaryButtonCls =
+    "inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
 
   function handleScoreChange(itemId: string, score: number) {
     setForm((prev) => ({ ...prev, [itemId]: score }));
@@ -155,11 +160,11 @@ export function PublicSelfReviewForm({
       </section>
 
       <div className="mt-10 flex gap-3">
-        {stepIndex > 0 ? (
+        {!isFirstStep ? (
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+            className={secondaryButtonCls}
           >
             Назад
           </button>
@@ -170,7 +175,7 @@ export function PublicSelfReviewForm({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || allItems.length === 0}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+            className={primaryButtonCls}
           >
             Отправить
           </button>
@@ -178,9 +183,9 @@ export function PublicSelfReviewForm({
           <button
             type="button"
             onClick={handleContinue}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+            className={primaryButtonCls}
           >
-            Далее
+            Продолжить
           </button>
         )}
       </div>

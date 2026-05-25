@@ -72,9 +72,14 @@ export function ReviewForm({
   const roleBlocks = blocksForDesignerRole(designer.role);
   const steps = REVIEW_STEP_ORDER.filter((block) => roleBlocks.includes(block));
   const currentBlock = steps[stepIndex];
+  const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === steps.length - 1;
   const allItems = collectAllItems(competencies, itemsByCompetency);
   const blockCompetencies = currentBlock ? grouped[currentBlock] : [];
+  const secondaryButtonCls =
+    "inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white";
+  const primaryButtonCls =
+    "inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
 
   function handleScoreChange(itemId: string, score: number) {
     setForm((prev) => ({ ...prev, [itemId]: score }));
@@ -84,6 +89,14 @@ export function ReviewForm({
     setError(null);
     if (!isLastStep) {
       setStepIndex((i) => i + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function handleBack() {
+    setError(null);
+    if (!isFirstStep) {
+      setStepIndex((i) => i - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
@@ -155,13 +168,23 @@ export function ReviewForm({
         </div>
       </section>
 
-      <div className="mt-10">
+      <div className="mt-10 flex gap-3">
+        {!isFirstStep ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            className={secondaryButtonCls}
+          >
+            Назад
+          </button>
+        ) : null}
+
         {isLastStep ? (
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || allItems.length === 0}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-accent px-6 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+            className={primaryButtonCls}
           >
             Отправить
           </button>
@@ -169,7 +192,7 @@ export function ReviewForm({
           <button
             type="button"
             onClick={handleContinue}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-app-input px-6 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+            className={primaryButtonCls}
           >
             Продолжить
           </button>
