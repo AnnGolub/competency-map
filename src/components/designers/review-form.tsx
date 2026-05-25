@@ -124,7 +124,15 @@ export function ReviewForm({
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-base font-semibold leading-6 text-white">
+        <h2
+          style={{
+            fontFamily: "Avenir Next, sans-serif",
+            fontWeight: 700,
+            fontSize: "22px",
+            lineHeight: "26px",
+            color: "#ffffff",
+          }}
+        >
           {currentBlock ? BLOCK_LABELS[currentBlock] : ""}
         </h2>
 

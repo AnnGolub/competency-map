@@ -32,6 +32,12 @@ export function ReviewCompetencyCard({
 }) {
   const itemScores = items.map((item) => form[item.id]);
   const avg = averageScore(itemScores);
+  const levelBadges = LEVEL_BADGES.filter(({ key }) => {
+    if (competency.block === "leadership") {
+      return key === "senior" || key === "lead";
+    }
+    return true;
+  });
 
   return (
     <article className="rounded-3xl bg-app-sidebar p-6">
@@ -49,7 +55,7 @@ export function ReviewCompetencyCard({
             </p>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-1">
-            {LEVEL_BADGES.map((badge) => {
+            {levelBadges.map((badge) => {
               const rawValue = competency[badge.field];
               const value =
                 badge.key === "lead" &&
