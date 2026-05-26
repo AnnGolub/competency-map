@@ -19,7 +19,7 @@ function isDesignersRoute(pathname: string) {
 export function DesignersSidebar() {
   const pathname = usePathname();
   const designersActive = isDesignersRoute(pathname);
-  const questionnaireActive = pathname.startsWith("/designers/questionnaire");
+  const questionnaireActive = pathname === "/questionnaire";
 
   return (
     <aside className="flex w-[224px] shrink-0 flex-col border-r border-app-sidebar-border bg-app-sidebar">
@@ -37,7 +37,7 @@ export function DesignersSidebar() {
           <span>Дизайнеры</span>
         </Link>
         <Link
-          href="/designers/questionnaire"
+          href="/questionnaire"
           className={`${NAV_LINK} ${
             questionnaireActive
               ? "bg-[#252732] text-white"
