@@ -4,7 +4,7 @@ import { hasAppAccess } from "@/lib/auth-utils";
 import type { Database } from "@/types/database";
 import type { UserRole } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback", "/self-review"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/self-review", "/questionnaire"];
 const NO_ACCESS_PATH = "/no-access";
 
 function isPublicPath(pathname: string): boolean {

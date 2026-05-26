@@ -178,6 +178,7 @@ export function QuestionnaireForm({
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [alreadySubmittedInBrowser, setAlreadySubmittedInBrowser] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<QuestionnaireFormState>({
     respondentName: "",
@@ -190,6 +191,13 @@ export function QuestionnaireForm({
     continueDoing: "",
     scores: {},
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setAlreadySubmittedInBrowser(
+      localStorage.getItem(`questionnaire_done_${token}`) === "true"
+    );
+  }, [token]);
 
   const visibleSteps = useMemo(
     () =>
@@ -323,6 +331,8 @@ export function QuestionnaireForm({
         setIsSubmitting(false);
         return;
       }
+      localStorage.setItem(`questionnaire_done_${token}`, "true");
+      setAlreadySubmittedInBrowser(true);
       setSubmitted(true);
     } catch (submitError) {
       setIsSubmitting(false);
@@ -352,6 +362,33 @@ export function QuestionnaireForm({
           }}
         >
           Это поможет дизайнеру стать лучше
+        </p>
+      </div>
+    );
+  }
+
+  if (alreadySubmittedInBrowser) {
+    return (
+      <div
+        style={{
+          ...CONTAINER_STYLE,
+          background: "#252732",
+          borderRadius: "24px",
+          padding: "32px",
+        }}
+      >
+        <h2 style={{ fontSize: "30px", lineHeight: "36px", fontWeight: 700 }}>
+          Ты уже оставил фидбэк для этого дизайнера
+        </h2>
+        <p
+          style={{
+            fontSize: "16px",
+            lineHeight: "24px",
+            color: "#8F90A6",
+            marginTop: "12px",
+          }}
+        >
+          Повторная отправка с этого браузера недоступна.
         </p>
       </div>
     );
