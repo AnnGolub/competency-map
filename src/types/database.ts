@@ -224,6 +224,123 @@ export type Database = {
           },
         ];
       };
+      questionnaire_links: {
+        Row: {
+          id: string;
+          designer_id: string;
+          token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          token: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          token?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_links_designer_id_fkey";
+            columns: ["designer_id"];
+            referencedRelation: "designers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      questionnaire_responses: {
+        Row: {
+          id: string;
+          questionnaire_link_id: string;
+          designer_id: string;
+          respondent_name: string | null;
+          context: string;
+          mentorship_followup: string | null;
+          processes_followup: string | null;
+          communication_followup: string | null;
+          start_doing: string;
+          stop_doing: string;
+          continue_doing: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          questionnaire_link_id: string;
+          designer_id: string;
+          respondent_name?: string | null;
+          context: string;
+          mentorship_followup?: string | null;
+          processes_followup?: string | null;
+          communication_followup?: string | null;
+          start_doing: string;
+          stop_doing: string;
+          continue_doing: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          questionnaire_link_id?: string;
+          designer_id?: string;
+          respondent_name?: string | null;
+          context?: string;
+          mentorship_followup?: string | null;
+          processes_followup?: string | null;
+          communication_followup?: string | null;
+          start_doing?: string;
+          stop_doing?: string;
+          continue_doing?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_responses_questionnaire_link_id_fkey";
+            columns: ["questionnaire_link_id"];
+            referencedRelation: "questionnaire_links";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "questionnaire_responses_designer_id_fkey";
+            columns: ["designer_id"];
+            referencedRelation: "designers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      questionnaire_answers: {
+        Row: {
+          id: string;
+          response_id: string;
+          question_key: string;
+          score: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          response_id: string;
+          question_key: string;
+          score: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          response_id?: string;
+          question_key?: string;
+          score?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_answers_response_id_fkey";
+            columns: ["response_id"];
+            referencedRelation: "questionnaire_responses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       self_review_tokens: {
         Row: {
           id: string;
