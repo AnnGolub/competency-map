@@ -60,7 +60,20 @@ const SECTION_CARD_STYLE = {
 } as const;
 
 function buildAnswerMap(answers: QuestionnaireAnswerRow[] | null) {
-  return new Map((answers ?? []).map((answer) => [answer.question_key, Number(answer.score)]));
+  return new Map(
+    (answers ?? []).flatMap((answer) =>
+      answer.score !== null ? [[answer.question_key, Number(answer.score)] as const] : []
+    )
+  );
+}
+
+function buildTextAnswerMap(answers: QuestionnaireAnswerRow[] | null) {
+  return new Map(
+    (answers ?? []).flatMap((answer) => {
+      const text = answer.text_answer?.trim();
+      return text ? [[answer.question_key, text] as const] : [];
+    })
+  );
 }
 
 function averageQuestionScores(
@@ -309,18 +322,37 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
       response.respondent_name?.trim() || "Аноним";
 
     return {
-      startDoing: responses.map((response) => ({
-        name: getName(response),
-        text: response.start_doing,
-      })),
-      stopDoing: responses.map((response) => ({
-        name: getName(response),
-        text: response.stop_doing,
-      })),
-      continueDoing: responses.map((response) => ({
-        name: getName(response),
-        text: response.continue_doing,
-      })),
+      startDoing: responses
+        .map((response) => {
+          const textAnswers = buildTextAnswerMap(response.questionnaire_answers);
+          const text = textAnswers.get("start_doing") ?? response.start_doing?.trim() ?? "";
+          return {
+            name: getName(response),
+            text,
+          };
+        })
+        .filter((entry) => entry.text),
+      stopDoing: responses
+        .map((response) => {
+          const textAnswers = buildTextAnswerMap(response.questionnaire_answers);
+          const text = textAnswers.get("stop_doing") ?? response.stop_doing?.trim() ?? "";
+          return {
+            name: getName(response),
+            text,
+          };
+        })
+        .filter((entry) => entry.text),
+      continueDoing: responses
+        .map((response) => {
+          const textAnswers = buildTextAnswerMap(response.questionnaire_answers);
+          const text =
+            textAnswers.get("continue_doing") ?? response.continue_doing?.trim() ?? "";
+          return {
+            name: getName(response),
+            text,
+          };
+        })
+        .filter((entry) => entry.text),
     };
   }, [responses]);
 

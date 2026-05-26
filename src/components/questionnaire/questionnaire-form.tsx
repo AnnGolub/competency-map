@@ -312,13 +312,15 @@ export function QuestionnaireForm({
     const payload: SubmitQuestionnairePayload = {
       respondentName: form.respondentName,
       context: form.context,
-      mentorshipFollowup: form.mentorshipFollowup,
-      processesFollowup: form.processesFollowup,
-      communicationFollowup: form.communicationFollowup,
-      startDoing: form.startDoing,
-      stopDoing: form.stopDoing,
-      continueDoing: form.continueDoing,
       scores,
+      textAnswers: {
+        mentorship_followup: form.mentorshipFollowup,
+        processes_followup: form.processesFollowup,
+        communication_followup: form.communicationFollowup,
+        start_doing: form.startDoing,
+        stop_doing: form.stopDoing,
+        continue_doing: form.continueDoing,
+      },
     };
 
     setError(null);

@@ -47,7 +47,10 @@ function averageByKeys(
   keys: readonly string[]
 ): number | null {
   const values = answers
-    .filter((answer) => keys.includes(answer.question_key))
+    .filter(
+      (answer): answer is QuestionnaireAnswerSummary & { score: number } =>
+        keys.includes(answer.question_key) && answer.score !== null
+    )
     .map((answer) => Number(answer.score));
 
   return averageScore(values);

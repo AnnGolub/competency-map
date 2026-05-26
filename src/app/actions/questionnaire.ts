@@ -14,13 +14,15 @@ import {
 export type SubmitQuestionnairePayload = {
   respondentName: string;
   context: string;
-  mentorshipFollowup: string;
-  processesFollowup: string;
-  communicationFollowup: string;
-  startDoing: string;
-  stopDoing: string;
-  continueDoing: string;
   scores: Record<QuestionnaireScoreKey, number>;
+  textAnswers: {
+    mentorship_followup: string;
+    processes_followup: string;
+    communication_followup: string;
+    start_doing: string;
+    stop_doing: string;
+    continue_doing: string;
+  };
 };
 
 function isValidScore(value: number): boolean {
@@ -95,7 +97,11 @@ export async function submitQuestionnaireByToken(
   if (!payload.context.trim()) {
     return { error: "Опишите, где вы работали или взаимодействовали вместе." };
   }
-  if (!payload.startDoing.trim() || !payload.stopDoing.trim() || !payload.continueDoing.trim()) {
+  if (
+    !payload.textAnswers.start_doing.trim() ||
+    !payload.textAnswers.stop_doing.trim() ||
+    !payload.textAnswers.continue_doing.trim()
+  ) {
     return { error: "Заполните все обязательные поля на последнем шаге." };
   }
 
@@ -113,23 +119,28 @@ export async function submitQuestionnaireByToken(
       designer_id: linkRow.designer_id,
       respondent_name: payload.respondentName.trim() || null,
       context: payload.context.trim(),
-      mentorship_followup: payload.mentorshipFollowup.trim() || null,
-      processes_followup: payload.processesFollowup.trim() || null,
-      communication_followup: payload.communicationFollowup.trim() || null,
-      start_doing: payload.startDoing.trim(),
-      stop_doing: payload.stopDoing.trim(),
-      continue_doing: payload.continueDoing.trim(),
     })
     .select("id")
     .single();
 
   if (responseError) return { error: responseError.message };
 
-  const answers = ALL_SCORE_QUESTIONS.map((question) => ({
-    response_id: responseRow.id,
-    question_key: question.key,
-    score: payload.scores[question.key as QuestionnaireScoreKey],
-  }));
+  const answers = [
+    ...ALL_SCORE_QUESTIONS.map((question) => ({
+      response_id: responseRow.id,
+      question_key: question.key,
+      score: payload.scores[question.key as QuestionnaireScoreKey],
+      text_answer: null,
+    })),
+    ...Object.entries(payload.textAnswers)
+      .map(([key, text]) => ({
+        response_id: responseRow.id,
+        question_key: key,
+        score: null,
+        text_answer: text.trim() || null,
+      }))
+      .filter((answer) => answer.text_answer !== null),
+  ];
 
   const { error: answersError } = await admin
     .from("questionnaire_answers")

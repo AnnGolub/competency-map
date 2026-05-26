@@ -262,9 +262,9 @@ export type Database = {
           mentorship_followup: string | null;
           processes_followup: string | null;
           communication_followup: string | null;
-          start_doing: string;
-          stop_doing: string;
-          continue_doing: string;
+          start_doing: string | null;
+          stop_doing: string | null;
+          continue_doing: string | null;
           created_at: string;
         };
         Insert: {
@@ -276,9 +276,9 @@ export type Database = {
           mentorship_followup?: string | null;
           processes_followup?: string | null;
           communication_followup?: string | null;
-          start_doing: string;
-          stop_doing: string;
-          continue_doing: string;
+          start_doing?: string | null;
+          stop_doing?: string | null;
+          continue_doing?: string | null;
           created_at?: string;
         };
         Update: {
@@ -290,9 +290,9 @@ export type Database = {
           mentorship_followup?: string | null;
           processes_followup?: string | null;
           communication_followup?: string | null;
-          start_doing?: string;
-          stop_doing?: string;
-          continue_doing?: string;
+          start_doing?: string | null;
+          stop_doing?: string | null;
+          continue_doing?: string | null;
           created_at?: string;
         };
         Relationships: [
@@ -315,21 +315,24 @@ export type Database = {
           id: string;
           response_id: string;
           question_key: string;
-          score: number;
+          score: number | null;
+          text_answer: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           response_id: string;
           question_key: string;
-          score: number;
+          score?: number | null;
+          text_answer?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           response_id?: string;
           question_key?: string;
-          score?: number;
+          score?: number | null;
+          text_answer?: string | null;
           created_at?: string;
         };
         Relationships: [
