@@ -99,11 +99,13 @@ export function DesignerMetricCards({
   belowCount,
   growth,
   maxBelow,
+  className = "mt-8",
 }: {
   average: number | null;
   belowCount: number;
   growth: number | null;
   maxBelow: number;
+  className?: string;
 }) {
   const avgValue = formatScore(average);
   const avgProgress = average !== null ? average / 4 : 0;
@@ -117,7 +119,7 @@ export function DesignerMetricCards({
     growth === null ? 0 : Math.min(1, Math.max(0, (growth + 1) / 2));
 
   return (
-    <section className="mt-8 max-w-[1152px]">
+    <section className={`${className} max-w-[1152px]`}>
       <h2 className="text-base font-semibold leading-6 text-white">
         Оценка дизайнера
       </h2>

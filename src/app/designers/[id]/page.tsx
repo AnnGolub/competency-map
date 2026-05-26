@@ -1,9 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { notFound, redirect } from "next/navigation";
-import { DesignerMetricCards } from "@/components/designers/designer-metric-cards";
 import { DesignerProfileHeader } from "@/components/designers/designer-profile-header";
-import { DesignerProfileResults } from "@/components/designers/designer-profile-results";
+import { DesignerProfileMainTabs } from "@/components/designers/designer-profile-main-tabs";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
 import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
@@ -167,15 +166,13 @@ export default async function DesignerProfilePage({
           hasFinalReview={hasFinalReview}
         />
 
-        <DesignerMetricCards
+        <DesignerProfileMainTabs
+          designerId={designer.id}
+          designer={designer}
           average={avg}
           belowCount={belowCount}
           growth={growth}
           maxBelow={visibleCompetencies.length}
-        />
-
-        <DesignerProfileResults
-          designer={designer}
           competencies={visibleCompetencies}
           itemsByCompetency={itemsByCompetency}
           scoresByItem={scoresByItem}
