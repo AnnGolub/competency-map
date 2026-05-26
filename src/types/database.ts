@@ -255,7 +255,6 @@ export type Database = {
       questionnaire_responses: {
         Row: {
           id: string;
-          questionnaire_link_id: string;
           designer_id: string;
           respondent_name: string | null;
           context: string;
@@ -269,7 +268,6 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          questionnaire_link_id: string;
           designer_id: string;
           respondent_name?: string | null;
           context: string;
@@ -283,7 +281,6 @@ export type Database = {
         };
         Update: {
           id?: string;
-          questionnaire_link_id?: string;
           designer_id?: string;
           respondent_name?: string | null;
           context?: string;

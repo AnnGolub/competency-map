@@ -115,7 +115,6 @@ export async function submitQuestionnaireByToken(
   const { data: responseRow, error: responseError } = await admin
     .from("questionnaire_responses")
     .insert({
-      questionnaire_link_id: linkRow.id,
       designer_id: linkRow.designer_id,
       respondent_name: payload.respondentName.trim() || null,
       context: payload.context.trim(),
