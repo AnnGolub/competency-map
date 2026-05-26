@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { DesignerBackLink } from "@/components/designers/designer-back-link";
+import { GenerateQuestionnaireLink } from "@/components/designers/generate-questionnaire-link";
 import { GenerateSelfReviewLink } from "@/components/designers/generate-self-review-link";
 import { ROLE_LABELS, type Designer } from "@/lib/competency-utils";
 
@@ -52,6 +53,7 @@ export function DesignerProfileHeader({
         </Link>
 
         <GenerateSelfReviewLink designerId={designer.id} variant="profile" />
+        <GenerateQuestionnaireLink designerId={designer.id} />
       </div>
     </section>
   );

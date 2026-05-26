@@ -1,5 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
+import { getSessionContext } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   ALL_SCORE_QUESTIONS,
@@ -21,6 +25,56 @@ export type SubmitQuestionnairePayload = {
 
 function isValidScore(value: number): boolean {
   return Number.isInteger(value) && value >= 1 && value <= 10;
+}
+
+function getSiteOrigin(): string {
+  const fromAppEnv = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  if (fromAppEnv) return fromAppEnv;
+  const fromSiteEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (fromSiteEnv) return fromSiteEnv;
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  if (host) return `${proto}://${host}`;
+  return "http://localhost:3000";
+}
+
+export async function generateQuestionnaireLink(
+  designerId: string
+): Promise<string> {
+  const session = await getSessionContext();
+  if (!session?.isAdmin) {
+    throw new Error("Недостаточно прав");
+  }
+
+  const supabase = createClient();
+
+  const { data: existing, error: existingError } = await supabase
+    .from("questionnaire_links")
+    .select("token")
+    .eq("designer_id", designerId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  const origin = getSiteOrigin();
+  if (existing?.token) {
+    return `${origin}/questionnaire/${existing.token}`;
+  }
+
+  const token = crypto.randomUUID().replace(/-/g, "");
+  const { error: insertError } = await supabase
+    .from("questionnaire_links")
+    .insert({ designer_id: designerId, token });
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+
+  revalidatePath(`/designers/${designerId}`);
+  return `${origin}/questionnaire/${token}`;
 }
 
 export async function submitQuestionnaireByToken(
