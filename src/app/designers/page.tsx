@@ -22,7 +22,7 @@ export default async function DesignersPage() {
   return (
     <DesignersAppShell>
       <DesignersTopBar
-        title="Дизайнеры"
+        title="Дизайнеры — Все дизайнеры"
         actions={
           <>
             <DesignersCsvExport
