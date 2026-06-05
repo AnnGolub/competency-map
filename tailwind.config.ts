@@ -10,6 +10,14 @@ const config: Config = {
     extend: {
       fontFamily: {
         avenir: ["'Avenir Next'", "Avenir", "sans-serif"],
+        sf: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Text"',
+          '"SF Pro Display"',
+          "system-ui",
+          "sans-serif",
+        ],
       },
       colors: {
         background: "var(--background)",

@@ -2,10 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
-import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
-import { DesignersList } from "@/components/designers/designers-list";
-import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
-import { DesignersTopBar } from "@/components/designers/designers-top-bar";
+import { DesignersPageClient } from "@/components/designers/designers-page-client";
 import { fetchDesignersWithAverages } from "@/lib/data/queries";
 import { getSessionContext } from "@/lib/session";
 
@@ -21,22 +18,10 @@ export default async function DesignersPage() {
 
   return (
     <DesignersAppShell>
-      <DesignersTopBar
-        title="Дизайнеры — Все дизайнеры"
-        actions={
-          <>
-            <DesignersCsvExport
-              designers={designers}
-              competencyColumns={competencyExportColumns}
-            />
-            <DesignersLogoutButton />
-          </>
-        }
+      <DesignersPageClient
+        designers={designers}
+        competencyExportColumns={competencyExportColumns}
       />
-
-      <main className="flex-1 px-8 pb-12 pt-8">
-        <DesignersList designers={designers} />
-      </main>
     </DesignersAppShell>
   );
 }

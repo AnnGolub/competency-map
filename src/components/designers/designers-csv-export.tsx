@@ -66,7 +66,7 @@ export function DesignersCsvExport({
     <button
       type="button"
       onClick={download}
-      className="inline-flex h-8 shrink-0 items-center rounded-lg bg-app-accent px-4 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover"
+      className="inline-flex min-h-8 shrink-0 items-center rounded border border-[#EDEEF0] bg-white px-3 py-1 text-sm font-medium leading-5 text-[rgba(3,3,6,0.88)] transition-colors hover:bg-[#EDEEF0]"
     >
       Экспорт в CSV
     </button>

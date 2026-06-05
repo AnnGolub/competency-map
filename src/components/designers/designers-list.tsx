@@ -6,7 +6,6 @@ import { useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
 import { DesignerFormModal } from "@/components/designers/designer-form-modal";
 import {
-  IconDesignerAdd,
   IconDesignerDelete,
   IconDesignerEdit,
 } from "@/components/designers/designers-icons";
@@ -21,12 +20,16 @@ import type { DesignerRole } from "@/types/database";
 
 type RoleFilter = "all" | DesignerRole;
 type SortKey = "role" | "score";
+type ReviewStatus = DesignerWithAverage["reviewStatus"];
 
-const STATUS_STYLES = {
-  "to do": { background: "#3E4153", color: "#C7C9D9" },
-  "in progress": { background: "#E57A00", color: "#ffffff" },
-  done: { background: "#05A660", color: "#ffffff" },
-} as const;
+const STATUS_STYLES: Record<
+  ReviewStatus,
+  { background: string; label: string }
+> = {
+  "to do": { background: "#898991", label: "TO DO" },
+  "in progress": { background: "#FA9313", label: "IN PROGRESS" },
+  done: { background: "#0CC44D", label: "DONE" },
+};
 
 const FILTER_OPTIONS: { value: RoleFilter; label: string }[] = [
   { value: "all", label: "Все" },
@@ -43,6 +46,10 @@ const ROLE_ORDER: Record<DesignerRole, number> = {
   lead: 3,
 };
 
+const TABLE_HEADER_CELL =
+  "px-6 py-4 text-left text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)]";
+const TABLE_BODY_CELL = "px-6 py-4 text-base leading-6 text-[rgba(3,3,6,0.88)]";
+
 function SortableHeader({
   label,
   columnKey,
@@ -55,16 +62,17 @@ function SortableHeader({
   onSort: () => void;
 }) {
   const active = sortKey === columnKey;
+
   return (
     <button
       type="button"
       onClick={onSort}
-      className="group inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
+      className="group inline-flex items-center gap-1 font-normal text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
     >
       {label}
       <IconChevronDown
-        className={`shrink-0 text-app-placeholder transition-colors group-hover:text-white ${
-          active ? "rotate-180 text-app-placeholder" : ""
+        className={`shrink-0 transition-colors group-hover:text-[rgba(3,3,6,0.88)] ${
+          active ? "rotate-180 text-[rgba(3,3,6,0.88)]" : "text-[rgba(4,4,19,0.55)]"
         }`}
       />
     </button>
@@ -73,8 +81,12 @@ function SortableHeader({
 
 export function DesignersList({
   designers,
+  isAddModalOpen = false,
+  onAddModalOpenChange,
 }: {
   designers: DesignerWithAverage[];
+  isAddModalOpen?: boolean;
+  onAddModalOpenChange?: (open: boolean) => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -85,7 +97,6 @@ export function DesignersList({
   const [deletingDesigner, setDeletingDesigner] =
     useState<DesignerWithAverage | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filtered = useMemo(() => {
     let list =
@@ -134,45 +145,35 @@ export function DesignersList({
   }
 
   function closeFormModal() {
-    setIsAddModalOpen(false);
+    onAddModalOpenChange?.(false);
     setEditingDesigner(null);
   }
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <nav className="flex flex-wrap items-center gap-5">
-          {FILTER_OPTIONS.map((opt) => {
-            const active = roleFilter === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setRoleFilter(opt.value)}
-                className={`border-b-2 pb-1 text-base font-normal leading-[22px] transition-colors ${
-                  active
-                    ? "border-white text-white"
-                    : "border-transparent text-app-muted hover:text-white"
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </nav>
+      <nav className="flex flex-wrap items-center gap-5">
+        {FILTER_OPTIONS.map((opt) => {
+          const active = roleFilter === opt.value;
 
-        <button
-          type="button"
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1 bg-transparent px-0 text-base font-semibold leading-6 text-app-accent transition-opacity hover:opacity-80"
-        >
-          <IconDesignerAdd className="shrink-0 text-app-accent" />
-          Добавить дизайнера
-        </button>
-      </div>
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setRoleFilter(opt.value)}
+              className={`flex h-10 items-center border-b-2 text-[18px] font-normal leading-[22px] transition-colors ${
+                active
+                  ? "border-[#E53535] text-[#0F0F0F]"
+                  : "border-transparent text-[rgba(60,60,67,0.66)] hover:text-[#0F0F0F]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </nav>
 
       {filtered.length === 0 && !formModalOpen ? (
-        <p className="mt-6 text-base leading-6 text-app-muted">
+        <p className="mt-6 text-base leading-6 text-[rgba(60,60,67,0.66)]">
           Нет дизайнеров по выбранному фильтру.
         </p>
       ) : null}
@@ -181,9 +182,9 @@ export function DesignersList({
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[880px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-app-sidebar-border text-xs font-normal leading-4 text-app-muted">
-                <th className="pb-3 pr-6 font-normal text-app-muted">ФИО</th>
-                <th className="pb-3 pr-6 font-normal">
+              <tr className="border-b border-[#EDEEF0]">
+                <th className={TABLE_HEADER_CELL}>ФИО</th>
+                <th className={TABLE_HEADER_CELL}>
                   <SortableHeader
                     label="Позиция"
                     columnKey="role"
@@ -191,10 +192,8 @@ export function DesignersList({
                     onSort={toggleRoleSort}
                   />
                 </th>
-                <th className="pb-3 pr-6 font-normal text-app-muted">
-                  Направление
-                </th>
-                <th className="pb-3 pr-6 font-normal">
+                <th className={TABLE_HEADER_CELL}>Направление</th>
+                <th className={TABLE_HEADER_CELL}>
                   <SortableHeader
                     label="Средний балл"
                     columnKey="score"
@@ -202,55 +201,57 @@ export function DesignersList({
                     onSort={toggleScoreSort}
                   />
                 </th>
-                <th className="pb-3 pr-6 font-normal text-app-muted">Статус</th>
-                <th className="pb-3 w-28" aria-label="Действия" />
+                <th className={TABLE_HEADER_CELL}>Статус</th>
+                <th className={`${TABLE_HEADER_CELL} w-28`} aria-label="Действия" />
               </tr>
             </thead>
             <tbody>
               {filtered.map((designer) => (
                 <tr
                   key={designer.id}
-                  className="border-b border-app-sidebar-border text-base leading-6 text-white/90"
+                  className="border-b border-[#EDEEF0]"
                 >
-                  <td className="py-3 pr-6">
+                  <td className={TABLE_BODY_CELL}>
                     <Link
                       href={`/designers/${designer.id}`}
-                      className="text-sm font-semibold leading-5 text-white transition-colors hover:text-app-accent"
+                      className="text-base font-bold leading-6 text-[rgba(3,3,6,0.88)] transition-colors hover:text-[#E53535]"
                     >
                       {designer.name}
                     </Link>
                   </td>
-                  <td className="py-3 pr-6">{ROLE_LABELS[designer.role]}</td>
-                  <td className="max-w-[220px] truncate py-3 pr-6">
+                  <td className={TABLE_BODY_CELL}>{ROLE_LABELS[designer.role]}</td>
+                  <td className={`${TABLE_BODY_CELL} max-w-[220px] truncate`}>
                     {designer.direction}
                   </td>
-                  <td className="py-3 pr-6 tabular-nums">
+                  <td className={`${TABLE_BODY_CELL} tabular-nums`}>
                     {formatScore(designer.averageScore)}
                   </td>
-                  <td className="py-3 pr-6">
+                  <td className={TABLE_BODY_CELL}>
                     <span
                       style={{
-                        ...STATUS_STYLES[designer.reviewStatus],
+                        background: STATUS_STYLES[designer.reviewStatus].background,
+                        color: "rgba(255, 255, 255, 0.94)",
                         borderRadius: "6px",
                         padding: "2px 8px",
-                        fontSize: "12px",
-                        fontWeight: 500,
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {designer.reviewStatus}
+                      {STATUS_STYLES[designer.reviewStatus].label}
                     </span>
                   </td>
-                  <td className="py-3">
+                  <td className={TABLE_BODY_CELL}>
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
                         title="Изменить"
                         aria-label={`Изменить ${designer.name}`}
                         onClick={() => setEditingDesigner(designer)}
-                        className="rounded p-0.5 transition-opacity hover:opacity-80"
+                        className="rounded p-0.5 text-[rgba(60,60,67,0.66)] transition-opacity hover:opacity-80"
                       >
-                        <IconDesignerEdit />
+                        <IconDesignerEdit className="text-[rgba(60,60,67,0.66)]" />
                       </button>
                       <button
                         type="button"
@@ -260,9 +261,9 @@ export function DesignersList({
                           setDeleteError(null);
                           setDeletingDesigner(designer);
                         }}
-                        className="rounded p-0.5 transition-opacity hover:opacity-80"
+                        className="rounded p-0.5 text-[rgba(60,60,67,0.66)] transition-opacity hover:opacity-80"
                       >
-                        <IconDesignerDelete />
+                        <IconDesignerDelete className="text-[rgba(60,60,67,0.66)]" />
                       </button>
                     </div>
                   </td>
@@ -282,20 +283,19 @@ export function DesignersList({
         onClose={closeFormModal}
       />
 
-
       {deletingDesigner ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
         >
-          <div className="w-full max-w-sm rounded-xl border border-app-sidebar-border bg-app-sidebar p-6 text-white shadow-xl">
+          <div className="w-full max-w-sm rounded-xl border border-[#EDEEF0] bg-white p-6 text-[rgba(3,3,6,0.88)] shadow-xl">
             <p id="delete-dialog-title" className="text-base font-bold leading-6">
               Удалить {deletingDesigner.name}?
             </p>
             {deleteError ? (
-              <p className="mt-2 text-sm text-red-400">{deleteError}</p>
+              <p className="mt-2 text-sm text-[#E53535]">{deleteError}</p>
             ) : null}
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -305,7 +305,7 @@ export function DesignersList({
                   setDeletingDesigner(null);
                   setDeleteError(null);
                 }}
-                className="h-10 rounded-lg border border-app-sidebar-border px-5 text-sm font-semibold text-white/80 transition-colors hover:text-white"
+                className="h-10 rounded-lg border border-[#EDEEF0] px-5 text-sm font-semibold text-[rgba(60,60,67,0.66)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
               >
                 Отмена
               </button>
@@ -313,7 +313,7 @@ export function DesignersList({
                 type="button"
                 disabled={isPending}
                 onClick={handleConfirmDelete}
-                className="h-10 rounded-lg bg-app-accent px-5 text-sm font-semibold text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50"
+                className="h-10 rounded-lg bg-[#E53535] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#c42d2d] disabled:opacity-50"
               >
                 {isPending ? "Удаление…" : "Удалить"}
               </button>
