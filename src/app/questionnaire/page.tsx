@@ -2,10 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { redirect } from "next/navigation";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
-import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
-import { DesignersTopBar } from "@/components/designers/designers-top-bar";
-import { QuestionnaireList } from "@/components/questionnaire/questionnaire-list";
+import { QuestionnairePageClient } from "@/components/questionnaire/questionnaire-page-client";
 import { fetchQuestionnaireOverview } from "@/lib/data/questionnaire";
+import { fetchDesignersWithAverages } from "@/lib/data/queries";
 import { getSessionContext } from "@/lib/session";
 
 export default async function QuestionnairePage() {
@@ -15,15 +14,19 @@ export default async function QuestionnairePage() {
     redirect("/no-access");
   }
 
-  const designers = await fetchQuestionnaireOverview();
+  const [designers, { designers: exportDesigners, competencyExportColumns }] =
+    await Promise.all([
+      fetchQuestionnaireOverview(),
+      fetchDesignersWithAverages(),
+    ]);
 
   return (
     <DesignersAppShell>
-      <DesignersTopBar title="Опросник" actions={<DesignersLogoutButton />} />
-
-      <main className="flex-1 px-8 pb-12 pt-8">
-        <QuestionnaireList designers={designers} />
-      </main>
+      <QuestionnairePageClient
+        designers={designers}
+        exportDesigners={exportDesigners}
+        competencyExportColumns={competencyExportColumns}
+      />
     </DesignersAppShell>
   );
 }

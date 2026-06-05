@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { generateQuestionnaireLink } from "@/app/actions/questionnaire";
@@ -31,6 +32,22 @@ const ROLE_ORDER: Record<DesignerRole, number> = {
   lead: 3,
 };
 
+const TABLE_ROW =
+  "flex w-full items-center gap-2 self-stretch rounded-xl bg-[#F2F3F5] px-6 py-4";
+const TABLE_HEADER_ROW =
+  "flex w-full items-start gap-2 self-stretch rounded-xl bg-[#F2F3F5] px-6 py-4";
+const HEADER_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)]";
+const NAME_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start text-base font-bold leading-5 text-[rgba(3,3,6,0.88)]";
+const BODY_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start text-base leading-5 text-[rgba(3,3,6,0.88)]";
+const COL_LINK =
+  "font-sf flex w-[80px] shrink-0 flex-col items-start justify-center";
+const COL_LINK_ACTIONS = `${COL_LINK} items-center justify-end`;
+const COPY_ICON_BUTTON =
+  "inline-flex min-h-8 min-w-8 max-w-8 items-center justify-center rounded-lg bg-transparent p-1 transition-colors hover:bg-[rgba(0,0,0,0.05)] disabled:opacity-50";
+
 function scoreColor(avg: number | null) {
   if (!avg) return "#8F90A6";
   if (avg >= 8) return "#05A660";
@@ -55,12 +72,12 @@ function SortableHeader({
     <button
       type="button"
       onClick={onSort}
-      className="group inline-flex items-center gap-1 font-normal text-app-muted transition-colors hover:text-white"
+      className="font-sf group inline-flex items-center gap-1 text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
     >
       {label}
       <IconChevronDown
-        className={`shrink-0 text-app-placeholder transition-colors group-hover:text-white ${
-          active ? "rotate-180 text-app-placeholder" : ""
+        className={`shrink-0 transition-colors group-hover:text-[rgba(3,3,6,0.88)] ${
+          active ? "rotate-180 text-[rgba(3,3,6,0.88)]" : "text-[rgba(4,4,19,0.55)]"
         }`}
       />
     </button>
@@ -149,7 +166,7 @@ export function QuestionnaireList({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
+      <div className="w-full self-stretch border-b border-[#DCDCDD]">
         <nav className="flex flex-wrap items-center gap-5">
           {FILTER_OPTIONS.map((option) => {
             const active = roleFilter === option.value;
@@ -159,10 +176,10 @@ export function QuestionnaireList({
                 key={option.value}
                 type="button"
                 onClick={() => setRoleFilter(option.value)}
-                className={`border-b-2 pb-1 text-base font-normal leading-[22px] transition-colors ${
+                className={`relative -mb-px flex h-10 items-center border-b-2 text-[18px] font-normal leading-[22px] transition-colors ${
                   active
-                    ? "border-white text-white"
-                    : "border-transparent text-app-muted hover:text-white"
+                    ? "border-[#E53535] text-[#0F0F0F]"
+                    : "border-transparent text-[rgba(60,60,67,0.66)] hover:text-[#0F0F0F]"
                 }`}
               >
                 {option.label}
@@ -172,108 +189,125 @@ export function QuestionnaireList({
         </nav>
       </div>
 
-      {copyError ? <p className="mt-6 text-sm text-red-400">{copyError}</p> : null}
+      {copyError ? (
+        <p className="mt-6 text-sm text-[#E53535]">{copyError}</p>
+      ) : null}
 
       {filtered.length === 0 ? (
-        <p className="mt-6 text-base leading-6 text-app-muted">
+        <p className="mt-6 text-base leading-6 text-[rgba(60,60,67,0.66)]">
           Нет дизайнеров по выбранному фильтру.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[1180px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-app-sidebar-border text-xs font-normal leading-4 text-app-muted">
-                <th className="pb-3 pr-6 font-normal text-app-muted">ФИО</th>
-                <th className="pb-3 pr-6 font-normal">
-                  <SortableHeader
-                    label="Позиция"
-                    columnKey="role"
-                    sortKey={sortKey}
-                    onSort={() => toggleSort("role")}
-                  />
-                </th>
-                <th className="pb-3 pr-6 font-normal text-app-muted">Направление</th>
-                <th className="pb-3 pr-6 font-normal">
-                  <SortableHeader
-                    label="Ответов"
-                    columnKey="responses"
-                    sortKey={sortKey}
-                    onSort={() => toggleSort("responses")}
-                  />
-                </th>
-                <th className="pb-3 pr-6 font-normal">
-                  <SortableHeader
-                    label="Менторство"
-                    columnKey="mentorship"
-                    sortKey={sortKey}
-                    onSort={() => toggleSort("mentorship")}
-                  />
-                </th>
-                <th className="pb-3 pr-6 font-normal">
-                  <SortableHeader
-                    label="Процессы"
-                    columnKey="processes"
-                    sortKey={sortKey}
-                    onSort={() => toggleSort("processes")}
-                  />
-                </th>
-                <th className="pb-3 pr-6 font-normal">
-                  <SortableHeader
-                    label="Коммуникация"
-                    columnKey="communication"
-                    sortKey={sortKey}
-                    onSort={() => toggleSort("communication")}
-                  />
-                </th>
-                <th className="pb-3 font-normal text-app-muted">Ссылка</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((designer) => (
-                <tr
-                  key={designer.id}
-                  className="border-b border-app-sidebar-border text-base leading-6 text-white/90"
+        <div className="mt-6 flex w-full min-w-[1180px] flex-col items-start gap-2 self-stretch overflow-x-auto p-0">
+          <div className={TABLE_HEADER_ROW} role="row">
+            <div className={HEADER_COL} role="columnheader">
+              ФИО
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Позиция"
+                columnKey="role"
+                sortKey={sortKey}
+                onSort={() => toggleSort("role")}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              Направление
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Ответов"
+                columnKey="responses"
+                sortKey={sortKey}
+                onSort={() => toggleSort("responses")}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Менторство"
+                columnKey="mentorship"
+                sortKey={sortKey}
+                onSort={() => toggleSort("mentorship")}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Процессы"
+                columnKey="processes"
+                sortKey={sortKey}
+                onSort={() => toggleSort("processes")}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Коммуникация"
+                columnKey="communication"
+                sortKey={sortKey}
+                onSort={() => toggleSort("communication")}
+              />
+            </div>
+            <div
+              className={`${COL_LINK} text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)]`}
+              role="columnheader"
+            >
+              Ссылка
+            </div>
+          </div>
+
+          {filtered.map((designer) => (
+            <div key={designer.id} className={TABLE_ROW} role="row">
+              <div className={NAME_COL}>
+                <Link
+                  href={`/designers/${designer.id}`}
+                  className="transition-colors hover:text-[#E53535]"
                 >
-                  <td className="py-3 pr-6">
-                    <Link
-                      href={`/designers/${designer.id}`}
-                      className="text-sm font-semibold leading-5 text-white transition-colors hover:text-app-accent"
-                    >
-                      {designer.name}
-                    </Link>
-                  </td>
-                  <td className="py-3 pr-6">{ROLE_LABELS[designer.role]}</td>
-                  <td className="max-w-[220px] truncate py-3 pr-6">
-                    {designer.direction}
-                  </td>
-                  <td className="py-3 pr-6 tabular-nums">{designer.responseCount}</td>
-                  <td className="py-3 pr-6 tabular-nums">
-                    <ScoreCell value={designer.mentorshipAverage} />
-                  </td>
-                  <td className="py-3 pr-6 tabular-nums">
-                    <ScoreCell value={designer.processesAverage} />
-                  </td>
-                  <td className="py-3 pr-6 tabular-nums">
-                    <ScoreCell value={designer.communicationAverage} />
-                  </td>
-                  <td className="py-3">
-                    <button
-                      type="button"
-                      disabled={pendingDesignerId === designer.id}
-                      onClick={() => void handleCopy(designer.id)}
-                      className="inline-flex h-10 items-center justify-center rounded-lg bg-app-input px-4 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white disabled:opacity-50"
-                    >
-                      {copiedDesignerId === designer.id
-                        ? "Скопировано!"
-                        : pendingDesignerId === designer.id
-                          ? "Готовим..."
-                          : "Скопировать"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  {designer.name}
+                </Link>
+              </div>
+              <div className={BODY_COL}>{ROLE_LABELS[designer.role]}</div>
+              <div className={`${BODY_COL} truncate`}>{designer.direction}</div>
+              <div className={`${BODY_COL} tabular-nums`}>
+                {designer.responseCount}
+              </div>
+              <div className={`${BODY_COL} tabular-nums`}>
+                <ScoreCell value={designer.mentorshipAverage} />
+              </div>
+              <div className={`${BODY_COL} tabular-nums`}>
+                <ScoreCell value={designer.processesAverage} />
+              </div>
+              <div className={`${BODY_COL} tabular-nums`}>
+                <ScoreCell value={designer.communicationAverage} />
+              </div>
+              <div className={COL_LINK_ACTIONS}>
+                <button
+                  type="button"
+                  disabled={pendingDesignerId === designer.id}
+                  onClick={() => void handleCopy(designer.id)}
+                  className={COPY_ICON_BUTTON}
+                  title={
+                    copiedDesignerId === designer.id
+                      ? "Скопировано!"
+                      : "Скопировать ссылку"
+                  }
+                  aria-label={
+                    copiedDesignerId === designer.id
+                      ? "Ссылка скопирована"
+                      : pendingDesignerId === designer.id
+                        ? "Готовим ссылку"
+                        : `Скопировать ссылку для ${designer.name}`
+                  }
+                >
+                  <Image
+                    src="/icons/copy.svg"
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="h-4 w-4"
+                  />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </>

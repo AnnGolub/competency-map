@@ -1,24 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { DesignerFormModal } from "@/components/designers/designer-form-modal";
 import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
-import { DesignersList } from "@/components/designers/designers-list";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
+import { QuestionnaireList } from "@/components/questionnaire/questionnaire-list";
 import { IconPlus } from "@/components/ui/tabler-icons";
 import type {
   CompetencyExportColumn,
   DesignerWithAverage,
 } from "@/lib/data/queries";
+import type { QuestionnaireOverviewDesigner } from "@/lib/data/questionnaire";
 
-export function DesignersPageClient({
+export function QuestionnairePageClient({
   designers,
+  exportDesigners,
   competencyExportColumns,
 }: {
-  designers: DesignerWithAverage[];
+  designers: QuestionnaireOverviewDesigner[];
+  exportDesigners: DesignerWithAverage[];
   competencyExportColumns: CompetencyExportColumn[];
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -26,11 +30,11 @@ export function DesignersPageClient({
   return (
     <>
       <DesignersTopBar
-        title="Дизайнеры"
+        title="Опросник"
         actions={
           <>
             <DesignersCsvExport
-              designers={designers}
+              designers={exportDesigners}
               competencyColumns={competencyExportColumns}
             />
             <button
@@ -47,12 +51,14 @@ export function DesignersPageClient({
       />
 
       <main className="flex-1 bg-white px-8 pb-12 pt-8">
-        <DesignersList
-          designers={designers}
-          isAddModalOpen={isAddModalOpen}
-          onAddModalOpenChange={setIsAddModalOpen}
-        />
+        <QuestionnaireList designers={designers} />
       </main>
+
+      <DesignerFormModal
+        open={isAddModalOpen}
+        title="Добавить дизайнера"
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </>
   );
 }

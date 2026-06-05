@@ -29,7 +29,7 @@ export function DesignerFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="designer-form-modal-title"
@@ -38,35 +38,32 @@ export function DesignerFormModal({
       }}
     >
       <div
-        className="max-h-[90vh] w-full max-w-[480px] overflow-hidden rounded-xl border border-app-sidebar-border bg-app-sidebar shadow-2xl"
+        className="relative w-[500px] overflow-hidden rounded-[24px] bg-white"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 pt-6">
+        <div className="relative px-7 pt-7">
           <h2
             id="designer-form-modal-title"
-            className="text-lg font-bold leading-6 text-white"
+            className="font-sf pr-10 text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-app-muted transition-colors hover:text-white"
+            className="absolute right-7 top-7 inline-flex items-center justify-center text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
             aria-label="Закрыть"
           >
-            <IconX />
+            <IconX className="h-5 w-5" />
           </button>
         </div>
-        <div className="max-h-[calc(90vh-5rem)] overflow-y-auto px-6 pb-6 pt-6">
-          <DesignerForm
-            key={designer?.id ?? "new"}
-            theme="dark"
-            variant="modal"
-            designer={designer}
-            onCancel={onClose}
-            onSaved={onClose}
-          />
-        </div>
+        <DesignerForm
+          key={designer?.id ?? "new"}
+          variant="modal"
+          designer={designer}
+          onCancel={onClose}
+          onSaved={onClose}
+        />
       </div>
     </div>
   );

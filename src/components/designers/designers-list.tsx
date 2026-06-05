@@ -46,9 +46,19 @@ const ROLE_ORDER: Record<DesignerRole, number> = {
   lead: 3,
 };
 
-const TABLE_HEADER_CELL =
-  "px-6 py-4 text-left text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)]";
-const TABLE_BODY_CELL = "px-6 py-4 text-base leading-6 text-[rgba(3,3,6,0.88)]";
+const TABLE_ROW =
+  "flex w-full items-center gap-4 self-stretch rounded-xl bg-[#F2F3F5] px-6 py-4";
+const TABLE_HEADER_ROW =
+  "flex w-full items-start gap-4 self-stretch rounded-xl bg-[#F2F3F5] px-6 py-4";
+const HEADER_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)]";
+const NAME_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start gap-4 text-base font-bold leading-5 text-[rgba(3,3,6,0.88)]";
+const BODY_COL =
+  "font-sf flex min-w-0 flex-1 flex-col items-start text-base leading-5 text-[rgba(3,3,6,0.88)]";
+const COL_ACTIONS = "flex w-[80px] shrink-0 items-center justify-end";
+const ACTION_BUTTON =
+  "inline-flex min-h-8 min-w-8 max-w-8 items-center justify-center rounded-lg bg-transparent p-1 text-[rgba(60,60,67,0.66)] transition-colors hover:bg-[rgba(0,0,0,0.05)]";
 
 function SortableHeader({
   label,
@@ -67,7 +77,7 @@ function SortableHeader({
     <button
       type="button"
       onClick={onSort}
-      className="group inline-flex items-center gap-1 font-normal text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
+      className="font-sf group inline-flex items-center gap-1 text-xs font-normal leading-4 text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
     >
       {label}
       <IconChevronDown
@@ -151,26 +161,28 @@ export function DesignersList({
 
   return (
     <>
-      <nav className="flex flex-wrap items-center gap-5">
-        {FILTER_OPTIONS.map((opt) => {
-          const active = roleFilter === opt.value;
+      <div className="w-full self-stretch border-b border-[#DCDCDD]">
+        <nav className="flex flex-wrap items-center gap-5">
+          {FILTER_OPTIONS.map((opt) => {
+            const active = roleFilter === opt.value;
 
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setRoleFilter(opt.value)}
-              className={`flex h-10 items-center border-b-2 text-[18px] font-normal leading-[22px] transition-colors ${
-                active
-                  ? "border-[#E53535] text-[#0F0F0F]"
-                  : "border-transparent text-[rgba(60,60,67,0.66)] hover:text-[#0F0F0F]"
-              }`}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </nav>
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRoleFilter(opt.value)}
+                className={`relative -mb-px flex h-10 items-center border-b-2 text-[18px] font-normal leading-[22px] transition-colors ${
+                  active
+                    ? "border-[#E53535] text-[#0F0F0F]"
+                    : "border-transparent text-[rgba(60,60,67,0.66)] hover:text-[#0F0F0F]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
       {filtered.length === 0 && !formModalOpen ? (
         <p className="mt-6 text-base leading-6 text-[rgba(60,60,67,0.66)]">
@@ -179,98 +191,94 @@ export function DesignersList({
       ) : null}
 
       {filtered.length > 0 ? (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[880px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-[#EDEEF0]">
-                <th className={TABLE_HEADER_CELL}>ФИО</th>
-                <th className={TABLE_HEADER_CELL}>
-                  <SortableHeader
-                    label="Позиция"
-                    columnKey="role"
-                    sortKey={sortKey}
-                    onSort={toggleRoleSort}
-                  />
-                </th>
-                <th className={TABLE_HEADER_CELL}>Направление</th>
-                <th className={TABLE_HEADER_CELL}>
-                  <SortableHeader
-                    label="Средний балл"
-                    columnKey="score"
-                    sortKey={sortKey}
-                    onSort={toggleScoreSort}
-                  />
-                </th>
-                <th className={TABLE_HEADER_CELL}>Статус</th>
-                <th className={`${TABLE_HEADER_CELL} w-28`} aria-label="Действия" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((designer) => (
-                <tr
-                  key={designer.id}
-                  className="border-b border-[#EDEEF0]"
+        <div className="mt-6 flex w-full min-w-[880px] flex-col items-start gap-2 self-stretch overflow-x-auto p-0">
+          <div className={TABLE_HEADER_ROW} role="row">
+            <div className={HEADER_COL} role="columnheader">
+              ФИО
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Позиция"
+                columnKey="role"
+                sortKey={sortKey}
+                onSort={toggleRoleSort}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              Направление
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Средний балл"
+                columnKey="score"
+                sortKey={sortKey}
+                onSort={toggleScoreSort}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              Статус
+            </div>
+            <div className={COL_ACTIONS} role="columnheader" aria-label="Действия" />
+          </div>
+
+          {filtered.map((designer) => (
+            <div key={designer.id} className={TABLE_ROW} role="row">
+              <div className={NAME_COL}>
+                <Link
+                  href={`/designers/${designer.id}`}
+                  className="transition-colors hover:text-[#E53535]"
                 >
-                  <td className={TABLE_BODY_CELL}>
-                    <Link
-                      href={`/designers/${designer.id}`}
-                      className="text-base font-bold leading-6 text-[rgba(3,3,6,0.88)] transition-colors hover:text-[#E53535]"
-                    >
-                      {designer.name}
-                    </Link>
-                  </td>
-                  <td className={TABLE_BODY_CELL}>{ROLE_LABELS[designer.role]}</td>
-                  <td className={`${TABLE_BODY_CELL} max-w-[220px] truncate`}>
-                    {designer.direction}
-                  </td>
-                  <td className={`${TABLE_BODY_CELL} tabular-nums`}>
-                    {formatScore(designer.averageScore)}
-                  </td>
-                  <td className={TABLE_BODY_CELL}>
-                    <span
-                      style={{
-                        background: STATUS_STYLES[designer.reviewStatus].background,
-                        color: "rgba(255, 255, 255, 0.94)",
-                        borderRadius: "6px",
-                        padding: "2px 8px",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {STATUS_STYLES[designer.reviewStatus].label}
-                    </span>
-                  </td>
-                  <td className={TABLE_BODY_CELL}>
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        title="Изменить"
-                        aria-label={`Изменить ${designer.name}`}
-                        onClick={() => setEditingDesigner(designer)}
-                        className="rounded p-0.5 text-[rgba(60,60,67,0.66)] transition-opacity hover:opacity-80"
-                      >
-                        <IconDesignerEdit className="text-[rgba(60,60,67,0.66)]" />
-                      </button>
-                      <button
-                        type="button"
-                        title="Удалить"
-                        aria-label={`Удалить ${designer.name}`}
-                        onClick={() => {
-                          setDeleteError(null);
-                          setDeletingDesigner(designer);
-                        }}
-                        className="rounded p-0.5 text-[rgba(60,60,67,0.66)] transition-opacity hover:opacity-80"
-                      >
-                        <IconDesignerDelete className="text-[rgba(60,60,67,0.66)]" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  {designer.name}
+                </Link>
+              </div>
+              <div className={BODY_COL}>{ROLE_LABELS[designer.role]}</div>
+              <div className={`${BODY_COL} truncate`}>{designer.direction}</div>
+              <div className={`${BODY_COL} tabular-nums`}>
+                {formatScore(designer.averageScore)}
+              </div>
+              <div className={BODY_COL}>
+                <span
+                  style={{
+                    background: STATUS_STYLES[designer.reviewStatus].background,
+                    color: "rgba(255, 255, 255, 0.94)",
+                    borderRadius: "6px",
+                    padding: "2px 8px",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {STATUS_STYLES[designer.reviewStatus].label}
+                </span>
+              </div>
+              <div className={COL_ACTIONS}>
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    title="Изменить"
+                    aria-label={`Изменить ${designer.name}`}
+                    onClick={() => setEditingDesigner(designer)}
+                    className={ACTION_BUTTON}
+                  >
+                    <IconDesignerEdit className="text-[rgba(60,60,67,0.66)]" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Удалить"
+                    aria-label={`Удалить ${designer.name}`}
+                    onClick={() => {
+                      setDeleteError(null);
+                      setDeletingDesigner(designer);
+                    }}
+                    className={ACTION_BUTTON}
+                  >
+                    <IconDesignerDelete className="text-[rgba(60,60,67,0.66)]" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : null}
 
