@@ -20,16 +20,23 @@ function formatReviewDate(iso: string | null): string {
 export function DesignerProfileHeader({
   designer,
   lastReviewAt,
+  hasLeadReview,
+  selfReviewCompleted,
   hasFinalReview,
 }: {
   designer: Designer;
   lastReviewAt: string | null;
+  hasLeadReview: boolean;
+  selfReviewCompleted: boolean;
   hasFinalReview: boolean;
 }) {
-  const reviewHref = hasFinalReview
-    ? `/designers/${designer.id}/review`
-    : `/designers/${designer.id}/final-review`;
-  const reviewLabel = hasFinalReview ? "Провести ревью" : "Завершить ревью";
+  const readyForFinalReview =
+    selfReviewCompleted && hasLeadReview && !hasFinalReview;
+
+  const reviewHref = readyForFinalReview
+    ? `/designers/${designer.id}/final-review`
+    : `/designers/${designer.id}/review`;
+  const reviewLabel = readyForFinalReview ? "Завершить ревью" : "Провести ревью";
 
   return (
     <section className="flex min-w-[280px] flex-1 flex-col justify-between self-stretch rounded-[24px] bg-[#F2F3F5] p-6">

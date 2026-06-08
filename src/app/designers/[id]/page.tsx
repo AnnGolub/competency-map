@@ -146,6 +146,7 @@ export default async function DesignerProfilePage({
         designer={designer}
         lastReviewAt={lastReviewAt}
         hasFinalReview={hasFinalReview}
+        selfReviewCompleted={selfReviewCompleted}
         average={avg}
         belowCount={belowCount}
         growth={growth}
