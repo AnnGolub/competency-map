@@ -28,6 +28,7 @@ export function DesignerProfilePageClient({
   designer,
   lastReviewAt,
   hasFinalReview,
+  selfReviewCompleted,
   average,
   belowCount,
   growth,
@@ -43,6 +44,7 @@ export function DesignerProfilePageClient({
   designer: Designer;
   lastReviewAt: string | null;
   hasFinalReview: boolean;
+  selfReviewCompleted: boolean;
   average: number | null;
   belowCount: number;
   growth: number | null;
@@ -88,6 +90,8 @@ export function DesignerProfilePageClient({
             <DesignerProfileHeader
               designer={designer}
               lastReviewAt={lastReviewAt}
+              hasLeadReview={hasLeadReview}
+              selfReviewCompleted={selfReviewCompleted}
               hasFinalReview={hasFinalReview}
             />
             <DesignerMetricCards
