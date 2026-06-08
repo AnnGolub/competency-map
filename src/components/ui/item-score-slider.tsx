@@ -80,11 +80,7 @@ export function ItemScoreSlider({
           </span>
           <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-0.5 rounded-lg bg-[#E0E0E0]">
             <div
-              className="absolute left-0 top-0 h-0.5 rounded-lg bg-[#212124]"
-              style={{ width: `${thumbPercent}%` }}
-            />
-            <div
-              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E53535] transition-[left] duration-75 ease-out"
+              className="absolute top-1/2 h-[16px] w-[16px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E53535] transition-[left] duration-75 ease-out"
               style={{ left: `${thumbPercent}%` }}
             />
           </div>

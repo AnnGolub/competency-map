@@ -60,8 +60,8 @@ function ScoreButtons({
   labelRight: string;
 }) {
   return (
-    <div>
-      <div className="mt-3 flex flex-wrap gap-2">
+    <div className="inline-flex flex-col">
+      <div className="flex flex-nowrap gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => {
           const selected = value === n;
 
@@ -70,7 +70,7 @@ function ScoreButtons({
               key={n}
               type="button"
               onClick={() => onChange(n)}
-              className={`font-sf inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm leading-5 transition-colors ${
+              className={`font-sf inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm leading-5 transition-colors ${
                 selected
                   ? "border-0 bg-[#212124] text-[rgba(255,255,255,0.94)]"
                   : "border border-[#EDEEF0] bg-white text-[rgba(3,3,6,0.88)]"
@@ -81,11 +81,11 @@ function ScoreButtons({
           );
         })}
       </div>
-      <div className="mt-2 flex justify-between gap-4">
-        <span className="font-sf max-w-[45%] text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
+      <div className="mt-2 flex w-full justify-between">
+        <span className="font-sf whitespace-nowrap text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {labelLeft}
         </span>
-        <span className="font-sf max-w-[45%] text-right text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
+        <span className="font-sf whitespace-nowrap text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {labelRight}
         </span>
       </div>
