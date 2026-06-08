@@ -3,6 +3,46 @@ export const dynamic = "force-dynamic";
 import { PublicSelfReviewForm } from "@/components/self-review/public-self-review-form";
 import { fetchPublicSelfReviewByToken } from "@/lib/data/self-review-tokens";
 
+function SelfReviewShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main className="min-h-screen bg-white px-8 py-8">
+      <div className="mx-auto w-full max-w-[1152px]">{children}</div>
+    </main>
+  );
+}
+
+function SelfReviewMessage({
+  title,
+  subtitle,
+  message,
+}: {
+  title: string;
+  subtitle?: string;
+  message: string;
+}) {
+  return (
+    <SelfReviewShell>
+      <header className="flex flex-col gap-2">
+        <h1 className="font-sf text-[30px] font-bold leading-9 tracking-[0.1px] text-[rgba(3,3,6,0.88)]">
+          {title}
+        </h1>
+        {subtitle ? (
+          <p className="font-sf text-base font-normal leading-6 tracking-[-0.24px] text-[rgba(3,3,6,0.88)]">
+            {subtitle}
+          </p>
+        ) : null}
+      </header>
+      <p className="font-sf mt-6 rounded-[24px] bg-[#F2F3F5] p-6 text-sm leading-5 text-[rgba(4,4,19,0.55)]">
+        {message}
+      </p>
+    </SelfReviewShell>
+  );
+}
+
 export default async function SelfReviewPage({
   searchParams,
 }: {
@@ -12,14 +52,10 @@ export default async function SelfReviewPage({
 
   if (!token) {
     return (
-      <main className="font-avenir min-h-screen bg-app-canvas px-4 py-16 text-white">
-        <div className="mx-auto max-w-lg">
-          <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
-          <p className="mt-4 text-sm text-app-placeholder">
-            Неверная ссылка. Запросите новую у лида команды.
-          </p>
-        </div>
-      </main>
+      <SelfReviewMessage
+        title="Самооценка"
+        message="Неверная ссылка. Запросите новую у лида команды."
+      />
     );
   }
 
@@ -27,58 +63,44 @@ export default async function SelfReviewPage({
 
   if (!data) {
     return (
-      <main className="font-avenir min-h-screen bg-app-canvas px-4 py-16 text-white">
-        <div className="mx-auto max-w-lg">
-          <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
-          <p className="mt-4 text-sm text-app-placeholder">
-            Ссылка недействительна. Запросите новую у лида команды.
-          </p>
-        </div>
-      </main>
+      <SelfReviewMessage
+        title="Самооценка"
+        message="Ссылка недействительна. Запросите новую у лида команды."
+      />
     );
   }
 
   if (data.completed) {
     return (
-      <main className="font-avenir min-h-screen bg-app-canvas px-4 py-16 text-white">
-        <div className="mx-auto max-w-lg">
-          <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
-          <p className="mt-2 text-base leading-6 text-app-placeholder">
-            {data.designerName}
-          </p>
-          <p className="mt-6 rounded-xl border border-app-border bg-app-sidebar p-6 text-sm text-app-placeholder">
-            Самооценка уже отправлена. Повторно заполнить форму по этой ссылке
-            нельзя.
-          </p>
-        </div>
-      </main>
+      <SelfReviewMessage
+        title="Самооценка"
+        subtitle={data.designerName}
+        message="Самооценка уже отправлена. Повторно заполнить форму по этой ссылке нельзя."
+      />
     );
   }
 
   if (data.expired) {
     return (
-      <main className="font-avenir min-h-screen bg-app-canvas px-4 py-16 text-white">
-        <div className="mx-auto max-w-lg">
-          <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
-          <p className="mt-4 text-sm text-app-placeholder">
-            Срок действия ссылки истёк. Запросите новую у лида команды.
-          </p>
-        </div>
-      </main>
+      <SelfReviewMessage
+        title="Самооценка"
+        subtitle={data.designerName}
+        message="Срок действия ссылки истёк. Запросите новую у лида команды."
+      />
     );
   }
 
   return (
-    <main className="font-avenir min-h-screen bg-app-canvas px-4 py-10 text-white">
-      <div className="mx-auto max-w-[1152px]">
-        <header className="mb-10 max-w-[818px]">
-          <h1 className="text-[30px] font-bold leading-9">Самооценка</h1>
-          <p className="mt-1 text-base leading-6 text-app-placeholder">
-            {data.designerName}
-          </p>
-        </header>
-        <PublicSelfReviewForm token={token} data={data} />
-      </div>
-    </main>
+    <SelfReviewShell>
+      <header className="mb-8 flex flex-col gap-2">
+        <h1 className="font-sf text-[30px] font-bold leading-9 tracking-[0.1px] text-[rgba(3,3,6,0.88)]">
+          Самооценка — {data.designerName}
+        </h1>
+        <p className="font-sf text-base font-normal leading-6 tracking-[-0.24px] text-[rgba(3,3,6,0.88)]">
+          {data.designerRole}
+        </p>
+      </header>
+      <PublicSelfReviewForm token={token} data={data} />
+    </SelfReviewShell>
   );
 }

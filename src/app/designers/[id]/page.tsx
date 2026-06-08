@@ -6,11 +6,9 @@ import { DesignersAppShell } from "@/components/designers/designers-app-shell";
 import {
   collectVisibleItems,
   computeHalfYearGrowth,
-  countBelowExpected,
   filterCompetenciesForRole,
+  getExpectedScore,
   groupItemsByCompetency,
-  primaryVisibleScore,
-  resolveBlindScoresFromItems,
   averageScore,
 } from "@/lib/competency-utils";
 import {
@@ -20,6 +18,7 @@ import {
   fetchDesignersWithAverages,
   fetchItemScoresForDesigner,
 } from "@/lib/data/queries";
+import { fetchQuestionnaireFeedbackStats } from "@/lib/data/questionnaire";
 import { hasCompletedSelfReview } from "@/lib/data/self-review-tokens";
 import { canAccessDesignerProfile, getSessionContext } from "@/lib/session";
 
@@ -45,11 +44,13 @@ export default async function DesignerProfilePage({
   );
   const competencyIds = visibleCompetencies.map((c) => c.id);
 
-  const [items, itemScores, selfReviewCompleted, designersExport] = await Promise.all([
+  const [items, itemScores, selfReviewCompleted, designersExport, feedbackStats] =
+    await Promise.all([
     fetchCompetencyItemsForCompetencies(competencyIds),
     fetchItemScoresForDesigner(params.id),
     hasCompletedSelfReview(params.id),
     fetchDesignersWithAverages(),
+    fetchQuestionnaireFeedbackStats(params.id),
   ]);
 
   const itemsByCompetencyMap = groupItemsByCompetency(items, designer.role, {
@@ -87,31 +88,15 @@ export default async function DesignerProfilePage({
     return null;
   }
 
-  const primaryScores = new Map<string, number>();
-  for (const c of visibleCompetencies) {
-    const competencyItems = itemsByCompetencyMap.get(c.id) ?? [];
-    const finalValues = competencyItems
-      .map((item) => resolvedPrimaryScore(item.id))
-      .filter((score): score is number => score !== null);
-    const blind = resolveBlindScoresFromItems(
-      competencyItems,
-      scoresByItemMap,
-      selfReviewCompleted
-    );
-    const primary =
-      finalValues.length > 0 ? averageScore(finalValues) : primaryVisibleScore(blind);
-    if (primary !== null) primaryScores.set(c.id, primary);
-  }
-
   const leadItemScores = visibleItems
     .map((item) => resolvedPrimaryScore(item.id))
     .filter((s): s is number => s !== null && s !== undefined);
 
   const avg = averageScore(leadItemScores);
-  const belowCount = countBelowExpected(
-    visibleCompetencies,
-    primaryScores,
-    designer.role
+  const expectedAverage = averageScore(
+    visibleCompetencies.map((competency) =>
+      getExpectedScore(competency, designer.role)
+    )
   );
   const growth = computeHalfYearGrowth(itemScores);
 
@@ -148,9 +133,10 @@ export default async function DesignerProfilePage({
         hasFinalReview={hasFinalReview}
         selfReviewCompleted={selfReviewCompleted}
         average={avg}
-        belowCount={belowCount}
+        expectedAverage={expectedAverage}
         growth={growth}
-        maxBelow={visibleCompetencies.length}
+        feedbackResponseCount={feedbackStats.responseCount}
+        feedbackAverage={feedbackStats.averageScore}
         competencies={visibleCompetencies}
         itemsByCompetency={itemsByCompetency}
         scoresByItem={scoresByItem}

@@ -30,9 +30,10 @@ export function DesignerProfilePageClient({
   hasFinalReview,
   selfReviewCompleted,
   average,
-  belowCount,
+  expectedAverage,
   growth,
-  maxBelow,
+  feedbackResponseCount,
+  feedbackAverage,
   competencies,
   itemsByCompetency,
   scoresByItem,
@@ -46,9 +47,10 @@ export function DesignerProfilePageClient({
   hasFinalReview: boolean;
   selfReviewCompleted: boolean;
   average: number | null;
-  belowCount: number;
+  expectedAverage: number | null;
   growth: number | null;
-  maxBelow: number;
+  feedbackResponseCount: number;
+  feedbackAverage: number | null;
   competencies: Competency[];
   itemsByCompetency: Record<string, CompetencyItem[]>;
   scoresByItem: Record<string, ItemScore>;
@@ -97,9 +99,11 @@ export function DesignerProfilePageClient({
             <DesignerMetricCards
               variant="sidebar"
               average={average}
-              belowCount={belowCount}
+              expectedAverage={expectedAverage}
+              role={designer.role}
               growth={growth}
-              maxBelow={maxBelow}
+              feedbackResponseCount={feedbackResponseCount}
+              feedbackAverage={feedbackAverage}
             />
           </div>
 

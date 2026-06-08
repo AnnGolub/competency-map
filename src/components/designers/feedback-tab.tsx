@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -28,7 +27,6 @@ type ScoreQuestion = {
 type FeedbackGroup = {
   key: "mentorship" | "processes" | "communication";
   title: string;
-  iconSrc: string;
   questions: readonly ScoreQuestion[];
 };
 
@@ -36,28 +34,22 @@ const FEEDBACK_GROUPS: readonly FeedbackGroup[] = [
   {
     key: "mentorship",
     title: "Менторство",
-    iconSrc: "/icons/Ranking.svg",
     questions: MENTORSHIP_QUESTIONS,
   },
   {
     key: "processes",
     title: "Процессы",
-    iconSrc: "/icons/Activity.svg",
     questions: PROCESSES_QUESTIONS,
   },
   {
     key: "communication",
     title: "Коммуникация",
-    iconSrc: "/icons/Emoji-sad.svg",
     questions: COMMUNICATION_QUESTIONS,
   },
 ] as const;
 
-const SECTION_CARD_STYLE = {
-  background: "#1E2130",
-  borderRadius: "24px",
-  border: "1px solid #2A2D3A",
-} as const;
+const BLOCK_CARD_CLASS =
+  "flex flex-col gap-6 rounded-[24px] bg-[#F2F3F5] p-6";
 
 function buildAnswerMap(answers: QuestionnaireAnswerRow[] | null) {
   return new Map(
@@ -76,20 +68,6 @@ function buildTextAnswerMap(answers: QuestionnaireAnswerRow[] | null) {
   );
 }
 
-function averageQuestionScores(
-  responses: QuestionnaireResponseWithAnswers[],
-  keys: readonly string[]
-) {
-  const values = responses.flatMap((response) => {
-    const answerMap = buildAnswerMap(response.questionnaire_answers);
-    return keys
-      .map((key) => answerMap.get(key))
-      .filter((score): score is number => typeof score === "number");
-  });
-
-  return averageScore(values);
-}
-
 function averageForQuestion(
   responses: QuestionnaireResponseWithAnswers[],
   questionKey: string
@@ -103,76 +81,6 @@ function averageForQuestion(
   return averageScore(values);
 }
 
-function MetricSummaryCard({
-  title,
-  iconSrc,
-  average,
-  responseCount,
-}: {
-  title: string;
-  iconSrc: string;
-  average: number | null;
-  responseCount: number;
-}) {
-  const progress = average === null ? 0 : Math.min(1, average / 10);
-  const size = 44;
-  const stroke = 3;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - progress);
-
-  return (
-    <article
-      className="flex min-w-0 items-center justify-between gap-4 p-6"
-      style={SECTION_CARD_STYLE}
-    >
-      <div className="flex min-w-0 items-center gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#3E7BFA] to-[#6600CC]">
-          <Image src={iconSrc} alt="" width={24} height={24} className="shrink-0" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold leading-5 text-white">{title}</p>
-          <p className="text-sm leading-5 text-app-placeholder">
-            На основе {responseCount} ответов
-          </p>
-        </div>
-      </div>
-      <div className="relative h-11 w-11 shrink-0">
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          className="-rotate-90"
-          aria-hidden
-        >
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="#2A2D3A"
-            strokeWidth={stroke}
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="#3E7BFA"
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-          />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums text-white">
-          {average === null ? "—" : average.toFixed(1)}
-        </span>
-      </div>
-    </article>
-  );
-}
-
 function QuestionScoreRow({
   question,
   average,
@@ -183,47 +91,34 @@ function QuestionScoreRow({
   const width = average === null ? 0 : `${(average / 10) * 100}%`;
 
   return (
-    <div
-      className="rounded-2xl border border-[#2A2D3A] bg-[#151826] p-4"
-      style={{ marginTop: "12px" }}
-    >
+    <div className="rounded-xl bg-white p-4">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-sm leading-6 text-white">{question.text}</p>
-        <span className="shrink-0 text-sm font-semibold tabular-nums text-white">
-          {average === null ? "—" : `${average.toFixed(1)}/10`}
+        <p className="font-sf text-sm leading-5 text-[rgba(3,3,6,0.88)]">
+          {question.text}
+        </p>
+        <span className="font-sf shrink-0 text-sm font-bold tabular-nums text-[rgba(3,3,6,0.88)]">
+          {average === null ? "—" : average.toFixed(1)}
         </span>
       </div>
       <div
-        style={{
-          marginTop: "12px",
-          height: "8px",
-          background: "#2A2D3A",
-          borderRadius: "999px",
-          overflow: "hidden",
-        }}
+        className="mt-3 overflow-hidden rounded-[2px]"
+        style={{ height: 4, background: "#E0E0E0" }}
       >
         <div
           style={{
             width,
             height: "100%",
-            background: "#2F6FED",
-            borderRadius: "999px",
+            background: "#212124",
+            borderRadius: 2,
             transition: "width 0.2s ease",
           }}
         />
       </div>
-      <div
-        style={{
-          marginTop: "8px",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "16px",
-        }}
-      >
-        <span className="max-w-[45%] text-xs leading-5 text-app-placeholder">
+      <div className="mt-2 flex justify-between gap-4">
+        <span className="font-sf max-w-[45%] text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {question.left}
         </span>
-        <span className="max-w-[45%] text-right text-xs leading-5 text-app-placeholder">
+        <span className="font-sf max-w-[45%] text-right text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {question.right}
         </span>
       </div>
@@ -239,23 +134,26 @@ function FeedbackTextColumn({
   entries: { name: string; text: string }[];
 }) {
   return (
-    <div style={SECTION_CARD_STYLE} className="p-6">
-      <h3 className="text-base font-semibold leading-6 text-white">{title}</h3>
-      <div className="mt-4 space-y-3">
+    <div className={BLOCK_CARD_CLASS}>
+      <h3 className="font-sf text-lg font-bold leading-6 tracking-[0.38px] text-[rgba(3,3,6,0.88)]">
+        {title}
+      </h3>
+      <div className="flex flex-col gap-3">
         {entries.length > 0 ? (
           entries.map((entry, index) => (
-            <article
-              key={`${title}-${index}`}
-              className="rounded-2xl border border-[#2A2D3A] bg-[#151826] p-4"
-            >
-              <p className="text-xs font-medium uppercase tracking-[0.04em] text-app-placeholder">
+            <article key={`${title}-${index}`} className="rounded-xl bg-white p-4">
+              <p className="font-sf text-[11px] font-medium uppercase tracking-[0.04em] text-[rgba(4,4,19,0.55)]">
                 {entry.name}
               </p>
-              <p className="mt-2 text-sm leading-6 text-white">{entry.text}</p>
+              <p className="font-sf mt-2 text-sm leading-5 text-[rgba(3,3,6,0.88)]">
+                {entry.text}
+              </p>
             </article>
           ))
         ) : (
-          <p className="text-sm leading-6 text-app-placeholder">Ответов пока нет.</p>
+          <p className="font-sf text-sm leading-5 text-[rgba(4,4,19,0.55)]">
+            Ответов пока нет.
+          </p>
         )}
       </div>
     </div>
@@ -305,18 +203,6 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
     };
   }, [designerId]);
 
-  const summaryCards = useMemo(
-    () =>
-      FEEDBACK_GROUPS.map((group) => ({
-        ...group,
-        average: averageQuestionScores(
-          responses,
-          group.questions.map((question) => question.key)
-        ),
-      })),
-    [responses]
-  );
-
   const textColumns = useMemo(() => {
     const getName = (response: QuestionnaireResponseRow) =>
       response.respondent_name?.trim() || "Аноним";
@@ -358,13 +244,15 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
 
   if (loading) {
     return (
-      <p style={{ marginTop: "40px", color: "#8F90A6" }}>Загрузка обратной связи...</p>
+      <p className="mt-10 font-sf text-sm text-[rgba(4,4,19,0.55)]">
+        Загрузка обратной связи...
+      </p>
     );
   }
 
   if (error) {
     return (
-      <p style={{ marginTop: "40px", color: "#F97066" }} role="alert">
+      <p className="mt-10 font-sf text-sm text-[#E53535]" role="alert">
         {error}
       </p>
     );
@@ -372,29 +260,17 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
 
   if (responses.length === 0) {
     return (
-      <p style={{ marginTop: "40px", color: "#8F90A6" }}>
+      <p className="mt-10 font-sf text-sm text-[rgba(4,4,19,0.55)]">
         Обратная связь пока не собрана. Отправьте ссылку на опросник коллегам.
       </p>
     );
   }
 
   return (
-    <section style={{ marginTop: "40px" }} data-designer-id={designerId}>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {summaryCards.map((card) => (
-          <MetricSummaryCard
-            key={card.key}
-            title={card.title}
-            iconSrc={card.iconSrc}
-            average={card.average}
-            responseCount={responses.length}
-          />
-        ))}
-      </div>
-
-      <div className="mt-10 space-y-6">
+    <section className="mt-10" data-designer-id={designerId}>
+      <div className="flex flex-col gap-6">
         {FEEDBACK_GROUPS.map((group) => (
-          <section key={group.key} style={SECTION_CARD_STYLE} className="p-6">
+          <section key={group.key} className={BLOCK_CARD_CLASS}>
             <button
               type="button"
               className="flex w-full items-center justify-between gap-4 text-left"
@@ -407,20 +283,22 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
               aria-expanded={openSections[group.key]}
             >
               <div>
-                <h3 className="text-base font-semibold leading-6 text-white">{group.title}</h3>
-                <p className="mt-1 text-sm leading-5 text-app-placeholder">
+                <h3 className="font-sf text-lg font-bold leading-6 tracking-[0.38px] text-[rgba(3,3,6,0.88)]">
+                  {group.title}
+                </h3>
+                <p className="font-sf mt-1 text-sm leading-5 text-[rgba(4,4,19,0.55)]">
                   Средние оценки по вопросам блока
                 </p>
               </div>
               <IconChevronDown
-                className={`shrink-0 text-app-placeholder transition-transform ${
+                className={`shrink-0 text-[rgba(4,4,19,0.55)] transition-transform ${
                   openSections[group.key] ? "rotate-180" : ""
                 }`}
               />
             </button>
 
             {openSections[group.key] ? (
-              <div className="mt-4">
+              <div className="flex flex-col gap-3">
                 {group.questions.map((question) => (
                   <QuestionScoreRow
                     key={question.key}
@@ -435,7 +313,9 @@ export function FeedbackTab({ designerId }: { designerId: string }) {
       </div>
 
       <section className="mt-10">
-        <h2 className="text-base font-semibold leading-6 text-white">Что говорит команда</h2>
+        <h2 className="font-sf text-lg font-bold leading-6 tracking-[0.38px] text-[rgba(3,3,6,0.88)]">
+          Что говорит команда
+        </h2>
         <div className="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
           <FeedbackTextColumn title="Начать делать" entries={textColumns.startDoing} />
           <FeedbackTextColumn title="Прекратить" entries={textColumns.stopDoing} />

@@ -24,6 +24,18 @@ import type { CompetencyBlock } from "@/types/database";
 const REVIEW_STEP_ORDER: CompetencyBlock[] = ["hard", "soft", "leadership"];
 const FINAL_SCORE_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4] as const;
 
+const PRIMARY_BUTTON =
+  "font-sf inline-flex h-auto w-auto min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[#212124] px-5 py-1 text-base font-medium leading-6 text-[rgba(255,255,255,0.94)] transition-opacity hover:opacity-90 disabled:opacity-50";
+
+const SECONDARY_BUTTON =
+  "font-sf inline-flex h-auto w-auto min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50";
+
+const SCORE_BADGE =
+  "font-sf inline-flex shrink-0 items-center rounded-[6px] bg-[#F2F3F5] px-2 py-0.5 text-sm tabular-nums leading-5 text-[rgba(3,3,6,0.88)]";
+
+const FINAL_SELECT =
+  "font-sf w-[72px] shrink-0 rounded-lg border-0 bg-[#F2F3F5] px-2 py-1 text-sm leading-5 text-[rgba(3,3,6,0.88)] outline-none";
+
 type FormState = Record<string, string>;
 
 function buildInitialState(
@@ -72,6 +84,45 @@ function isValidStepScore(value: number): boolean {
   return value >= 1 && value <= 4 && Math.round(value * 10) % 5 === 0;
 }
 
+function formatOptionalScore(value: number | null | undefined) {
+  return value !== null && value !== undefined ? Number(value).toFixed(1) : "—";
+}
+
+function FinalReviewItemRow({
+  text,
+  selfScore,
+  leadScore,
+  finalScore,
+  onFinalScoreChange,
+}: {
+  text: string;
+  selfScore: number | null | undefined;
+  leadScore: number | null | undefined;
+  finalScore: string;
+  onFinalScoreChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:gap-4">
+      <p className="font-sf text-sm leading-[18px] text-[rgba(3,3,6,0.88)]">{text}</p>
+      <span className={SCORE_BADGE}>{formatOptionalScore(selfScore)}</span>
+      <span className={SCORE_BADGE}>{formatOptionalScore(leadScore)}</span>
+      <select
+        value={finalScore}
+        onChange={(event) => onFinalScoreChange(event.target.value)}
+        className={FINAL_SELECT}
+        aria-label={`Финальная оценка: ${text}`}
+      >
+        <option value="">—</option>
+        {FINAL_SCORE_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option.toFixed(1)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export function FinalReviewForm({
   designer,
   competencies,
@@ -105,11 +156,6 @@ export function FinalReviewForm({
       ) as Record<string, number | null>,
     [form]
   );
-
-  const primaryButtonCls =
-    "inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
-  const secondaryButtonCls =
-    "inline-flex h-10 items-center justify-center rounded-lg px-5 text-sm font-semibold leading-5 text-white transition-colors hover:opacity-90 disabled:opacity-50";
 
   function handleContinue() {
     setError(null);
@@ -164,32 +210,26 @@ export function FinalReviewForm({
 
   if (steps.length === 0) {
     return (
-      <p className="text-base leading-6 text-app-placeholder">
+      <p className="font-sf text-base leading-6 text-[rgba(60,60,67,0.66)]">
         Нет блоков компетенций для финального ревью.
       </p>
     );
   }
 
   return (
-    <div className="max-w-[1152px]">
-      <ReviewStepper steps={steps} currentIndex={stepIndex} />
+    <div className="flex w-full flex-col self-stretch">
+      <div className="w-full">
+        <ReviewStepper steps={steps} currentIndex={stepIndex} />
+      </div>
 
       {error ? (
-        <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="mt-6 rounded-lg border border-[#E53535]/30 bg-[#E53535]/10 px-3 py-2 text-sm text-[#E53535]">
           {error}
         </p>
       ) : null}
 
-      <section className="mt-10">
-        <h2
-          style={{
-            fontFamily: "Avenir Next, sans-serif",
-            fontWeight: 700,
-            fontSize: "22px",
-            lineHeight: "26px",
-            color: "#ffffff",
-          }}
-        >
+      <section className="mt-8">
+        <h2 className="font-sf text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]">
           {currentBlock ? BLOCK_LABELS[currentBlock] : ""}
         </h2>
 
@@ -202,152 +242,25 @@ export function FinalReviewForm({
               role={designer.role}
               form={numericForm}
               onScoreChange={() => {}}
-              renderItem={(item) => {
-                const selfScore = scoresByItem[item.id]?.self_score;
-                const leadScore = scoresByItem[item.id]?.score;
-                const finalScore = form[item.id] ?? "";
-
-                return (
-                  <div>
-                    <p
-                      style={{
-                        paddingBottom: "6px",
-                        fontSize: "14px",
-                        lineHeight: "18px",
-                        color: "#8F90A6",
-                      }}
-                    >
-                      {item.text}
-                    </p>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr 1fr",
-                        gap: "12px",
-                        marginTop: "8px",
-                      }}
-                    >
-                      <div>
-                        <div
-                          style={{
-                            background: "#3E4153",
-                            borderRadius: "12px",
-                            padding: "12px 16px",
-                            height: "48px",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          <p
-                            style={{ fontSize: "16px", color: "#fff", margin: 0 }}
-                          >
-                            {selfScore !== null && selfScore !== undefined
-                              ? Number(selfScore).toFixed(1)
-                              : "—"}
-                          </p>
-                        </div>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "#8F90A6",
-                            marginTop: "6px",
-                          }}
-                        >
-                          Дизайнер
-                        </p>
-                      </div>
-                      <div>
-                        <div
-                          style={{
-                            background: "#3E4153",
-                            borderRadius: "12px",
-                            padding: "12px 16px",
-                            height: "48px",
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
-                          <p
-                            style={{ fontSize: "16px", color: "#fff", margin: 0 }}
-                          >
-                            {leadScore !== null && leadScore !== undefined
-                              ? Number(leadScore).toFixed(1)
-                              : "—"}
-                          </p>
-                        </div>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "#8F90A6",
-                            marginTop: "6px",
-                          }}
-                        >
-                          Лид
-                        </p>
-                      </div>
-                      <div>
-                        <div
-                          style={{
-                            background: "#3E4153",
-                            borderRadius: "12px",
-                            padding: "12px 16px",
-                            height: "48px",
-                            display: "flex",
-                            alignItems: "center",
-                            border: "1px solid #4A4D5E",
-                          }}
-                        >
-                          <select
-                            value={finalScore}
-                            onChange={(event) =>
-                              handleFinalScoreChange(item.id, event.target.value)
-                            }
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              outline: "none",
-                              fontSize: "16px",
-                              color: "#fff",
-                              width: "100%",
-                              padding: 0,
-                              margin: 0,
-                            }}
-                          >
-                            <option value="">—</option>
-                            {FINAL_SCORE_OPTIONS.map((option) => (
-                              <option key={option} value={option}>
-                                {option.toFixed(1)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "#8F90A6",
-                            marginTop: "6px",
-                          }}
-                        >
-                          Финальное значение
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }}
+              renderItem={(item) => (
+                <FinalReviewItemRow
+                  text={item.text}
+                  selfScore={scoresByItem[item.id]?.self_score}
+                  leadScore={scoresByItem[item.id]?.score}
+                  finalScore={form[item.id] ?? ""}
+                  onFinalScoreChange={(value) =>
+                    handleFinalScoreChange(item.id, value)
+                  }
+                />
+              )}
             />
           ))}
         </div>
       </section>
 
-      <div className="mt-10 flex gap-3">
+      <div className="mt-8 flex gap-4">
         {!isFirstStep ? (
-          <button
-            type="button"
-            onClick={handleBack}
-            className={secondaryButtonCls}
-            style={{ background: "#3E4153", color: "#C7C9D9" }}
-          >
+          <button type="button" onClick={handleBack} className={SECONDARY_BUTTON}>
             Назад
           </button>
         ) : null}
@@ -357,16 +270,12 @@ export function FinalReviewForm({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || allItems.length === 0}
-            className={primaryButtonCls}
+            className={PRIMARY_BUTTON}
           >
-            Сохранить и завершить
+            Сохранить
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={handleContinue}
-            className={primaryButtonCls}
-          >
+          <button type="button" onClick={handleContinue} className={PRIMARY_BUTTON}>
             Продолжить
           </button>
         )}

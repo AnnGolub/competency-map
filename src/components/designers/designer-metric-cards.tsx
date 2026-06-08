@@ -1,18 +1,21 @@
 import Image from "next/image";
-import { formatScore } from "@/lib/competency-utils";
+import { formatScore, ROLE_LABELS } from "@/lib/competency-utils";
+import type { DesignerRole } from "@/types/database";
 
 const METRIC_ICONS = {
   average: "/icons/Avatar.png",
-  below: "/icons/Avatar-1.png",
-  growth: "/icons/Avatar-2.png",
+  dynamics: "/icons/Avatar-1.png",
+  feedback: "/icons/Avatar-2.png",
 } as const;
 
 function CircularProgress({
   value,
   label,
+  maxScore = 4,
 }: {
   value: number | null;
   label?: string;
+  maxScore?: number;
 }) {
   const size = 44;
   const cx = 22;
@@ -46,7 +49,7 @@ function CircularProgress({
     );
   }
 
-  const progress = (value / 4) * circumference;
+  const progress = (value / maxScore) * circumference;
 
   return (
     <svg
@@ -101,6 +104,7 @@ function MetricRow({
   subtitle,
   ringValue,
   label,
+  maxScore,
   iconSrc,
   iconAlt,
 }: {
@@ -108,6 +112,7 @@ function MetricRow({
   subtitle: string;
   ringValue: number | null;
   label: string;
+  maxScore?: number;
   iconSrc: string;
   iconAlt: string;
 }) {
@@ -124,60 +129,67 @@ function MetricRow({
           </p>
         </div>
       </div>
-      <CircularProgress value={ringValue} label={label} />
+      <CircularProgress value={ringValue} label={label} maxScore={maxScore} />
     </article>
   );
 }
 
 export function DesignerMetricCards({
   average,
-  belowCount,
+  expectedAverage,
+  role,
   growth,
-  maxBelow,
+  feedbackResponseCount,
+  feedbackAverage,
   variant = "grid",
   className = "",
 }: {
   average: number | null;
-  belowCount: number;
+  expectedAverage: number | null;
+  role: DesignerRole;
   growth: number | null;
-  maxBelow: number;
+  feedbackResponseCount: number;
+  feedbackAverage: number | null;
   variant?: "grid" | "sidebar";
   className?: string;
 }) {
   const avgLabel = formatScore(average);
-
-  const belowRingValue =
-    maxBelow > 0 ? Math.min(4, (belowCount / maxBelow) * 4) : belowCount > 0 ? 4 : 0;
-
+  const expectedSubtitle = `Ожидается ${formatScore(expectedAverage)} для ${ROLE_LABELS[role]}`;
+  const dynamicsSubtitle =
+    growth === null ? "Нет данных" : "С прошлого ревью";
   const growthLabel =
     growth === null ? "—" : `${growth > 0 ? "+" : ""}${growth.toFixed(1)}`;
   const growthRingValue =
     growth === null ? null : Math.min(4, Math.max(0, ((growth + 1) / 2) * 4));
+  const feedbackLabel =
+    feedbackAverage === null ? "—" : feedbackAverage.toFixed(1);
+  const feedbackSubtitle = `На основе ${feedbackResponseCount} ответов`;
 
   const metrics = (
     <>
       <MetricRow
-        title="Средний балл"
-        subtitle="По карте компетенций"
+        title="Оценка компетенций"
+        subtitle={expectedSubtitle}
         ringValue={average}
         label={avgLabel}
         iconSrc={METRIC_ICONS.average}
         iconAlt=""
       />
       <MetricRow
-        title="Уровень по грейду"
-        subtitle="Ниже ожидаемого"
-        ringValue={belowRingValue}
-        label={String(belowCount)}
-        iconSrc={METRIC_ICONS.below}
+        title="Динамика"
+        subtitle={dynamicsSubtitle}
+        ringValue={growthRingValue}
+        label={growthLabel}
+        iconSrc={METRIC_ICONS.dynamics}
         iconAlt=""
       />
       <MetricRow
-        title="Рост в навыках"
-        subtitle="За полгода"
-        ringValue={growthRingValue}
-        label={growthLabel}
-        iconSrc={METRIC_ICONS.growth}
+        title="Обратная связь"
+        subtitle={feedbackSubtitle}
+        ringValue={feedbackAverage}
+        label={feedbackLabel}
+        maxScore={10}
+        iconSrc={METRIC_ICONS.feedback}
         iconAlt=""
       />
     </>

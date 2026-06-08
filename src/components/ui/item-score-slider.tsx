@@ -65,76 +65,36 @@ export function ItemScoreSlider({
     };
 
     return (
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <p style={{ paddingBottom: "6px", fontSize: "14px", lineHeight: "18px", color: "#8F90A6" }}>
+      <div className="flex flex-col">
+        <p className="font-sf pb-1.5 text-sm leading-[18px] text-[rgba(4,4,19,0.55)]">
           {label}
         </p>
         {helperContent}
         <div
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
-          style={{
-            position: "relative",
-            height: "48px",
-            background: "#3E4153",
-            borderRadius: "12px",
-            cursor: "pointer",
-          }}
+          className="relative h-12 cursor-pointer rounded-xl bg-white"
         >
-          <span
-            style={{
-              position: "absolute",
-              top: "10px",
-              left: "12px",
-              fontSize: "16px",
-              lineHeight: "24px",
-              color: "#ffffff",
-              fontVariantNumeric: "tabular-nums",
-              pointerEvents: "none",
-            }}
-          >
+          <span className="pointer-events-none absolute left-3 top-2.5 text-base tabular-nums leading-6 text-[rgba(3,3,6,0.88)]">
             {value.toFixed(1)}
           </span>
-          {/* Трек внизу */}
-          <div style={{
-            position: "absolute",
-            bottom: "0",
-            left: "12px",
-            right: "12px",
-            height: "2px",
-            background: "#8F90A6",
-            borderRadius: "8px",
-            pointerEvents: "none",
-          }}>
-            {/* Красная заливка до thumb */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: `${thumbPercent}%`,
-              height: "2px",
-              background: "#E53535",
-              borderRadius: "8px",
-              pointerEvents: "none",
-            }} />
-            {/* Thumb */}
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: `${thumbPercent}%`,
-              transform: "translate(-50%, -50%)",
-              width: "16px",
-              height: "16px",
-              borderRadius: "50%",
-              background: "#E53535",
-              transition: "left 0.05s ease-out",
-              pointerEvents: "none",
-            }} />
+          <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-0.5 rounded-lg bg-[#E0E0E0]">
+            <div
+              className="absolute left-0 top-0 h-0.5 rounded-lg bg-[#212124]"
+              style={{ width: `${thumbPercent}%` }}
+            />
+            <div
+              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E53535] transition-[left] duration-75 ease-out"
+              style={{ left: `${thumbPercent}%` }}
+            />
           </div>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "12px", paddingRight: "12px", paddingTop: "6px" }}>
+        <div className="flex justify-between px-3 pt-1.5">
           {SCORE_OPTIONS.map((v) => (
-            <span key={v} style={{ color: "#8F90A6", fontSize: "14px", lineHeight: "18px", fontWeight: 400, fontVariantNumeric: "tabular-nums" }}>
+            <span
+              key={v}
+              className="font-sf text-sm tabular-nums leading-[18px] text-[rgba(4,4,19,0.55)]"
+            >
               {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
             </span>
           ))}

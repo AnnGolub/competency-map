@@ -17,6 +17,12 @@ import type { CompetencyBlock } from "@/types/database";
 
 const REVIEW_STEP_ORDER: CompetencyBlock[] = ["hard", "soft", "leadership"];
 
+const PRIMARY_BUTTON =
+  "font-sf inline-flex h-auto w-auto min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[#212124] px-5 py-1 text-base font-medium leading-6 text-[rgba(255,255,255,0.94)] transition-opacity hover:opacity-90 disabled:opacity-50";
+
+const SECONDARY_BUTTON =
+  "font-sf inline-flex h-auto w-auto min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50";
+
 type FormState = Record<string, number>;
 
 function buildInitialState(data: PublicSelfReviewData): FormState {
@@ -54,10 +60,6 @@ export function PublicSelfReviewForm({
     () => Object.fromEntries(data.competencies.map((c) => [c.id, c.items])),
     [data.competencies]
   );
-  const primaryButtonCls =
-    "inline-flex h-10 items-center justify-center rounded-lg bg-app-accent px-5 text-sm font-semibold leading-5 text-white transition-colors hover:bg-app-accent-hover disabled:opacity-50";
-  const secondaryButtonCls =
-    "inline-flex h-10 items-center justify-center rounded-lg px-5 text-sm font-semibold leading-5 text-white transition-colors hover:opacity-90 disabled:opacity-50";
 
   function handleScoreChange(itemId: string, score: number) {
     setForm((prev) => ({ ...prev, [itemId]: score }));
@@ -105,9 +107,11 @@ export function PublicSelfReviewForm({
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-app-border bg-app-sidebar p-6 text-center text-white">
-        <p className="font-medium">Спасибо!</p>
-        <p className="mt-2 text-sm text-app-placeholder">
+      <div className="rounded-[24px] bg-[#F2F3F5] p-6 text-center">
+        <p className="font-sf text-base font-medium leading-6 text-[rgba(3,3,6,0.88)]">
+          Спасибо!
+        </p>
+        <p className="font-sf mt-2 text-sm leading-5 text-[rgba(4,4,19,0.55)]">
           Самооценка отправлена. Повторно заполнить форму по этой ссылке нельзя.
         </p>
       </div>
@@ -116,32 +120,26 @@ export function PublicSelfReviewForm({
 
   if (steps.length === 0) {
     return (
-      <p className="text-base leading-6 text-app-placeholder">
+      <p className="font-sf text-base leading-6 text-[rgba(60,60,67,0.66)]">
         Нет блоков компетенций для самооценки.
       </p>
     );
   }
 
   return (
-    <div className="max-w-[1152px]">
-      <ReviewStepper steps={steps} currentIndex={stepIndex} />
+    <div className="flex w-full flex-col self-stretch">
+      <div className="w-full">
+        <ReviewStepper steps={steps} currentIndex={stepIndex} />
+      </div>
 
       {error ? (
-        <p className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        <p className="mt-6 rounded-lg border border-[#E53535]/30 bg-[#E53535]/10 px-3 py-2 text-sm text-[#E53535]">
           {error}
         </p>
       ) : null}
 
-      <section className="mt-10">
-        <h2
-          style={{
-            fontFamily: "Avenir Next, sans-serif",
-            fontWeight: 700,
-            fontSize: "22px",
-            lineHeight: "26px",
-            color: "#ffffff",
-          }}
-        >
+      <section className="mt-8">
+        <h2 className="font-sf text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]">
           {currentBlock ? BLOCK_LABELS[currentBlock] : ""}
         </h2>
 
@@ -154,20 +152,14 @@ export function PublicSelfReviewForm({
               role={data.role}
               form={form}
               onScoreChange={handleScoreChange}
-              hideLevelBadges
             />
           ))}
         </div>
       </section>
 
-      <div className="mt-10 flex gap-3">
+      <div className="mt-8 flex gap-4">
         {!isFirstStep ? (
-          <button
-            type="button"
-            onClick={handleBack}
-            className={secondaryButtonCls}
-            style={{ background: "#3E4153", color: "#C7C9D9" }}
-          >
+          <button type="button" onClick={handleBack} className={SECONDARY_BUTTON}>
             Назад
           </button>
         ) : null}
@@ -177,16 +169,12 @@ export function PublicSelfReviewForm({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || allItems.length === 0}
-            className={primaryButtonCls}
+            className={PRIMARY_BUTTON}
           >
             Отправить
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={handleContinue}
-            className={primaryButtonCls}
-          >
+          <button type="button" onClick={handleContinue} className={PRIMARY_BUTTON}>
             Продолжить
           </button>
         )}

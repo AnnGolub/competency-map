@@ -28,55 +28,25 @@ type QuestionnaireFormState = {
   scores: ScoreState;
 };
 
-const CONTAINER_STYLE = {
-  maxWidth: "818px",
-} as const;
+const PRIMARY_BUTTON =
+  "font-sf inline-flex min-h-12 items-center justify-center rounded-[10px] bg-[#212124] px-5 py-1 text-base font-medium leading-6 text-[rgba(255,255,255,0.94)] transition-opacity hover:opacity-90 disabled:opacity-50";
 
-const INPUT_STYLE = {
-  width: "100%",
-  background: "#3E4153",
-  border: "1px solid #4A4D5E",
-  borderRadius: "12px",
-  padding: "12px 16px",
-  fontSize: "16px",
-  lineHeight: "24px",
-  color: "#ffffff",
-  outline: "none",
-} as const;
+const SECONDARY_BUTTON =
+  "font-sf inline-flex min-h-12 items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50";
 
-const TEXTAREA_STYLE = {
-  ...INPUT_STYLE,
-  minHeight: "120px",
-  resize: "vertical" as const,
-} as const;
+const FIELD_LABEL =
+  "font-sf mb-1.5 block text-sm leading-[18px] text-[rgba(4,4,19,0.55)]";
 
-const SECONDARY_BUTTON_STYLE = {
-  background: "#3E4153",
-  color: "#fff",
-  borderRadius: "12px",
-  padding: "12px 24px",
-  border: "none",
-  cursor: "pointer",
-  fontSize: "16px",
-  fontWeight: 500,
-} as const;
+const INPUT_CLASS =
+  "font-sf w-full rounded-xl border-0 bg-[#F2F3F5] px-4 py-3.5 text-base leading-6 text-[rgba(3,3,6,0.88)] outline-none placeholder:text-[rgba(4,4,19,0.55)]";
 
-const PRIMARY_BUTTON_STYLE = {
-  background: "#2F6FED",
-  color: "#fff",
-  borderRadius: "12px",
-  padding: "12px 24px",
-  border: "none",
-  cursor: "pointer",
-  fontSize: "16px",
-  fontWeight: 500,
-} as const;
+const TEXTAREA_CLASS = `${INPUT_CLASS} min-h-[120px] resize-y`;
 
-const QUESTION_CARD_STYLE = {
-  background: "#252732",
-  borderRadius: "24px",
-  padding: "24px",
-} as const;
+const STEP_TITLE =
+  "font-sf text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]";
+
+const QUESTION_CARD =
+  "flex flex-col gap-4 rounded-[24px] bg-[#F2F3F5] p-6";
 
 function ScoreButtons({
   value,
@@ -91,59 +61,31 @@ function ScoreButtons({
 }) {
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          flexWrap: "wrap",
-          marginTop: "12px",
-        }}
-      >
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onChange(n)}
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "10px",
-              border: value === n ? "none" : "1px solid #4A4D5E",
-              background: value === n ? "#2F6FED" : "#3E4153",
-              color: "#fff",
-              fontSize: "16px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            {n}
-          </button>
-        ))}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => {
+          const selected = value === n;
+
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              className={`font-sf inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm leading-5 transition-colors ${
+                selected
+                  ? "border-0 bg-[#212124] text-[rgba(255,255,255,0.94)]"
+                  : "border border-[#EDEEF0] bg-white text-[rgba(3,3,6,0.88)]"
+              }`}
+            >
+              {n}
+            </button>
+          );
+        })}
       </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "8px",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "12px",
-            color: "#8F90A6",
-            maxWidth: "45%",
-          }}
-        >
+      <div className="mt-2 flex justify-between gap-4">
+        <span className="font-sf max-w-[45%] text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {labelLeft}
         </span>
-        <span
-          style={{
-            fontSize: "12px",
-            color: "#8F90A6",
-            maxWidth: "45%",
-            textAlign: "right",
-          }}
-        >
+        <span className="font-sf max-w-[45%] text-right text-[11px] leading-4 text-[rgba(4,4,19,0.55)]">
           {labelRight}
         </span>
       </div>
@@ -166,6 +108,25 @@ function areAllScoresFilled(
   scores: ScoreState
 ) {
   return questions.every((question) => scores[question.key] !== undefined);
+}
+
+function StatusCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-[24px] bg-[#F2F3F5] p-8">
+      <h2 className="font-sf text-[30px] font-bold leading-9 tracking-[0.1px] text-[rgba(3,3,6,0.88)]">
+        {title}
+      </h2>
+      <p className="font-sf mt-3 text-base leading-6 text-[rgba(4,4,19,0.55)]">
+        {description}
+      </p>
+    </div>
+  );
 }
 
 export function QuestionnaireForm({
@@ -344,54 +305,49 @@ export function QuestionnaireForm({
 
   if (submitted) {
     return (
-      <div
-        style={{
-          ...CONTAINER_STYLE,
-          background: "#252732",
-          borderRadius: "24px",
-          padding: "32px",
-        }}
-      >
-        <h2 style={{ fontSize: "30px", lineHeight: "36px", fontWeight: 700 }}>
-          Спасибо! Твой фидбэк отправлен 🙌
-        </h2>
-        <p
-          style={{
-            fontSize: "16px",
-            lineHeight: "24px",
-            color: "#8F90A6",
-            marginTop: "12px",
-          }}
-        >
-          Это поможет дизайнеру стать лучше
-        </p>
-      </div>
+      <StatusCard
+        title="Спасибо! Твой фидбэк отправлен 🙌"
+        description="Это поможет дизайнеру стать лучше"
+      />
     );
   }
 
   if (alreadySubmittedInBrowser) {
     return (
-      <div
-        style={{
-          ...CONTAINER_STYLE,
-          background: "#252732",
-          borderRadius: "24px",
-          padding: "32px",
-        }}
-      >
-        <h2 style={{ fontSize: "30px", lineHeight: "36px", fontWeight: 700 }}>
-          Ты уже оставил фидбэк для этого дизайнера
-        </h2>
-        <p
-          style={{
-            fontSize: "16px",
-            lineHeight: "24px",
-            color: "#8F90A6",
-            marginTop: "12px",
-          }}
-        >
-          Повторная отправка с этого браузера недоступна.
-        </p>
+      <StatusCard
+        title="Ты уже оставил фидбэк для этого дизайнера"
+        description="Повторная отправка с этого браузера недоступна."
+      />
+    );
+  }
+
+  function renderQuestionStep(
+    title: string,
+    questions: readonly {
+      key: QuestionnaireScoreKey;
+      text: string;
+      left: string;
+      right: string;
+    }[]
+  ) {
+    return (
+      <div>
+        <h2 className={STEP_TITLE}>{title}</h2>
+        <div className="mt-6 flex flex-col gap-5">
+          {questions.map((question) => (
+            <div key={question.key} className={QUESTION_CARD}>
+              <p className="font-sf text-base leading-6 text-[rgba(3,3,6,0.88)]">
+                {question.text}
+              </p>
+              <ScoreButtons
+                value={form.scores[question.key]}
+                onChange={(value) => setScore(question.key, value)}
+                labelLeft={question.left}
+                labelRight={question.right}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -399,26 +355,15 @@ export function QuestionnaireForm({
   function renderContent() {
     if (currentStep === "welcome") {
       return (
-        <div style={CONTAINER_STYLE}>
-          <h1 style={{ fontSize: "30px", lineHeight: "36px", fontWeight: 700 }}>
+        <div>
+          <h1 className="font-sf text-[30px] font-bold leading-9 tracking-[0.1px] text-[rgba(3,3,6,0.88)]">
             Обратная связь о {designerName}
           </h1>
-          <p
-            style={{
-              fontSize: "16px",
-              lineHeight: "24px",
-              color: "#8F90A6",
-              marginTop: "16px",
-            }}
-          >
+          <p className="font-sf mt-4 text-base leading-6 text-[rgba(4,4,19,0.55)]">
             Этот опросник анонимный. Если не захочешь поделиться своим именем — оно
             нигде не появится. Заполни честно — это поможет дизайнеру быть лучше 😉
           </p>
-          <button
-            type="button"
-            onClick={nextStep}
-            style={{ ...PRIMARY_BUTTON_STYLE, marginTop: "24px" }}
-          >
+          <button type="button" onClick={nextStep} className={`${PRIMARY_BUTTON} mt-6`}>
             Начать
           </button>
         </div>
@@ -427,44 +372,26 @@ export function QuestionnaireForm({
 
     if (currentStep === "about") {
       return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Немного контекста
-          </h2>
-          <div style={{ marginTop: "24px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
-              Представься, пожалуйста (необязательно)
-            </label>
+        <div>
+          <h2 className={STEP_TITLE}>Немного контекста</h2>
+          <div className="mt-6">
+            <label className={FIELD_LABEL}>Представься, пожалуйста (необязательно)</label>
             <input
               value={form.respondentName}
               onChange={(event) => updateField("respondentName", event.target.value)}
-              style={INPUT_STYLE}
+              className={INPUT_CLASS}
+              placeholder="Твоё имя"
             />
           </div>
-          <div style={{ marginTop: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+          <div className="mt-5">
+            <label className={FIELD_LABEL}>
               Расскажи, над чем вы работали вместе или где взаимодействовали?
             </label>
             <textarea
               value={form.context}
               onChange={(event) => updateField("context", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
+              placeholder="Опиши контекст совместной работы"
             />
           </div>
         </div>
@@ -472,50 +399,21 @@ export function QuestionnaireForm({
     }
 
     if (currentStep === "mentorship") {
-      return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Наставничество
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "24px" }}>
-            {MENTORSHIP_QUESTIONS.map((question) => (
-              <div key={question.key} style={QUESTION_CARD_STYLE}>
-                <p style={{ fontSize: "16px", lineHeight: "24px" }}>{question.text}</p>
-                <ScoreButtons
-                  value={form.scores[question.key]}
-                  onChange={(value) => setScore(question.key, value)}
-                  labelLeft={question.left}
-                  labelRight={question.right}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      return renderQuestionStep("Наставничество", MENTORSHIP_QUESTIONS);
     }
 
     if (currentStep === "mentorship_followup") {
       return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Что хотелось бы улучшить
-          </h2>
-          <div style={{ marginTop: "24px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+        <div>
+          <h2 className={STEP_TITLE}>Что хотелось бы улучшить</h2>
+          <div className="mt-6">
+            <label className={FIELD_LABEL}>
               Где именно были проблемы? Можешь описать конкретную ситуацию?
             </label>
             <textarea
               value={form.mentorshipFollowup}
               onChange={(event) => updateField("mentorshipFollowup", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
         </div>
@@ -523,50 +421,22 @@ export function QuestionnaireForm({
     }
 
     if (currentStep === "processes") {
-      return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Процессы и ответственность
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "24px" }}>
-            {PROCESSES_QUESTIONS.map((question) => (
-              <div key={question.key} style={QUESTION_CARD_STYLE}>
-                <p style={{ fontSize: "16px", lineHeight: "24px" }}>{question.text}</p>
-                <ScoreButtons
-                  value={form.scores[question.key]}
-                  onChange={(value) => setScore(question.key, value)}
-                  labelLeft={question.left}
-                  labelRight={question.right}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      return renderQuestionStep("Процессы и ответственность", PROCESSES_QUESTIONS);
     }
 
     if (currentStep === "processes_followup") {
       return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Контекст по процессам
-          </h2>
-          <div style={{ marginTop: "24px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
-              Вспомни ситуацию, где это повлияло на работу — твою или команды. Что произошло?
+        <div>
+          <h2 className={STEP_TITLE}>Контекст по процессам</h2>
+          <div className="mt-6">
+            <label className={FIELD_LABEL}>
+              Вспомни ситуацию, где это повлияло на работу — твою или команды. Что
+              произошло?
             </label>
             <textarea
               value={form.processesFollowup}
               onChange={(event) => updateField("processesFollowup", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
         </div>
@@ -574,44 +444,15 @@ export function QuestionnaireForm({
     }
 
     if (currentStep === "communication") {
-      return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Коммуникация
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "24px" }}>
-            {COMMUNICATION_QUESTIONS.map((question) => (
-              <div key={question.key} style={QUESTION_CARD_STYLE}>
-                <p style={{ fontSize: "16px", lineHeight: "24px" }}>{question.text}</p>
-                <ScoreButtons
-                  value={form.scores[question.key]}
-                  onChange={(value) => setScore(question.key, value)}
-                  labelLeft={question.left}
-                  labelRight={question.right}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      return renderQuestionStep("Коммуникация", COMMUNICATION_QUESTIONS);
     }
 
     if (currentStep === "communication_followup") {
       return (
-        <div style={CONTAINER_STYLE}>
-          <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-            Контекст по коммуникации
-          </h2>
-          <div style={{ marginTop: "24px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+        <div>
+          <h2 className={STEP_TITLE}>Контекст по коммуникации</h2>
+          <div className="mt-6">
+            <label className={FIELD_LABEL}>
               Что именно создаёт дискомфорт в коммуникации? Опиши, если можешь
             </label>
             <textarea
@@ -619,7 +460,7 @@ export function QuestionnaireForm({
               onChange={(event) =>
                 updateField("communicationFollowup", event.target.value)
               }
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
         </div>
@@ -627,63 +468,37 @@ export function QuestionnaireForm({
     }
 
     return (
-      <div style={CONTAINER_STYLE}>
-        <h2 style={{ fontSize: "22px", lineHeight: "26px", fontWeight: 700 }}>
-          Финальные вопросы
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "24px" }}>
+      <div>
+        <h2 className={STEP_TITLE}>Финальные вопросы</h2>
+        <div className="mt-6 flex flex-col gap-5">
           <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+            <label className={FIELD_LABEL}>
               Что этому человеку стоит начать делать — чего он/она пока не делает?
             </label>
             <textarea
               value={form.startDoing}
               onChange={(event) => updateField("startDoing", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
           <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+            <label className={FIELD_LABEL}>
               Что стоит прекратить — что мешает ему/ей или команде?
             </label>
             <textarea
               value={form.stopDoing}
               onChange={(event) => updateField("stopDoing", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
           <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "14px",
-                lineHeight: "18px",
-                color: "#8F90A6",
-                marginBottom: "6px",
-              }}
-            >
+            <label className={FIELD_LABEL}>
               Что точно нужно продолжать — в чём его/её реальная сила?
             </label>
             <textarea
               value={form.continueDoing}
               onChange={(event) => updateField("continueDoing", event.target.value)}
-              style={TEXTAREA_STYLE}
+              className={TEXTAREA_CLASS}
             />
           </div>
         </div>
@@ -692,33 +507,15 @@ export function QuestionnaireForm({
   }
 
   return (
-    <div style={CONTAINER_STYLE}>
+    <div>
       {currentStep !== "welcome" ? (
-        <p
-          style={{
-            fontSize: "12px",
-            lineHeight: "16px",
-            color: "#8F90A6",
-            marginBottom: "16px",
-          }}
-        >
+        <p className="font-sf mb-4 text-sm leading-5 text-[rgba(4,4,19,0.55)]">
           Шаг {stepIndex + 1} из {visibleSteps.length}
         </p>
       ) : null}
 
       {error ? (
-        <p
-          style={{
-            marginBottom: "16px",
-            border: "1px solid rgba(239,68,68,0.4)",
-            background: "rgba(239,68,68,0.1)",
-            borderRadius: "12px",
-            padding: "12px 16px",
-            color: "#fca5a5",
-            fontSize: "14px",
-            lineHeight: "20px",
-          }}
-        >
+        <p className="mb-4 rounded-lg border border-[#E53535]/30 bg-[#E53535]/10 px-3 py-2 text-sm text-[#E53535]">
           {error}
         </p>
       ) : null}
@@ -726,9 +523,9 @@ export function QuestionnaireForm({
       {renderContent()}
 
       {currentStep !== "welcome" ? (
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+        <div className="mt-6 flex gap-4">
           {!isFirstStep ? (
-            <button type="button" onClick={prevStep} style={SECONDARY_BUTTON_STYLE}>
+            <button type="button" onClick={prevStep} className={SECONDARY_BUTTON}>
               Назад
             </button>
           ) : null}
@@ -738,15 +535,12 @@ export function QuestionnaireForm({
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              style={{
-                ...PRIMARY_BUTTON_STYLE,
-                opacity: isSubmitting ? 0.6 : 1,
-              }}
+              className={PRIMARY_BUTTON}
             >
               Отправить
             </button>
           ) : (
-            <button type="button" onClick={nextStep} style={PRIMARY_BUTTON_STYLE}>
+            <button type="button" onClick={nextStep} className={PRIMARY_BUTTON}>
               Далее
             </button>
           )}

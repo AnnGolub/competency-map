@@ -46,14 +46,18 @@ export function CompetencyLevelIndicators({
           alt=""
           width={16}
           height={16}
-          className="shrink-0"
+          className={`shrink-0 ${isDark ? "" : "brightness-0 opacity-[0.66]"}`}
         />
       </button>
 
       {open ? (
         <div
           role="tooltip"
-          className="absolute left-full top-1/2 z-20 ml-2 w-[288px] -translate-y-1/2 rounded-xl border border-app-border bg-[#1E2130] p-4 shadow-lg"
+          className={`absolute left-full top-1/2 z-20 ml-2 w-[288px] -translate-y-1/2 rounded-xl border p-4 shadow-lg ${
+            isDark
+              ? "border-app-border bg-[#1E2130]"
+              : "border-[#EDEEF0] bg-white"
+          }`}
         >
           <ul className={`space-y-2 text-sm ${textCls}`}>
             {LEVEL_ROWS.map(({ score, field }) => {

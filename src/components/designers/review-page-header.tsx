@@ -9,14 +9,14 @@ export function ReviewPageHeader({
   title?: string;
 }) {
   return (
-    <section className="flex max-w-[818px] flex-col gap-4">
-      <DesignerBackLink href={`/designers/${designer.id}`}>К профилю</DesignerBackLink>
+    <section className="flex w-full flex-col gap-2 self-stretch">
+      <DesignerBackLink href={`/designers/${designer.id}`}>Профиль</DesignerBackLink>
 
-      <h1 className="text-[30px] font-bold leading-9 text-white">
-        {title} – {designer.name}
+      <h1 className="font-sf text-[30px] font-bold leading-9 tracking-[0.1px] text-[rgba(3,3,6,0.88)]">
+        {title} — {designer.name}
       </h1>
 
-      <p className="text-base leading-6 text-white">
+      <p className="font-sf text-base font-normal leading-6 tracking-[-0.24px] text-[rgba(3,3,6,0.88)]">
         {ROLE_LABELS[designer.role]} • {designer.direction}
       </p>
     </section>

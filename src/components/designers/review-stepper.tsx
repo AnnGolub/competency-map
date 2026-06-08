@@ -1,72 +1,39 @@
 "use client";
 
-import Image from "next/image";
 import { Fragment } from "react";
+import { IconCheck, IconEye } from "@/components/ui/tabler-icons";
 import { BLOCK_LABELS } from "@/lib/competency-utils";
 import type { CompetencyBlock } from "@/types/database";
 
-function StepConnector({ completed }: { completed: boolean }) {
-  return (
-    <div className="min-w-0 flex-1 overflow-hidden pt-5">
-      <div
-        className={`h-0.5 w-full rounded-lg ${
-          completed ? "bg-[#05A660]" : "bg-app-input"
-        }`}
-      />
-    </div>
-  );
-}
+const STATUS_LABELS = {
+  completed: "Завершено",
+  active: "В процессе",
+  pending: "Ожидание",
+} as const;
 
-function ReviewStep({
-  stepNumber,
-  block,
-  status,
-}: {
-  stepNumber: number;
-  block: CompetencyBlock;
-  status: "completed" | "active" | "pending";
-}) {
-  const isCompleted = status === "completed";
-  const isActive = status === "active";
-
-  const statusLabel = isCompleted
-    ? "completed"
-    : isActive
-      ? "in progress"
-      : "pending";
+function StepCircle({ status }: { status: "completed" | "active" | "pending" }) {
+  const fill =
+    status === "completed"
+      ? "#0CC44D"
+      : status === "active"
+        ? "#2288FA"
+        : "#BABBC2";
 
   return (
-    <div className="flex w-[108px] shrink-0 flex-col items-center gap-2">
-      <div
-        className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${
-          isCompleted ? "bg-[#05A660]" : "bg-app-input"
-        }`}
-      >
-        <Image
-          src={
-            isCompleted ? "/icons/Emoji-normal.svg" : "/icons/Emoji-sad.svg"
-          }
-          alt=""
-          width={24}
-          height={24}
-          className="shrink-0"
-        />
-      </div>
-      <div className="flex flex-col items-center gap-1 text-center">
-        <span className="text-xs leading-none text-white">step {stepNumber}</span>
-        <span className="text-sm font-semibold leading-5 text-white">
-          {BLOCK_LABELS[block]}
-        </span>
-        <span
-          className={`inline-flex h-[22px] items-center justify-center rounded px-1 text-xs leading-none ${
-            isCompleted
-              ? "bg-[#05A660] text-white"
-              : "bg-app-input text-[#C7C9D9]"
+    <div
+      className="flex h-8 w-8 items-center justify-center rounded-full"
+      style={{ backgroundColor: fill }}
+      aria-hidden
+    >
+      {status === "completed" ? (
+        <IconCheck className="h-4 w-4 text-white" />
+      ) : (
+        <IconEye
+          className={`h-4 w-4 ${
+            status === "active" ? "text-white" : "text-[rgba(4,4,19,0.55)]"
           }`}
-        >
-          {statusLabel}
-        </span>
-      </div>
+        />
+      )}
     </div>
   );
 }
@@ -79,7 +46,7 @@ export function ReviewStepper({
   currentIndex: number;
 }) {
   return (
-    <div className="flex w-full max-w-[1152px] items-start gap-6">
+    <div style={{ display: "flex", alignItems: "flex-start", width: "100%" }}>
       {steps.map((block, index) => {
         const status =
           index < currentIndex
@@ -90,13 +57,51 @@ export function ReviewStepper({
 
         return (
           <Fragment key={block}>
-            <ReviewStep
-              stepNumber={index + 1}
-              block={block}
-              status={status}
-            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                flexShrink: 0,
+                width: 140,
+              }}
+            >
+              <StepCircle status={status} />
+              <div style={{ marginTop: 8, textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "rgba(3,3,6,0.88)",
+                    lineHeight: "16px",
+                  }}
+                >
+                  {BLOCK_LABELS[block]}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(4,4,19,0.55)",
+                    lineHeight: "16px",
+                    marginTop: 4,
+                  }}
+                >
+                  {STATUS_LABELS[status]}
+                </div>
+              </div>
+            </div>
             {index < steps.length - 1 ? (
-              <StepConnector completed={index < currentIndex} />
+              <div
+                style={{
+                  flex: 1,
+                  height: 1,
+                  background: "#D2D3D9",
+                  marginTop: 16,
+                  marginLeft: 8,
+                  marginRight: 8,
+                  flexShrink: 1,
+                }}
+              />
             ) : null}
           </Fragment>
         );

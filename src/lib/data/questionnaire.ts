@@ -5,6 +5,7 @@ import {
   PROCESSES_QUESTIONS,
 } from "@/lib/questionnaire";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
 export type PublicQuestionnaireData = {
@@ -97,6 +98,33 @@ export async function fetchQuestionnaireOverview(): Promise<
       communicationAverage: averageByKeys(answers, COMMUNICATION_KEYS),
     };
   });
+}
+
+export async function fetchQuestionnaireFeedbackStats(
+  designerId: string
+): Promise<{ responseCount: number; averageScore: number | null }> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("questionnaire_responses")
+    .select("id, questionnaire_answers(question_key, score)")
+    .eq("designer_id", designerId);
+
+  if (error) throw error;
+
+  const responses = (data ?? []) as QuestionnaireResponseSummary[];
+  const answers = responses.flatMap((response) =>
+    asAnswerArray(response.questionnaire_answers)
+  );
+  const allScoreKeys = [
+    ...MENTORSHIP_KEYS,
+    ...PROCESSES_KEYS,
+    ...COMMUNICATION_KEYS,
+  ];
+
+  return {
+    responseCount: responses.length,
+    averageScore: averageByKeys(answers, allScoreKeys),
+  };
 }
 
 export async function fetchPublicQuestionnaireByToken(
