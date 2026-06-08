@@ -16,6 +16,12 @@ type BlockTab = "all" | CompetencyBlock;
 
 const BLOCK_TABS: CompetencyBlock[] = ["hard", "soft", "leadership"];
 
+const TAB_ACTIVE =
+  "font-sf inline-flex min-h-10 min-w-16 items-center justify-center rounded-full bg-[#212124] px-3 py-1 text-sm font-normal leading-5 text-[rgba(255,255,255,0.94)]";
+
+const TAB_INACTIVE =
+  "font-sf inline-flex min-h-10 min-w-16 items-center justify-center rounded-full bg-[rgba(15,25,55,0.10)] px-3 py-1 text-sm font-normal leading-5 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-colors";
+
 export function DesignerProfileResults({
   designer,
   competencies,
@@ -57,8 +63,8 @@ export function DesignerProfileResults({
   const isWaitingForReviews = !hasLeadReview || !hasSelfReview;
 
   return (
-    <section className="mt-10 max-w-[1152px]">
-      <nav className="flex flex-wrap items-center gap-5">
+    <section className="mt-8 w-full max-w-[1440px]">
+      <nav className="flex flex-row flex-wrap items-start gap-3">
         {tabs.map((tab) => {
           const active = activeTab === tab.value;
           return (
@@ -66,11 +72,7 @@ export function DesignerProfileResults({
               key={tab.value}
               type="button"
               onClick={() => setActiveTab(tab.value)}
-              className={`border-b-2 pb-1 text-base font-normal leading-[22px] transition-colors ${
-                active
-                  ? "border-white text-white"
-                  : "border-transparent text-app-muted hover:text-white"
-              }`}
+              className={active ? TAB_ACTIVE : TAB_INACTIVE}
             >
               {tab.label}
             </button>
@@ -79,36 +81,21 @@ export function DesignerProfileResults({
       </nav>
 
       {isWaitingForReviews ? (
-        <p className="mt-10 text-base leading-6 text-app-muted">
+        <p className="mt-8 text-base leading-6 text-[rgba(60,60,67,0.66)]">
           Ревью ещё не завершено. Ожидается оценка{" "}
           {!hasLeadReview ? "лида" : "дизайнера"}.
         </p>
       ) : !hasFinalReview ? (
-        <div className="mt-10">
-          <p
-            style={{
-              color: "#ffffff",
-              fontSize: "16px",
-              lineHeight: "24px",
-              fontWeight: 400,
-            }}
-          >
+        <div className="mt-8">
+          <p className="font-sf text-base font-normal leading-6 text-[rgba(3,3,6,0.88)]">
             Ревью дизайнера выполнено самим дизайнером и лидом.
           </p>
-          <p
-            style={{
-              color: "#ffffff",
-              fontSize: "16px",
-              lineHeight: "24px",
-              fontWeight: 400,
-              marginTop: "4px",
-            }}
-          >
+          <p className="font-sf mt-1 text-base font-normal leading-6 text-[rgba(3,3,6,0.88)]">
             Завершите ревью выбором окончательной оценки по каждой компетенции.
           </p>
         </div>
       ) : filteredCompetencies.length === 0 ? (
-        <p className="mt-6 text-base leading-6 text-app-muted">
+        <p className="mt-8 text-base leading-6 text-[rgba(60,60,67,0.66)]">
           Нет компетенций по выбранному фильтру.
         </p>
       ) : (

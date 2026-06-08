@@ -12,9 +12,9 @@ export function DesignerBackLink({
   return (
     <Link
       href={href}
-      className="inline-flex h-5 w-fit items-center gap-1 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white"
+      className="font-sf inline-flex w-fit items-center gap-1.5 border-0 bg-transparent text-sm font-medium leading-5 text-[rgba(3,3,6,0.88)] transition-opacity hover:opacity-80"
     >
-      <IconSelectArrow className="rotate-90 text-current" />
+      <IconSelectArrow className="rotate-90 text-[rgba(3,3,6,0.88)]" />
       {children}
     </Link>
   );

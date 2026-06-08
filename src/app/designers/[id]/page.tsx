@@ -1,12 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { notFound, redirect } from "next/navigation";
-import { DesignerProfileHeader } from "@/components/designers/designer-profile-header";
-import { DesignerProfileMainTabs } from "@/components/designers/designer-profile-main-tabs";
+import { DesignerProfilePageClient } from "@/components/designers/designer-profile-page-client";
 import { DesignersAppShell } from "@/components/designers/designers-app-shell";
-import { DesignersCsvExport } from "@/components/designers/designers-csv-export";
-import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
-import { DesignersTopBar } from "@/components/designers/designers-top-bar";
 import {
   collectVisibleItems,
   computeHalfYearGrowth,
@@ -146,41 +142,22 @@ export default async function DesignerProfilePage({
 
   return (
     <DesignersAppShell>
-      <DesignersTopBar
-        title="Дизайнеры"
-        actions={
-          <>
-            <DesignersCsvExport
-              designers={designersExport.designers}
-              competencyColumns={designersExport.competencyExportColumns}
-            />
-            <DesignersLogoutButton />
-          </>
-        }
+      <DesignerProfilePageClient
+        designer={designer}
+        lastReviewAt={lastReviewAt}
+        hasFinalReview={hasFinalReview}
+        average={avg}
+        belowCount={belowCount}
+        growth={growth}
+        maxBelow={visibleCompetencies.length}
+        competencies={visibleCompetencies}
+        itemsByCompetency={itemsByCompetency}
+        scoresByItem={scoresByItem}
+        hasLeadReview={hasLeadReview}
+        hasSelfReview={hasSelfReview}
+        exportDesigners={designersExport.designers}
+        competencyExportColumns={designersExport.competencyExportColumns}
       />
-
-      <main className="flex-1 px-8 pb-10 pt-8">
-        <DesignerProfileHeader
-          designer={designer}
-          lastReviewAt={lastReviewAt}
-          hasFinalReview={hasFinalReview}
-        />
-
-        <DesignerProfileMainTabs
-          designerId={designer.id}
-          designer={designer}
-          average={avg}
-          belowCount={belowCount}
-          growth={growth}
-          maxBelow={visibleCompetencies.length}
-          competencies={visibleCompetencies}
-          itemsByCompetency={itemsByCompetency}
-          scoresByItem={scoresByItem}
-          hasLeadReview={hasLeadReview}
-          hasSelfReview={hasSelfReview}
-          hasFinalReview={hasFinalReview}
-        />
-      </main>
     </DesignersAppShell>
   );
 }

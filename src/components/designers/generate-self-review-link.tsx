@@ -63,7 +63,7 @@ export function GenerateSelfReviewLink({
       onMouseLeave={() => setTooltipOpen(false)}
       className={
         variant === "profile"
-          ? "relative inline-flex h-10 items-center justify-center rounded-lg bg-app-input px-5 text-sm font-semibold leading-5 text-[#C7C9D9] transition-colors hover:text-white disabled:opacity-50"
+          ? "font-sf relative inline-flex min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50"
           : "relative mt-4 inline-flex items-center justify-center rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
       }
     >

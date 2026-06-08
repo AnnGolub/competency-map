@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DesignerMetricCards } from "@/components/designers/designer-metric-cards";
 import { DesignerProfileResults } from "@/components/designers/designer-profile-results";
 import { FeedbackTab } from "@/components/designers/feedback-tab";
 import type {
@@ -14,10 +13,6 @@ import type {
 export function DesignerProfileMainTabs({
   designerId,
   designer,
-  average,
-  belowCount,
-  growth,
-  maxBelow,
   competencies,
   itemsByCompetency,
   scoresByItem,
@@ -27,10 +22,6 @@ export function DesignerProfileMainTabs({
 }: {
   designerId: string;
   designer: Designer;
-  average: number | null;
-  belowCount: number;
-  growth: number | null;
-  maxBelow: number;
   competencies: Competency[];
   itemsByCompetency: Record<string, CompetencyItem[]>;
   scoresByItem: Record<string, ItemScore>;
@@ -41,59 +32,50 @@ export function DesignerProfileMainTabs({
   const [activeMainTab, setActiveMainTab] = useState<"map" | "feedback">("map");
 
   return (
-    <section className="mt-8 max-w-[1152px]">
-      <div
-        style={{
-          display: "flex",
-          gap: "24px",
-          borderBottom: "1px solid #2A2D3A",
-          marginBottom: "32px",
-        }}
-      >
-        {(["map", "feedback"] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveMainTab(tab)}
-            style={{
-              paddingBottom: "12px",
-              fontSize: "16px",
-              fontWeight: activeMainTab === tab ? 600 : 400,
-              color: activeMainTab === tab ? "#ffffff" : "#8F90A6",
-              background: "none",
-              border: "none",
-              borderBottom:
-                activeMainTab === tab ? "2px solid #fff" : "2px solid transparent",
-              cursor: "pointer",
-            }}
-          >
-            {tab === "map" ? "Карта компетенций" : "Обратная связь"}
-          </button>
-        ))}
+    <section className="w-full max-w-[1440px]">
+      <div className="w-full self-stretch border-b border-[#DCDCDD]">
+        <nav className="flex flex-wrap items-center gap-5">
+          {(
+            [
+              { id: "map" as const, label: "Карта компетенций" },
+              { id: "feedback" as const, label: "Обратная связь" },
+            ] as const
+          ).map((tab) => {
+            const active = activeMainTab === tab.id;
+
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveMainTab(tab.id)}
+                className={`relative -mb-px flex h-10 items-center border-b-2 text-[18px] font-normal leading-[22px] transition-colors ${
+                  active
+                    ? "border-[#E53535] text-[#0F0F0F]"
+                    : "border-transparent text-[rgba(60,60,67,0.66)] hover:text-[#0F0F0F]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
       {activeMainTab === "map" ? (
-        <>
-          <DesignerMetricCards
-            average={average}
-            belowCount={belowCount}
-            growth={growth}
-            maxBelow={maxBelow}
-            className="mt-0"
-          />
-          <DesignerProfileResults
-            designer={designer}
-            competencies={competencies}
-            itemsByCompetency={itemsByCompetency}
-            scoresByItem={scoresByItem}
-            hasLeadReview={hasLeadReview}
-            hasSelfReview={hasSelfReview}
-            hasFinalReview={hasFinalReview}
-          />
-        </>
+        <DesignerProfileResults
+          designer={designer}
+          competencies={competencies}
+          itemsByCompetency={itemsByCompetency}
+          scoresByItem={scoresByItem}
+          hasLeadReview={hasLeadReview}
+          hasSelfReview={hasSelfReview}
+          hasFinalReview={hasFinalReview}
+        />
       ) : null}
 
-      {activeMainTab === "feedback" ? <FeedbackTab designerId={designerId} /> : null}
+      {activeMainTab === "feedback" ? (
+        <FeedbackTab designerId={designerId} />
+      ) : null}
     </section>
   );
 }

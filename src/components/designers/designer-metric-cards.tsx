@@ -2,94 +2,129 @@ import Image from "next/image";
 import { formatScore } from "@/lib/competency-utils";
 
 const METRIC_ICONS = {
-  average: "/icons/Ranking.svg",
-  below: "/icons/Emoji-sad.svg",
-  growth: "/icons/Activity.svg",
+  average: "/icons/Avatar.png",
+  below: "/icons/Avatar-1.png",
+  growth: "/icons/Avatar-2.png",
 } as const;
 
-function ScoreRing({
+function CircularProgress({
   value,
-  progress,
+  label,
 }: {
-  value: string;
-  progress: number;
+  value: number | null;
+  label?: string;
 }) {
   const size = 44;
-  const stroke = 3;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clamped = Math.min(1, Math.max(0, progress));
-  const offset = circumference * (1 - clamped);
+  const cx = 22;
+  const cy = 22;
+  const r = 19;
+  const circumference = 2 * Math.PI * r;
+  const displayText = label ?? (value == null ? "—" : String(value));
 
-  return (
-    <div className="relative h-11 w-11 shrink-0">
+  if (value == null) {
+    return (
       <svg
         width={size}
         height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="-rotate-90"
+        viewBox="0 0 44 44"
+        className="shrink-0"
         aria-hidden
       >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#2A2D3A"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#3E7BFA"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-        />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#fff" strokeWidth={3} />
+        <text
+          x="22"
+          y="27"
+          textAnchor="middle"
+          fontSize={12}
+          fontWeight={700}
+          fill="rgba(3,3,6,0.88)"
+          className="font-sf"
+        >
+          —
+        </text>
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums text-white">
-        {value}
-      </span>
-    </div>
+    );
+  }
+
+  const progress = (value / 4) * circumference;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 44 44"
+      className="shrink-0"
+      aria-hidden
+    >
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#fff" strokeWidth={3} />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="none"
+        stroke="#212124"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={`${progress} ${circumference}`}
+        transform="rotate(-90 22 22)"
+      />
+      <text
+        x="22"
+        y="27"
+        textAnchor="middle"
+        fontSize={12}
+        fontWeight={700}
+        fill="rgba(3,3,6,0.88)"
+        letterSpacing={1.25}
+        className="font-sf"
+      >
+        {displayText}
+      </text>
+    </svg>
   );
 }
 
 function MetricIcon({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#3E7BFA] to-[#6600CC]">
-      <Image src={src} alt={alt} width={24} height={24} className="shrink-0" />
-    </div>
+    <Image
+      src={src}
+      alt={alt}
+      width={44}
+      height={44}
+      className="h-11 w-11 shrink-0 rounded-xl object-cover"
+    />
   );
 }
 
-function MetricCard({
+function MetricRow({
   title,
   subtitle,
-  value,
-  progress,
+  ringValue,
+  label,
   iconSrc,
   iconAlt,
 }: {
   title: string;
   subtitle: string;
-  value: string;
-  progress: number;
+  ringValue: number | null;
+  label: string;
   iconSrc: string;
   iconAlt: string;
 }) {
   return (
-    <article className="flex min-w-0 flex-1 items-center justify-between gap-4 rounded-3xl bg-app-sidebar p-6">
+    <article className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 items-center gap-4">
         <MetricIcon src={iconSrc} alt={iconAlt} />
         <div className="min-w-0">
-          <p className="text-sm font-semibold leading-5 text-white">{title}</p>
-          <p className="text-sm leading-5 text-app-placeholder">{subtitle}</p>
+          <p className="font-sf text-sm font-bold leading-5 tracking-[0.47px] text-[rgba(3,3,6,0.88)]">
+            {title}
+          </p>
+          <p className="font-sf mt-1 text-sm font-normal leading-5 tracking-[-0.08px] text-[rgba(4,4,19,0.55)]">
+            {subtitle}
+          </p>
         </div>
       </div>
-      <ScoreRing value={value} progress={progress} />
+      <CircularProgress value={ringValue} label={label} />
     </article>
   );
 }
@@ -99,56 +134,71 @@ export function DesignerMetricCards({
   belowCount,
   growth,
   maxBelow,
-  className = "mt-8",
+  variant = "grid",
+  className = "",
 }: {
   average: number | null;
   belowCount: number;
   growth: number | null;
   maxBelow: number;
+  variant?: "grid" | "sidebar";
   className?: string;
 }) {
-  const avgValue = formatScore(average);
-  const avgProgress = average !== null ? average / 4 : 0;
+  const avgLabel = formatScore(average);
 
-  const belowProgress =
-    maxBelow > 0 ? Math.min(1, belowCount / maxBelow) : belowCount > 0 ? 1 : 0;
+  const belowRingValue =
+    maxBelow > 0 ? Math.min(4, (belowCount / maxBelow) * 4) : belowCount > 0 ? 4 : 0;
 
-  const growthValue =
+  const growthLabel =
     growth === null ? "—" : `${growth > 0 ? "+" : ""}${growth.toFixed(1)}`;
-  const growthProgress =
-    growth === null ? 0 : Math.min(1, Math.max(0, (growth + 1) / 2));
+  const growthRingValue =
+    growth === null ? null : Math.min(4, Math.max(0, ((growth + 1) / 2) * 4));
+
+  const metrics = (
+    <>
+      <MetricRow
+        title="Средний балл"
+        subtitle="По карте компетенций"
+        ringValue={average}
+        label={avgLabel}
+        iconSrc={METRIC_ICONS.average}
+        iconAlt=""
+      />
+      <MetricRow
+        title="Уровень по грейду"
+        subtitle="Ниже ожидаемого"
+        ringValue={belowRingValue}
+        label={String(belowCount)}
+        iconSrc={METRIC_ICONS.below}
+        iconAlt=""
+      />
+      <MetricRow
+        title="Рост в навыках"
+        subtitle="За полгода"
+        ringValue={growthRingValue}
+        label={growthLabel}
+        iconSrc={METRIC_ICONS.growth}
+        iconAlt=""
+      />
+    </>
+  );
+
+  if (variant === "sidebar") {
+    return (
+      <section
+        className={`flex w-[368px] shrink-0 flex-col gap-6 self-stretch rounded-[24px] bg-[#F2F3F5] p-6 ${className}`}
+      >
+        {metrics}
+      </section>
+    );
+  }
 
   return (
-    <section className={`${className} max-w-[1152px]`}>
-      <h2 className="text-base font-semibold leading-6 text-white">
+    <section className={`max-w-[1152px] ${className}`}>
+      <h2 className="font-sf text-base font-semibold leading-6 text-[rgba(3,3,6,0.88)]">
         Оценка дизайнера
       </h2>
-      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <MetricCard
-          title="Средний балл"
-          subtitle="По карте компетенций"
-          value={avgValue}
-          progress={avgProgress}
-          iconSrc={METRIC_ICONS.average}
-          iconAlt=""
-        />
-        <MetricCard
-          title="Ниже ожидаемого"
-          subtitle="Уровень по грейду"
-          value={String(belowCount)}
-          progress={belowProgress}
-          iconSrc={METRIC_ICONS.below}
-          iconAlt=""
-        />
-        <MetricCard
-          title="Рост в навыках"
-          subtitle="За полгода"
-          value={growthValue}
-          progress={growthProgress}
-          iconSrc={METRIC_ICONS.growth}
-          iconAlt=""
-        />
-      </div>
+      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-3">{metrics}</div>
     </section>
   );
 }
