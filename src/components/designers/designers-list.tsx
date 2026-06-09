@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
 import { DesignerFormModal } from "@/components/designers/designer-form-modal";
-import {
-  IconDesignerDelete,
-  IconDesignerEdit,
-} from "@/components/designers/designers-icons";
-import { IconChevronDown, IconX } from "@/components/ui/tabler-icons";
+import { IconChevronDown, IconPencil, IconTrash, IconX } from "@/components/ui/tabler-icons";
 import type { DesignerWithAverage } from "@/lib/data/queries";
 import {
   DESIGNER_ROLES,
@@ -322,7 +318,7 @@ export function DesignersList({
                     onClick={() => setEditingDesigner(designer)}
                     className={ACTION_BUTTON}
                   >
-                    <IconDesignerEdit className="text-[rgba(60,60,67,0.66)]" />
+                    <IconPencil className="h-4 w-4 text-[rgba(60,60,67,0.66)]" />
                   </button>
                   <button
                     type="button"
@@ -334,7 +330,7 @@ export function DesignersList({
                     }}
                     className={ACTION_BUTTON}
                   >
-                    <IconDesignerDelete className="text-[rgba(60,60,67,0.66)]" />
+                    <IconTrash className="h-4 w-4 text-[rgba(60,60,67,0.66)]" />
                   </button>
                 </div>
               </div>

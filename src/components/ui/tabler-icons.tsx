@@ -8,17 +8,19 @@ export function IconPencil({ className }: IconProps) {
       xmlns="http://www.w3.org/2000/svg"
       width={16}
       height={16}
-      viewBox="0 0 24 24"
+      viewBox="0 0 16 16"
       fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      <path d="M4 20h4l10.5-10.5a2.828 2.828 0 1 0-4-4L4 16v4" />
-      <path d="m13.5 6.5 4 4" />
+      <path
+        d="M13.8043 5.03091C14.0652 4.76994 14.0652 4.34682 13.8043 4.08585L11.9142 2.19573C11.6532 1.93476 11.2301 1.93476 10.9691 2.19573L9.77097 3.39385L12.6062 6.22903L13.8043 5.03091Z"
+        fill="currentColor"
+      />
+      <path
+        d="M11.6037 7.23141L4.83515 14H2V11.1648L8.76858 4.39624L11.6037 7.23141Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
@@ -29,20 +31,46 @@ export function IconTrash({ className }: IconProps) {
       xmlns="http://www.w3.org/2000/svg"
       width={16}
       height={16}
-      viewBox="0 0 24 24"
+      viewBox="0 0 16 16"
       fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      <path d="M4 7h16" />
-      <path d="M10 11v6" />
-      <path d="M14 11v6" />
-      <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12" />
-      <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+      <path
+        d="M8.66723 0.666672V2.00001H12.4266C13.2505 2.00001 13.8773 2.73983 13.7418 3.55254L13.6672 4.00001H2.33389L2.25932 3.55254C2.12386 2.73983 2.75059 2.00001 3.57451 2.00001H7.33389V0.666672H8.66723Z"
+        fill="currentColor"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12.6672 5.33334H3.33389L4.20626 13.4754C4.27885 14.1529 4.8506 14.6667 5.532 14.6667H10.4691C11.1505 14.6667 11.7223 14.1529 11.7949 13.4754L12.6672 5.33334ZM6.33389 7.67076H7.33389V11.6708C7.33389 11.6708 7.33389 12.0044 6.83389 12.0044C6.33389 12.0044 6.33389 11.6708 6.33389 11.6708V7.67076ZM8.66723 7.67076H9.66723V11.6708C9.66723 11.6708 9.66723 12.0044 9.16723 12.0044C8.66723 12.0044 8.66723 11.6708 8.66723 11.6708V7.67076Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function IconDoorOpen({ className }: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={16}
+      height={16}
+      viewBox="0 0 16 16"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M6.66663 2.2296C6.66663 1.78303 7.09712 1.46273 7.52486 1.59105L12.9532 3.21956C13.1788 3.28724 13.3333 3.49488 13.3333 3.7304V12.2701C13.3333 12.5056 13.1788 12.7133 12.9532 12.7809L7.52486 14.4094C7.09712 14.5378 6.66663 14.2175 6.66663 13.7709V2.2296ZM9.33329 8.00025C9.33329 8.36844 9.03482 8.66692 8.66663 8.66692C8.29844 8.66692 7.99996 8.36844 7.99996 8.00025C7.99996 7.63206 8.29844 7.33358 8.66663 7.33358C9.03482 7.33358 9.33329 7.63206 9.33329 8.00025Z"
+        fill="currentColor"
+      />
+      <path
+        d="M3.33329 3.33358C2.9651 3.33358 2.66663 3.63205 2.66663 4.00024V12.0002C2.66663 12.3684 2.9651 12.6669 3.33329 12.6669H5.33329V3.33358H3.33329Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }

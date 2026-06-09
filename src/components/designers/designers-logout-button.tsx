@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { signOut } from "@/app/actions/auth";
-import { IconLogout } from "@/components/ui/tabler-icons";
+import { IconDoorOpen } from "@/components/ui/tabler-icons";
 
 export function DesignersLogoutButton({
   className = "rounded-lg p-2 text-app-muted transition-colors hover:bg-app-surface hover:text-white",
@@ -20,7 +20,7 @@ export function DesignersLogoutButton({
       onClick={() => startTransition(() => signOut())}
       className={`${className} disabled:opacity-50`}
     >
-      <IconLogout className="h-4 w-4" />
+      <IconDoorOpen className="h-4 w-4" />
     </button>
   );
 }
