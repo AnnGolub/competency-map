@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export const APP_CONTENT_MAX = "mx-auto w-full max-w-[1280px]";
+export const APP_CONTENT_MAX = "mx-auto w-full max-w-[1440px]";
 export const APP_PAGE_GUTTER = "px-16";
 export const APP_CONTENT_SHELL = `${APP_CONTENT_MAX} ${APP_PAGE_GUTTER}`;
 
