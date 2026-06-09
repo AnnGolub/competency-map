@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 const TOOLTIP_PANEL_CLASS =
-  "inline-flex min-w-[172px] max-w-[400px] flex-col items-start gap-4 rounded-xl bg-white p-4 font-sf text-sm font-normal leading-5 text-[#0E0E0E] shadow-[0_20px_24px_0_rgba(0,0,0,0.08),0_12px_16px_0_rgba(0,0,0,0.04),0_4px_8px_0_rgba(0,0,0,0.04),0_0_1px_0_rgba(0,0,0,0.04)]";
+  "inline-flex w-[312px] min-w-[312px] max-w-[312px] flex-col items-start gap-4 rounded-xl bg-white p-4 font-sf text-sm font-normal leading-5 text-[#0E0E0E] shadow-[0_20px_24px_0_rgba(0,0,0,0.08),0_12px_16px_0_rgba(0,0,0,0.04),0_4px_8px_0_rgba(0,0,0,0.04),0_0_1px_0_rgba(0,0,0,0.04)]";
 
 export function TooltipArrow({ side }: { side: "bottom" | "left" }) {
   if (side === "left") {

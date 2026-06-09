@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { generateSelfReviewLink } from "@/app/actions/self-review-token";
-import { IconX } from "@/components/ui/tabler-icons";
+import { IconInformationCircle, IconX } from "@/components/ui/tabler-icons";
 import { TooltipRightOf } from "@/components/ui/tooltip-bubble";
 
 export function GenerateSelfReviewLink({
@@ -64,17 +63,17 @@ export function GenerateSelfReviewLink({
       onMouseLeave={() => setTooltipOpen(false)}
       className={
         variant === "profile"
-          ? "font-sf relative inline-flex min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50"
-          : "relative mt-4 inline-flex items-center justify-center rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
+          ? "font-sf relative inline-flex min-h-12 min-w-[104px] items-center justify-center gap-1 rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50"
+          : "relative mt-4 inline-flex items-center justify-center gap-1 rounded-lg border border-app-border bg-app-canvas px-4 py-2 text-sm font-medium text-white transition-colors hover:border-app-muted disabled:opacity-50"
       }
     >
       {isPending ? "Генерация…" : "Сгенерировать ссылку"}
-      <Image
-        src="/icons/Information.svg"
-        alt=""
-        width={16}
-        height={16}
-        className="ml-1 opacity-70"
+      <IconInformationCircle
+        className={`h-5 w-5 shrink-0 opacity-70 ${
+          variant === "profile"
+            ? "text-[rgba(60,60,67,0.66)]"
+            : "text-white"
+        }`}
       />
       {tooltipOpen ? (
         <TooltipRightOf>

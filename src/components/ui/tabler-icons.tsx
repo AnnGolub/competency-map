@@ -251,6 +251,27 @@ export function IconEye({ className }: IconProps) {
   );
 }
 
+export function IconInformationCircle({ className }: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={20}
+      height={20}
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.99984 1.66666C5.39747 1.66666 1.6665 5.39762 1.6665 9.99999C1.6665 14.6024 5.39746 18.3333 9.99984 18.3333C14.6022 18.3333 18.3332 14.6024 18.3332 9.99999C18.3332 5.39762 14.6022 1.66666 9.99984 1.66666ZM10.8332 14.1667V9.16666H9.1665V14.1667H10.8332ZM9.99984 7.50004C10.5863 7.50004 11.0617 7.02464 11.0617 6.43821C11.0617 5.85177 10.5863 5.37637 9.99984 5.37637C9.4134 5.37637 8.938 5.85177 8.938 6.43821C8.938 7.02464 9.4134 7.50004 9.99984 7.50004Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export function IconX({ className }: IconProps) {
   return (
     <svg

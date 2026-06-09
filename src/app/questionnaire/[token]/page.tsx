@@ -3,12 +3,10 @@ export const dynamic = "force-dynamic";
 import { QuestionnaireForm } from "@/components/questionnaire/questionnaire-form";
 import { fetchPublicQuestionnaireByToken } from "@/lib/data/questionnaire";
 
+import { AppContentMain } from "@/lib/layout/content-shell";
+
 function QuestionnaireShell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="min-h-screen bg-white px-8 py-8">
-      <div className="mx-auto w-full max-w-[818px]">{children}</div>
-    </main>
-  );
+  return <AppContentMain>{children}</AppContentMain>;
 }
 
 function QuestionnaireMessage({ title, message }: { title: string; message: string }) {

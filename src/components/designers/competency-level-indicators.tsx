@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import { IconInformationCircle } from "@/components/ui/tabler-icons";
 import { TooltipRightOf } from "@/components/ui/tooltip-bubble";
 import type { Competency } from "@/lib/competency-utils";
 
@@ -30,22 +30,20 @@ export function CompetencyLevelIndicators({
 
   return (
     <div
-      className="relative inline-flex shrink-0"
+      className="relative inline-flex shrink-0 items-center"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
       <button
         type="button"
-        className="inline-flex h-5 w-5 items-center justify-center rounded transition-opacity hover:opacity-80"
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded transition-opacity hover:opacity-80"
         aria-label="Что означает каждый уровень"
         aria-expanded={open}
       >
-        <Image
-          src="/icons/Information.svg"
-          alt=""
-          width={16}
-          height={16}
-          className={`shrink-0 ${isDark ? "" : "brightness-0 opacity-[0.66]"}`}
+        <IconInformationCircle
+          className={`h-5 w-5 ${
+            isDark ? "text-white" : "text-[rgba(60,60,67,0.66)]"
+          }`}
         />
       </button>
 

@@ -6,6 +6,7 @@ import { DesignersList } from "@/components/designers/designers-list";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
+  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
 import { IconPlus } from "@/components/ui/tabler-icons";
@@ -46,7 +47,7 @@ export function DesignersPageClient({
         }
       />
 
-      <main className="flex-1 bg-white px-8 pb-12 pt-8">
+      <main className={`min-h-0 flex-1 overflow-y-auto bg-white pb-12 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
         <DesignersList
           designers={designers}
           isAddModalOpen={isAddModalOpen}

@@ -206,7 +206,7 @@ export function DesignerMetricCards({
   }
 
   return (
-    <section className={`max-w-[1152px] ${className}`}>
+    <section className={className}>
       <h2 className="font-sf text-base font-semibold leading-6 text-[rgba(3,3,6,0.88)]">
         Оценка дизайнера
       </h2>

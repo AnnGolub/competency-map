@@ -32,7 +32,7 @@ export function DesignerProfileMainTabs({
   const [activeMainTab, setActiveMainTab] = useState<"map" | "feedback">("map");
 
   return (
-    <section className="w-full max-w-[1440px]">
+    <section className="w-full">
       <div className="w-full self-stretch border-b border-[#DCDCDD]">
         <nav className="flex flex-wrap items-center gap-5">
           {(

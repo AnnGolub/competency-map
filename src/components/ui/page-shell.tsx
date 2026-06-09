@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { APP_CONTENT_SHELL } from "@/lib/layout/content-shell";
 
 type PageShellProps = {
   title?: string;
@@ -19,8 +20,8 @@ export function PageShell({
 }: PageShellProps) {
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <header className="border-b-[0.5px] border-neutral-200 px-6 py-5">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
+      <header className="border-b-[0.5px] border-neutral-200 py-5">
+        <div className={`flex items-center justify-between gap-4 ${APP_CONTENT_SHELL}`}>
           {backHref ? (
             <Link
               href={backHref}
@@ -37,12 +38,12 @@ export function PageShell({
           </div>
         </div>
         {title ? (
-          <h1 className="mx-auto mt-4 max-w-3xl text-2xl font-medium tracking-tight">
+          <h1 className={`mt-4 text-2xl font-medium tracking-tight ${APP_CONTENT_SHELL}`}>
             {title}
           </h1>
         ) : null}
       </header>
-      <main className="mx-auto max-w-3xl px-6 py-8">{children}</main>
+      <main className={`py-8 ${APP_CONTENT_SHELL}`}>{children}</main>
     </div>
   );
 }

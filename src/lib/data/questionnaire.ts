@@ -64,7 +64,7 @@ export async function fetchQuestionnaireOverview(): Promise<
 
   const [{ data: designers, error: designersError }, { data: responses, error: responsesError }] =
     await Promise.all([
-      admin.from("designers").select("*").order("name"),
+      admin.from("designers").select("*").order("created_at", { ascending: true }),
       admin
         .from("questionnaire_responses")
         .select("id, designer_id, questionnaire_answers(question_key, score)"),

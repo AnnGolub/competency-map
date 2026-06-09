@@ -7,6 +7,7 @@ import { DesignersCsvExport } from "@/components/designers/designers-csv-export"
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
+  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
 import { ReviewPageHeader } from "@/components/designers/review-page-header";
@@ -59,7 +60,7 @@ export function FinalReviewPageClient({
         }
       />
 
-      <main className="flex w-full flex-1 flex-col gap-8 self-stretch px-8 pb-8 pt-8">
+      <main className={`flex min-h-0 w-full flex-1 flex-col gap-8 self-stretch overflow-y-auto bg-white pb-8 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
         <div className="flex w-full flex-col gap-8 self-stretch">
           <ReviewPageHeader designer={designer} title="Финальное ревью" />
 

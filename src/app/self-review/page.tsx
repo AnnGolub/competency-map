@@ -3,16 +3,14 @@ export const dynamic = "force-dynamic";
 import { PublicSelfReviewForm } from "@/components/self-review/public-self-review-form";
 import { fetchPublicSelfReviewByToken } from "@/lib/data/self-review-tokens";
 
+import { AppContentMain } from "@/lib/layout/content-shell";
+
 function SelfReviewShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <main className="min-h-screen bg-white px-8 py-8">
-      <div className="mx-auto w-full max-w-[1152px]">{children}</div>
-    </main>
-  );
+  return <AppContentMain>{children}</AppContentMain>;
 }
 
 function SelfReviewMessage({

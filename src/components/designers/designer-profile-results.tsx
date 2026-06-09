@@ -63,7 +63,7 @@ export function DesignerProfileResults({
   const isWaitingForReviews = !hasLeadReview || !hasSelfReview;
 
   return (
-    <section className="mt-8 w-full max-w-[1440px]">
+    <section className="mt-8 w-full">
       <nav className="flex flex-row flex-wrap items-start gap-3">
         {tabs.map((tab) => {
           const active = activeTab === tab.value;

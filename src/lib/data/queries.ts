@@ -28,6 +28,7 @@ export type DesignerWithAverage = Designer & {
   competencyScoresById: Record<string, number | null>;
   lastReviewedAt: string | null;
   reviewStatus: DesignerReviewStatus;
+  feedbackResponseCount: number;
 };
 
 export type DesignersWithAveragesResult = {
@@ -157,6 +158,7 @@ export async function fetchDesignersWithAverages(): Promise<
     { data: itemScores, error: itemScoresError },
     { data: competencyRows, error: competenciesError },
     { data: items, error: itemsError },
+    { data: questionnaireResponses, error: questionnaireResponsesError },
   ] = await Promise.all([
     supabase.from("designers").select("*").order("created_at", { ascending: true }),
     supabase
@@ -168,12 +170,22 @@ export async function fetchDesignersWithAverages(): Promise<
       .order("sort_order", { ascending: true, nullsFirst: false })
       .order("title"),
     supabase.from("competency_items").select("id, competency_id, only_lead"),
+    supabase.from("questionnaire_responses").select("designer_id"),
   ]);
 
   if (designersError) throw designersError;
   if (itemScoresError) throw itemScoresError;
   if (competenciesError) throw competenciesError;
   if (itemsError) throw itemsError;
+  if (questionnaireResponsesError) throw questionnaireResponsesError;
+
+  const feedbackResponseCountByDesigner = new Map<string, number>();
+  for (const response of questionnaireResponses ?? []) {
+    feedbackResponseCountByDesigner.set(
+      response.designer_id,
+      (feedbackResponseCountByDesigner.get(response.designer_id) ?? 0) + 1
+    );
+  }
 
   const itemToCompetency = new Map(
     ((items ?? []) as DesignerListItemRow[]).map((i) => [i.id, i.competency_id])
@@ -294,6 +306,7 @@ export async function fetchDesignersWithAverages(): Promise<
           : hasCompletedReview
             ? "done"
             : "in progress",
+        feedbackResponseCount: feedbackResponseCountByDesigner.get(d.id) ?? 0,
       };
     }
   );

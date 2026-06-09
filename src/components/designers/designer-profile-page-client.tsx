@@ -10,6 +10,7 @@ import { DesignersCsvExport } from "@/components/designers/designers-csv-export"
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
+  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
 import { IconPlus } from "@/components/ui/tabler-icons";
@@ -84,8 +85,8 @@ export function DesignerProfilePageClient({
         }
       />
 
-      <main className="flex flex-1 flex-col gap-8 px-8 pb-12 pt-8">
-        <div className="flex w-full max-w-[1440px] flex-col gap-8">
+      <main className={`flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto bg-white pb-12 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
+        <div className="flex w-full flex-col gap-8">
           <DesignerBackLink href="/designers">К списку дизайнеров</DesignerBackLink>
 
           <div className="flex w-full flex-wrap items-start gap-8">

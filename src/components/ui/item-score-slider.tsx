@@ -3,10 +3,18 @@
 import { useState, type ReactNode } from "react";
 import {
   getIndicatorTextForScore,
+  MAX_SCORE,
   SCORE_OPTIONS,
   type CompetencyIndicatorFields,
 } from "@/lib/competency-utils";
 import { TooltipAbove } from "@/components/ui/tooltip-bubble";
+
+const SLIDER_MIN = 1;
+
+function sliderTrackGradient(value: number) {
+  const fillPercent = ((value - SLIDER_MIN) / (MAX_SCORE - SLIDER_MIN)) * 100;
+  return `linear-gradient(to right, #E53535 0%, #E53535 ${fillPercent}%, #E0E0E0 ${fillPercent}%, #E0E0E0 100%)`;
+}
 
 function ReviewScoreSlider({
   label,
@@ -21,17 +29,12 @@ function ReviewScoreSlider({
   indicators?: CompetencyIndicatorFields;
   helperContent?: ReactNode;
 }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const thumbPercent = ((value - 1) / 3) * 100;
-  const tooltipText =
-    indicators && isDragging
-      ? getIndicatorTextForScore(indicators, value)
-      : null;
+  const [hoveredTick, setHoveredTick] = useState<number | null>(null);
+  const thumbPercent = ((value - SLIDER_MIN) / (MAX_SCORE - SLIDER_MIN)) * 100;
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     const el = e.currentTarget;
-    setIsDragging(true);
 
     const updateFromEvent = (clientX: number) => {
       const rect = el.getBoundingClientRect();
@@ -39,14 +42,13 @@ function ReviewScoreSlider({
       const ratio = x / rect.width;
       const raw = 1 + ratio * 3;
       const snapped = Math.round(raw / 0.5) * 0.5;
-      onChange(Math.min(4, Math.max(1, snapped)));
+      onChange(Math.min(MAX_SCORE, Math.max(SLIDER_MIN, snapped)));
     };
 
     updateFromEvent(e.clientX);
 
     const onMove = (me: MouseEvent) => updateFromEvent(me.clientX);
     const onUp = () => {
-      setIsDragging(false);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
@@ -56,7 +58,6 @@ function ReviewScoreSlider({
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
-    setIsDragging(true);
 
     const updateFromEvent = (clientX: number) => {
       const rect = el.getBoundingClientRect();
@@ -64,14 +65,13 @@ function ReviewScoreSlider({
       const ratio = x / rect.width;
       const raw = 1 + ratio * 3;
       const snapped = Math.round(raw / 0.5) * 0.5;
-      onChange(Math.min(4, Math.max(1, snapped)));
+      onChange(Math.min(MAX_SCORE, Math.max(SLIDER_MIN, snapped)));
     };
 
     updateFromEvent(e.touches[0].clientX);
 
     const onMove = (te: TouchEvent) => updateFromEvent(te.touches[0].clientX);
     const onEnd = () => {
-      setIsDragging(false);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
     };
@@ -93,25 +93,30 @@ function ReviewScoreSlider({
         <span className="pointer-events-none absolute left-3 top-2.5 text-base tabular-nums leading-6 text-[rgba(3,3,6,0.88)]">
           {value.toFixed(1)}
         </span>
-        <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-0.5 rounded-lg bg-[#E0E0E0]">
+        <div
+          className="pointer-events-none absolute bottom-0 left-3 right-3 h-0.5 rounded-lg"
+          style={{ background: sliderTrackGradient(value) }}
+        >
           <div
             className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{ left: `${thumbPercent}%` }}
           >
-            {tooltipText ? (
-              <TooltipAbove>{tooltipText}</TooltipAbove>
-            ) : null}
             <div className="h-[16px] w-[16px] rounded-full bg-[#E53535]" />
           </div>
         </div>
       </div>
       <div className="flex justify-between px-3 pt-1.5">
-        {SCORE_OPTIONS.map((v) => (
+        {SCORE_OPTIONS.map((tick) => (
           <span
-            key={v}
-            className="font-sf text-sm tabular-nums leading-[18px] text-[rgba(4,4,19,0.55)]"
+            key={tick}
+            className="relative font-sf cursor-default text-sm tabular-nums leading-[18px] text-[rgba(4,4,19,0.55)]"
+            onMouseEnter={() => indicators && setHoveredTick(tick)}
+            onMouseLeave={() => setHoveredTick(null)}
           >
-            {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
+            {tick % 1 === 0 ? tick.toFixed(0) : tick.toFixed(1)}
+            {indicators && hoveredTick === tick ? (
+              <TooltipAbove>{getIndicatorTextForScore(indicators, tick)}</TooltipAbove>
+            ) : null}
           </span>
         ))}
       </div>
@@ -181,8 +186,8 @@ export function ItemScoreSlider({
       <input
         id={id}
         type="range"
-        min={1}
-        max={4}
+        min={SLIDER_MIN}
+        max={MAX_SCORE}
         step={0.5}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}

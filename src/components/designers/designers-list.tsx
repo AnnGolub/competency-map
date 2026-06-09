@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { deleteDesigner } from "@/app/actions/designer";
 import { DesignerFormModal } from "@/components/designers/designer-form-modal";
 import {
   IconDesignerDelete,
   IconDesignerEdit,
 } from "@/components/designers/designers-icons";
-import { IconChevronDown } from "@/components/ui/tabler-icons";
+import { IconChevronDown, IconX } from "@/components/ui/tabler-icons";
 import type { DesignerWithAverage } from "@/lib/data/queries";
 import {
   DESIGNER_ROLES,
@@ -19,7 +19,7 @@ import {
 import type { DesignerRole } from "@/types/database";
 
 type RoleFilter = "all" | DesignerRole;
-type SortKey = "role" | "score";
+type SortKey = "role" | "score" | "feedback";
 type ReviewStatus = DesignerWithAverage["reviewStatus"];
 
 const STATUS_STYLES: Record<
@@ -59,6 +59,28 @@ const BODY_COL =
 const COL_ACTIONS = "flex w-[80px] shrink-0 items-center justify-end";
 const ACTION_BUTTON =
   "inline-flex min-h-8 min-w-8 max-w-8 items-center justify-center rounded-lg bg-transparent p-1 text-[rgba(60,60,67,0.66)] transition-colors hover:bg-[rgba(0,0,0,0.05)]";
+
+const MODAL_PRIMARY_BUTTON =
+  "font-sf inline-flex min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[#212124] px-5 py-1 text-base font-medium leading-6 text-[rgba(255,255,255,0.94)] transition-opacity hover:opacity-90 disabled:opacity-50";
+
+const MODAL_SECONDARY_BUTTON =
+  "font-sf inline-flex min-h-12 min-w-[104px] items-center justify-center rounded-[10px] bg-[rgba(15,25,55,0.10)] px-5 py-1 text-base font-medium leading-6 text-[rgba(3,3,6,0.88)] backdrop-blur-[40px] transition-opacity hover:opacity-90 disabled:opacity-50";
+
+function formatFeedbackResponses(count: number): string {
+  if (count === 0) return "—";
+
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  let word = "ответов";
+
+  if (mod10 === 1 && mod100 !== 11) {
+    word = "ответ";
+  } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+    word = "ответа";
+  }
+
+  return `${count} ${word}`;
+}
 
 function SortableHeader({
   label,
@@ -124,6 +146,10 @@ export function DesignersList({
         const sb = b.averageScore ?? -1;
         return sb - sa;
       });
+    } else if (sortKey === "feedback") {
+      list = [...list].sort(
+        (a, b) => b.feedbackResponseCount - a.feedbackResponseCount
+      );
     }
 
     return list;
@@ -138,6 +164,30 @@ export function DesignersList({
   function toggleScoreSort() {
     setSortKey((key) => (key === "score" ? null : "score"));
   }
+
+  function toggleFeedbackSort() {
+    setSortKey((key) => (key === "feedback" ? null : "feedback"));
+  }
+
+  function closeDeleteModal() {
+    if (isPending) return;
+    setDeletingDesigner(null);
+    setDeleteError(null);
+  }
+
+  useEffect(() => {
+    if (!deletingDesigner) return;
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isPending) {
+        setDeletingDesigner(null);
+        setDeleteError(null);
+      }
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [deletingDesigner, isPending]);
 
   function handleConfirmDelete() {
     if (!deletingDesigner) return;
@@ -209,10 +259,18 @@ export function DesignersList({
             </div>
             <div className={HEADER_COL} role="columnheader">
               <SortableHeader
-                label="Средний балл"
+                label="Оценка компетенций"
                 columnKey="score"
                 sortKey={sortKey}
                 onSort={toggleScoreSort}
+              />
+            </div>
+            <div className={HEADER_COL} role="columnheader">
+              <SortableHeader
+                label="Обратная связь"
+                columnKey="feedback"
+                sortKey={sortKey}
+                onSort={toggleFeedbackSort}
               />
             </div>
             <div className={HEADER_COL} role="columnheader">
@@ -235,6 +293,9 @@ export function DesignersList({
               <div className={`${BODY_COL} truncate`}>{designer.direction}</div>
               <div className={`${BODY_COL} tabular-nums`}>
                 {formatScore(designer.averageScore)}
+              </div>
+              <div className={BODY_COL}>
+                {formatFeedbackResponses(designer.feedbackResponseCount)}
               </div>
               <div className={BODY_COL}>
                 <span
@@ -297,34 +358,64 @@ export function DesignersList({
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
+          }}
         >
-          <div className="w-full max-w-sm rounded-xl border border-[#EDEEF0] bg-white p-6 text-[rgba(3,3,6,0.88)] shadow-xl">
-            <p id="delete-dialog-title" className="text-base font-bold leading-6">
-              Удалить {deletingDesigner.name}?
-            </p>
-            {deleteError ? (
-              <p className="mt-2 text-sm text-[#E53535]">{deleteError}</p>
-            ) : null}
-            <div className="mt-6 flex justify-end gap-3">
+          <div
+            className="relative w-[500px] overflow-hidden rounded-[24px] bg-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative px-7 pt-7">
+              <h2
+                id="delete-dialog-title"
+                className="font-sf pr-10 text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]"
+              >
+                Удаление дизайнера
+              </h2>
               <button
                 type="button"
                 disabled={isPending}
-                onClick={() => {
-                  setDeletingDesigner(null);
-                  setDeleteError(null);
-                }}
-                className="h-10 rounded-lg border border-[#EDEEF0] px-5 text-sm font-semibold text-[rgba(60,60,67,0.66)] transition-colors hover:text-[rgba(3,3,6,0.88)]"
+                onClick={closeDeleteModal}
+                className="absolute right-7 top-7 inline-flex items-center justify-center text-[rgba(4,4,19,0.55)] transition-colors hover:text-[rgba(3,3,6,0.88)] disabled:opacity-50"
+                aria-label="Закрыть"
               >
-                Отмена
+                <IconX className="h-5 w-5" />
               </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={handleConfirmDelete}
-                className="h-10 rounded-lg bg-[#E53535] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#c42d2d] disabled:opacity-50"
+            </div>
+
+            <div className="flex flex-col gap-4 px-7 pb-10 pt-4">
+              <p
+                id="delete-dialog-description"
+                className="font-sf text-base font-normal leading-6 text-[rgba(3,3,6,0.88)]"
               >
-                {isPending ? "Удаление…" : "Удалить"}
-              </button>
+                Вы правда хотите удалить дизайнера {deletingDesigner.name} из
+                таблицы?
+              </p>
+
+              {deleteError ? (
+                <p className="text-sm text-[#E53535]">{deleteError}</p>
+              ) : null}
+
+              <div className="flex gap-4 pt-2">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleConfirmDelete}
+                  className={MODAL_PRIMARY_BUTTON}
+                >
+                  {isPending ? "Удаление…" : "Удалить"}
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={closeDeleteModal}
+                  className={MODAL_SECONDARY_BUTTON}
+                >
+                  Отменить
+                </button>
+              </div>
             </div>
           </div>
         </div>
