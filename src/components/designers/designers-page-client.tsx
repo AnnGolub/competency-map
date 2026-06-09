@@ -6,9 +6,9 @@ import { DesignersList } from "@/components/designers/designers-list";
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
-  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
+import { AppPageContent } from "@/lib/layout/content-shell";
 import { IconPlus } from "@/components/ui/tabler-icons";
 import type {
   CompetencyExportColumn,
@@ -47,12 +47,14 @@ export function DesignersPageClient({
         }
       />
 
-      <main className={`min-h-0 flex-1 overflow-y-auto bg-white pb-12 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
-        <DesignersList
-          designers={designers}
-          isAddModalOpen={isAddModalOpen}
-          onAddModalOpenChange={setIsAddModalOpen}
-        />
+      <main className="min-h-0 w-full flex-1 overflow-y-auto bg-white">
+        <AppPageContent className="pb-12 pt-8">
+          <DesignersList
+            designers={designers}
+            isAddModalOpen={isAddModalOpen}
+            onAddModalOpenChange={setIsAddModalOpen}
+          />
+        </AppPageContent>
       </main>
     </>
   );

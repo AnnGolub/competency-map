@@ -11,6 +11,20 @@ export const DESIGNERS_PAGE_GUTTER = APP_PAGE_GUTTER;
 /** @deprecated Use APP_CONTENT_SHELL */
 export const DESIGNERS_CONTENT_SHELL = APP_CONTENT_SHELL;
 
+export function AppPageContent({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`${APP_CONTENT_SHELL}${className ? ` ${className}` : ""}`}>
+      {children}
+    </div>
+  );
+}
+
 export function AppContentMain({
   children,
   className = "",
@@ -19,10 +33,8 @@ export function AppContentMain({
   className?: string;
 }) {
   return (
-    <main
-      className={`min-h-screen bg-white py-8 ${APP_CONTENT_SHELL}${className ? ` ${className}` : ""}`}
-    >
-      {children}
+    <main className="min-h-screen bg-white py-8">
+      <AppPageContent className={className}>{children}</AppPageContent>
     </main>
   );
 }

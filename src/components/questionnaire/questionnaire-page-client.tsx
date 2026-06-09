@@ -6,9 +6,9 @@ import { DesignersCsvExport } from "@/components/designers/designers-csv-export"
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
-  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
+import { AppPageContent } from "@/lib/layout/content-shell";
 import { QuestionnaireList } from "@/components/questionnaire/questionnaire-list";
 import { IconPlus } from "@/components/ui/tabler-icons";
 import type {
@@ -51,8 +51,10 @@ export function QuestionnairePageClient({
         }
       />
 
-      <main className={`min-h-0 flex-1 overflow-y-auto bg-white pb-12 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
-        <QuestionnaireList designers={designers} />
+      <main className="min-h-0 w-full flex-1 overflow-y-auto bg-white">
+        <AppPageContent className="pb-12 pt-8">
+          <QuestionnaireList designers={designers} />
+        </AppPageContent>
       </main>
 
       <DesignerFormModal

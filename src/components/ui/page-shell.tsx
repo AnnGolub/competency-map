@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { APP_CONTENT_SHELL } from "@/lib/layout/content-shell";
+import { APP_CONTENT_SHELL, AppPageContent } from "@/lib/layout/content-shell";
 
 type PageShellProps = {
   title?: string;
@@ -43,7 +43,9 @@ export function PageShell({
           </h1>
         ) : null}
       </header>
-      <main className={`py-8 ${APP_CONTENT_SHELL}`}>{children}</main>
+      <main className="py-8">
+        <AppPageContent>{children}</AppPageContent>
+      </main>
     </div>
   );
 }

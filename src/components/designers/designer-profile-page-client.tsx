@@ -10,9 +10,9 @@ import { DesignersCsvExport } from "@/components/designers/designers-csv-export"
 import { DesignersLogoutButton } from "@/components/designers/designers-logout-button";
 import {
   DesignersTopBar,
-  DESIGNERS_CONTENT_SHELL,
   HEADER_GLASS_ICON_BUTTON,
 } from "@/components/designers/designers-top-bar";
+import { AppPageContent } from "@/lib/layout/content-shell";
 import { IconPlus } from "@/components/ui/tabler-icons";
 import type {
   Competency,
@@ -85,40 +85,42 @@ export function DesignerProfilePageClient({
         }
       />
 
-      <main className={`flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto bg-white pb-12 pt-8 ${DESIGNERS_CONTENT_SHELL}`}>
-        <div className="flex w-full flex-col gap-8">
-          <DesignerBackLink href="/designers">К списку дизайнеров</DesignerBackLink>
+      <main className="min-h-0 w-full flex-1 overflow-y-auto bg-white">
+        <AppPageContent className="flex flex-col gap-8 pb-12 pt-8">
+          <div className="flex w-full flex-col gap-8">
+            <DesignerBackLink href="/designers">К списку дизайнеров</DesignerBackLink>
 
-          <div className="flex w-full flex-wrap items-start gap-8">
-            <DesignerProfileHeader
+            <div className="flex w-full flex-wrap items-start gap-8">
+              <DesignerProfileHeader
+                designer={designer}
+                lastReviewAt={lastReviewAt}
+                hasLeadReview={hasLeadReview}
+                selfReviewCompleted={selfReviewCompleted}
+                hasFinalReview={hasFinalReview}
+              />
+              <DesignerMetricCards
+                variant="sidebar"
+                average={average}
+                expectedAverage={expectedAverage}
+                role={designer.role}
+                growth={growth}
+                feedbackResponseCount={feedbackResponseCount}
+                feedbackAverage={feedbackAverage}
+              />
+            </div>
+
+            <DesignerProfileMainTabs
+              designerId={designer.id}
               designer={designer}
-              lastReviewAt={lastReviewAt}
+              competencies={competencies}
+              itemsByCompetency={itemsByCompetency}
+              scoresByItem={scoresByItem}
               hasLeadReview={hasLeadReview}
-              selfReviewCompleted={selfReviewCompleted}
+              hasSelfReview={hasSelfReview}
               hasFinalReview={hasFinalReview}
             />
-            <DesignerMetricCards
-              variant="sidebar"
-              average={average}
-              expectedAverage={expectedAverage}
-              role={designer.role}
-              growth={growth}
-              feedbackResponseCount={feedbackResponseCount}
-              feedbackAverage={feedbackAverage}
-            />
           </div>
-
-          <DesignerProfileMainTabs
-            designerId={designer.id}
-            designer={designer}
-            competencies={competencies}
-            itemsByCompetency={itemsByCompetency}
-            scoresByItem={scoresByItem}
-            hasLeadReview={hasLeadReview}
-            hasSelfReview={hasSelfReview}
-            hasFinalReview={hasFinalReview}
-          />
-        </div>
+        </AppPageContent>
       </main>
 
       <DesignerFormModal
