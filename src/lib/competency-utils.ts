@@ -223,6 +223,27 @@ export function formatScore(value: number | null): string {
   return value.toFixed(1);
 }
 
+export type CompetencyIndicatorFields = Pick<
+  Competency,
+  "indicators_1" | "indicators_2" | "indicators_3" | "indicators_4"
+>;
+
+export function getIndicatorTextForScore(
+  indicators: CompetencyIndicatorFields,
+  value: number
+): string {
+  const field =
+    value <= 1.4
+      ? "indicators_1"
+      : value <= 2.4
+        ? "indicators_2"
+        : value <= 3.4
+          ? "indicators_3"
+          : "indicators_4";
+  const text = indicators[field];
+  return typeof text === "string" && text.trim().length > 0 ? text.trim() : "—";
+}
+
 export function progressPercent(score: number | null): number {
   if (score === null) return 0;
   return Math.min(100, (score / MAX_SCORE) * 100);

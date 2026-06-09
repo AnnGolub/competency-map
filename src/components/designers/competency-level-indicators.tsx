@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { TooltipRightOf } from "@/components/ui/tooltip-bubble";
 import type { Competency } from "@/lib/competency-utils";
 
 type IndicatorField =
@@ -26,8 +27,6 @@ export function CompetencyLevelIndicators({
 }) {
   const [open, setOpen] = useState(false);
   const isDark = theme === "dark";
-  const scoreLabel = isDark ? "text-app-placeholder" : "text-neutral-400";
-  const textCls = isDark ? "text-white/80" : "text-neutral-600";
 
   return (
     <div
@@ -51,32 +50,20 @@ export function CompetencyLevelIndicators({
       </button>
 
       {open ? (
-        <div
-          role="tooltip"
-          className={`absolute left-full top-1/2 z-20 ml-2 w-[288px] -translate-y-1/2 rounded-xl border p-4 shadow-lg ${
-            isDark
-              ? "border-app-border bg-[#1E2130]"
-              : "border-[#EDEEF0] bg-white"
-          }`}
-        >
-          <ul className={`space-y-2 text-sm ${textCls}`}>
-            {LEVEL_ROWS.map(({ score, field }) => {
-              const raw = competency[field];
-              const text =
-                typeof raw === "string" && raw.trim().length > 0
-                  ? raw.trim()
-                  : "—";
-              return (
-                <li key={field} className="flex gap-2">
-                  <span className={`shrink-0 tabular-nums ${scoreLabel}`}>
-                    {score}
-                  </span>
-                  <span className="min-w-0">{text}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <TooltipRightOf>
+          {LEVEL_ROWS.map(({ score, field }) => {
+            const raw = competency[field];
+            const text =
+              typeof raw === "string" && raw.trim().length > 0
+                ? raw.trim()
+                : "—";
+            return (
+              <p key={field} className="w-full">
+                <span className="tabular-nums">{score}</span> {text}
+              </p>
+            );
+          })}
+        </TooltipRightOf>
       ) : null}
     </div>
   );

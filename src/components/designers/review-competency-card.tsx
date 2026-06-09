@@ -106,6 +106,12 @@ export function ReviewCompetencyCard({
                   expected={null}
                   theme="light"
                   variant="review"
+                  indicators={{
+                    indicators_1: competency.indicators_1,
+                    indicators_2: competency.indicators_2,
+                    indicators_3: competency.indicators_3,
+                    indicators_4: competency.indicators_4,
+                  }}
                   onChange={(score) => onScoreChange(item.id, score)}
                 />
               )}

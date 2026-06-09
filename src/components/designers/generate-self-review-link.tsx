@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { generateSelfReviewLink } from "@/app/actions/self-review-token";
 import { IconX } from "@/components/ui/tabler-icons";
+import { TooltipRightOf } from "@/components/ui/tooltip-bubble";
 
 export function GenerateSelfReviewLink({
   designerId,
@@ -76,27 +77,10 @@ export function GenerateSelfReviewLink({
         className="ml-1 opacity-70"
       />
       {tooltipOpen ? (
-        <span
-          style={{
-            position: "absolute",
-            left: "calc(100% + 8px)",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "260px",
-            background: "#1E2130",
-            border: "1px solid var(--app-border)",
-            borderRadius: "12px",
-            padding: "12px",
-            fontSize: "13px",
-            lineHeight: "18px",
-            color: "rgba(255,255,255,0.8)",
-            zIndex: 50,
-            whiteSpace: "normal",
-          }}
-        >
+        <TooltipRightOf>
           Одноразовая ссылка для отправки дизайнеру для оценки своих навыков по
           карте компетенций
-        </span>
+        </TooltipRightOf>
       ) : null}
     </button>
   );
