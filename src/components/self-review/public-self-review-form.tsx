@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   submitSelfReviewByToken,
   type SelfReviewEntry,
@@ -132,12 +133,6 @@ export function PublicSelfReviewForm({
         <ReviewStepper steps={steps} currentIndex={stepIndex} />
       </div>
 
-      {error ? (
-        <p className="mt-6 rounded-lg border border-[#E53535]/30 bg-[#E53535]/10 px-3 py-2 text-sm text-[#E53535]">
-          {error}
-        </p>
-      ) : null}
-
       <section className="mt-8">
         <h2 className="font-sf text-[22px] font-bold leading-[26px] tracking-[0.2px] text-[rgba(3,3,6,0.88)]">
           {currentBlock ? BLOCK_LABELS[currentBlock] : ""}
@@ -157,7 +152,7 @@ export function PublicSelfReviewForm({
         </div>
       </section>
 
-      <div className="mt-8 flex gap-4">
+      <div className="mt-8 flex items-center gap-4">
         {!isFirstStep ? (
           <button type="button" onClick={handleBack} className={SECONDARY_BUTTON}>
             Назад
@@ -178,6 +173,21 @@ export function PublicSelfReviewForm({
             Продолжить
           </button>
         )}
+
+        {error ? (
+          <div className="flex h-12 items-center gap-1 rounded-xl bg-[#FFEFD9] px-2">
+            <Image
+              src="/icons/Designer/Profile/LeftAddon.svg"
+              alt=""
+              width={20}
+              height={20}
+              className="shrink-0"
+            />
+            <p className="font-sf text-sm leading-5 tracking-[-0.08px] text-[rgba(3,3,6,0.88)]">
+              {error}
+            </p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
