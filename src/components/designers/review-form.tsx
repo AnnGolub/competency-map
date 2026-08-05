@@ -182,12 +182,12 @@ export function ReviewForm({
         )}
 
         {error ? (
-          <div className="flex h-12 items-center gap-1 rounded-xl bg-[#FFEFD9] px-2">
+          <div className="flex h-12 items-center gap-1 rounded-xl bg-[#FFEFD9] px-3">
             <Image
               src="/icons/Designer/Profile/LeftAddon.svg"
               alt=""
-              width={20}
-              height={20}
+              width={24}
+              height={24}
               className="shrink-0"
             />
             <p className="font-sf text-sm leading-5 tracking-[-0.08px] text-[rgba(3,3,6,0.88)]">

@@ -160,6 +160,18 @@ export function FinalReviewForm({
 
   function handleContinue() {
     setError(null);
+
+    const stepItems = blockCompetencies.flatMap(
+      (competency) => itemsByCompetency[competency.id] ?? []
+    );
+    for (const item of stepItems) {
+      const parsed = parseScore(form[item.id] ?? "");
+      if (parsed === null || !isValidStepScore(parsed)) {
+        setError("Выберите все финальные значения");
+        return;
+      }
+    }
+
     if (!isLastStep) {
       setStepIndex((current) => current + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -267,7 +279,7 @@ export function FinalReviewForm({
             disabled={isSubmitting || allItems.length === 0}
             className={PRIMARY_BUTTON}
           >
-            Сохранить
+            Отправить
           </button>
         ) : (
           <button type="button" onClick={handleContinue} className={PRIMARY_BUTTON}>
@@ -276,12 +288,12 @@ export function FinalReviewForm({
         )}
 
         {error ? (
-          <div className="flex h-12 items-center gap-1 rounded-xl bg-[#FFEFD9] px-2">
+          <div className="flex h-12 items-center gap-1 rounded-xl bg-[#FFEFD9] px-3">
             <Image
               src="/icons/Designer/Profile/LeftAddon.svg"
               alt=""
-              width={20}
-              height={20}
+              width={24}
+              height={24}
               className="shrink-0"
             />
             <p className="font-sf text-sm leading-5 tracking-[-0.08px] text-[rgba(3,3,6,0.88)]">
